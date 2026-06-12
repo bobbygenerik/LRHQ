@@ -24,6 +24,7 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.StatBar
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.SpatialNavController
@@ -57,9 +58,10 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
 
             // Group filter chips.
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                (listOf<String?>(null) + app.channels.groups()).take(5).forEach { g ->
+                (listOf<String?>(null) + app.channels.groups()).take(5).forEachIndexed { index, g ->
                     FocusableGlassCard(
                         onClick = { group = g },
+                        modifier = if (index == 0) Modifier.initialFocus() else Modifier,
                         cornerRadius = 16.dp,
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                     ) { _ ->

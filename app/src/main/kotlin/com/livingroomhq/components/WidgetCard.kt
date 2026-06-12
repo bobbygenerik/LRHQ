@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
@@ -41,11 +43,11 @@ fun WidgetCard(
 @Composable
 private fun DefaultWidgetBody(state: WidgetState) {
     Column {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(state.title.uppercase(), style = HqType.Label)
             if (!state.isHealthy) {
-                Spacer(Modifier.height(0.dp))
-                Text("  ●", style = HqType.Label.copy(color = HqColors.Critical))
+                Spacer(Modifier.width(6.dp))
+                Text("●", style = HqType.Label.copy(color = HqColors.Critical))
             }
         }
         state.headline?.let {
@@ -54,8 +56,9 @@ private fun DefaultWidgetBody(state: WidgetState) {
         }
         state.stats.forEach { stat ->
             Spacer(Modifier.height(12.dp))
-            if (stat.progress != null) {
-                StatBar(label = stat.label, value = stat.value, progress = stat.progress!!)
+            val progress = stat.progress
+            if (progress != null) {
+                StatBar(label = stat.label, value = stat.value, progress = progress)
             } else {
                 Row {
                     Text(stat.label.uppercase(), style = HqType.Label)

@@ -15,9 +15,9 @@
     "semantic_hash": "25e486300ed4f417409714c3a2d644e0"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/components/WidgetCard.kt": {
-    "mtime": 1781239968.6140275,
-    "ast_hash": "9851f4b39fc02126f895302259530635",
-    "semantic_hash": "9851f4b39fc02126f895302259530635"
+    "mtime": 1781277725.3431063,
+    "ast_hash": "112a97b09cd50b872c6bf982e18ce28e",
+    "semantic_hash": "112a97b09cd50b872c6bf982e18ce28e"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/navigation/SpatialNavController.kt": {
     "mtime": 1781239907.574012,
@@ -45,29 +45,29 @@
     "semantic_hash": "f66a9cb2e54c7586a29fb9a2f31596dc"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt": {
-    "mtime": 1781240098.0753307,
-    "ast_hash": "a1a7b02425d374793cff68fd5a170a55",
-    "semantic_hash": "a1a7b02425d374793cff68fd5a170a55"
+    "mtime": 1781277881.2100005,
+    "ast_hash": "9f56d6f841feea0638e965cf72410b7b",
+    "semantic_hash": "9f56d6f841feea0638e965cf72410b7b"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
-    "mtime": 1781240004.8240776,
-    "ast_hash": "614ecd96779306352549e9d311a735af",
-    "semantic_hash": "614ecd96779306352549e9d311a735af"
+    "mtime": 1781277776.421402,
+    "ast_hash": "d4f373270159988a57a6c57b95ca0868",
+    "semantic_hash": "d4f373270159988a57a6c57b95ca0868"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {
-    "mtime": 1781240022.6741126,
-    "ast_hash": "0e91728d895a0ea9c2c6113b194e218c",
-    "semantic_hash": "0e91728d895a0ea9c2c6113b194e218c"
+    "mtime": 1781277801.5695467,
+    "ast_hash": "0b4a0271222457ddc46bcf9b680971c1",
+    "semantic_hash": "0b4a0271222457ddc46bcf9b680971c1"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt": {
-    "mtime": 1781240049.0891767,
-    "ast_hash": "335738eff1765f6af35ff2efe42bea9b",
-    "semantic_hash": "335738eff1765f6af35ff2efe42bea9b"
+    "mtime": 1781277836.1597445,
+    "ast_hash": "de94f2e23b0f97be37b243ee15e2e9fb",
+    "semantic_hash": "de94f2e23b0f97be37b243ee15e2e9fb"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt": {
-    "mtime": 1781240059.452792,
-    "ast_hash": "5e72163bcdc4fcfbb3d6cbe9bf71ec6b",
-    "semantic_hash": "5e72163bcdc4fcfbb3d6cbe9bf71ec6b"
+    "mtime": 1781277858.1458697,
+    "ast_hash": "0dc5469d64e240b0c3176bc7899956b7",
+    "semantic_hash": "0dc5469d64e240b0c3176bc7899956b7"
   },
   "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt": {
     "mtime": 1781239959.6920197,
@@ -168,5 +168,10 @@
     "mtime": 1781240117.8864052,
     "ast_hash": "e3adb135cc978b2734e31261fd96a449",
     "semantic_hash": "e3adb135cc978b2734e31261fd96a449"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/InitialFocus.kt": {
+    "mtime": 1781277768.4853563,
+    "ast_hash": "9def2a8b1e446a4ef35690f5d85a62e2",
+    "semantic_hash": "9def2a8b1e446a4ef35690f5d85a62e2"
   }
 }

@@ -25,6 +25,7 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.WidgetCard
 import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.widget.WidgetZone
@@ -70,7 +71,8 @@ fun HomeScreen(app: HqApplication, nav: SpatialNavController) {
                 onClick = { nav.goTo(Zone.LIVE) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .initialFocus(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
                 cornerRadius = 28.dp,
             ) { _ ->

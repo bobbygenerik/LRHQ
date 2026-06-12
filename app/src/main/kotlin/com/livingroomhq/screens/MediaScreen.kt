@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -41,6 +41,7 @@ import com.livingroomhq.core.data.model.MediaType
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.StatBar
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.SpatialNavController
@@ -95,11 +96,18 @@ fun MediaScreen(app: HqApplication, nav: SpatialNavController) {
         }
         Spacer(Modifier.height(20.dp))
 
-        PosterRail("CONTINUE WATCHING", app.media.continueWatching(), onFocus = { selected = it })
-        PosterRail("RECENTLY ADDED", app.media.recentlyAdded(), onFocus = { selected = it })
-        PosterRail("MOVIES", library.filter { it.type == MediaType.MOVIE }, onFocus = { selected = it })
-        PosterRail("TV SHOWS", library.filter { it.type == MediaType.SHOW }, onFocus = { selected = it })
-        PosterRail("MUSIC", library.filter { it.type == MediaType.MUSIC }, onFocus = { selected = it })
+        val rails = listOf(
+            "CONTINUE WATCHING" to app.media.continueWatching(),
+            "RECENTLY ADDED" to app.media.recentlyAdded(),
+            "MOVIES" to library.filter { it.type == MediaType.MOVIE },
+            "TV SHOWS" to library.filter { it.type == MediaType.SHOW },
+            "MUSIC" to library.filter { it.type == MediaType.MUSIC },
+        )
+        // The first non-empty rail claims initial focus so the D-pad lands on a poster.
+        val firstPopulated = rails.indexOfFirst { it.second.isNotEmpty() }
+        rails.forEachIndexed { index, (title, items) ->
+            PosterRail(title, items, claimInitialFocus = index == firstPopulated, onFocus = { selected = it })
+        }
     }
 }
 
@@ -107,19 +115,21 @@ fun MediaScreen(app: HqApplication, nav: SpatialNavController) {
 private fun PosterRail(
     title: String,
     items: List<MediaItem>,
+    claimInitialFocus: Boolean,
     onFocus: (MediaItem) -> Unit,
 ) {
     if (items.isEmpty()) return
     Text(title, style = HqType.Label)
     Spacer(Modifier.height(10.dp))
     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(items, key = { it.id }) { item ->
+        itemsIndexed(items, key = { _, it -> it.id }) { index, item ->
             FocusableGlassCard(
                 onClick = { /* playback entry point */ },
                 onFocused = { onFocus(item) },
                 modifier = Modifier
                     .width(150.dp)
-                    .height(210.dp),
+                    .height(210.dp)
+                    .then(if (claimInitialFocus && index == 0) Modifier.initialFocus() else Modifier),
                 cornerRadius = 18.dp,
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) { _ ->

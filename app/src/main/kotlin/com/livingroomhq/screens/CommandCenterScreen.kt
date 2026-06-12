@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,6 +25,7 @@ import com.livingroomhq.core.data.model.ServiceHealth
 import com.livingroomhq.core.data.model.SystemStats
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.StatBar
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.widget.WidgetZone
@@ -58,8 +60,17 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
             item { SystemGauges(stats) }
             item { NetworkPanel(stats) }
             item { ServicesPanel(services) }
-            items(widgets.filter { WidgetZone.COMMAND_CENTER in it.zones }, key = { it.id }) { plugin ->
-                WidgetCard(plugin = plugin, onLaunch = app.installedApps::launch)
+            itemsIndexed(
+                widgets.filter { WidgetZone.COMMAND_CENTER in it.zones },
+                key = { _, it -> it.id },
+            ) { index, plugin ->
+                // The read-only gauge panels aren't focusable, so the first widget card
+                // is the D-pad's entry point into this dashboard.
+                WidgetCard(
+                    plugin = plugin,
+                    onLaunch = app.installedApps::launch,
+                    modifier = if (index == 0) Modifier.initialFocus() else Modifier,
+                )
             }
         }
     }

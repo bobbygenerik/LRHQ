@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,6 +25,7 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.components.WidgetCard
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.widget.WidgetZone
@@ -57,8 +59,15 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
             verticalArrangement = Arrangement.spacedBy(18.dp),
             contentPadding = PaddingValues(bottom = 36.dp),
         ) {
-            items(widgets.filter { WidgetZone.TOOLS in it.zones }, key = { it.id }) { plugin ->
-                WidgetCard(plugin = plugin, onLaunch = app.installedApps::launch)
+            itemsIndexed(
+                widgets.filter { WidgetZone.TOOLS in it.zones },
+                key = { _, it -> it.id },
+            ) { index, plugin ->
+                WidgetCard(
+                    plugin = plugin,
+                    onLaunch = app.installedApps::launch,
+                    modifier = if (index == 0) Modifier.initialFocus() else Modifier,
+                )
             }
             items(apps, key = { it.packageName }) { entry ->
                 FocusableGlassCard(
