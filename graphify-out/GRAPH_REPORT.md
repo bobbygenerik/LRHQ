@@ -1,51 +1,68 @@
-# Graph Report - .  (2026-06-12)
+# Graph Report - LRHQ  (2026-06-12)
 
 ## Corpus Check
-- Corpus is ~9,003 words - fits in a single context window. You may not need a graph.
+- 51 files · ~16,171 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 263 nodes · 428 edges · 17 communities (15 shown, 2 thin omitted)
-- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.81)
+- 408 nodes · 611 edges · 28 communities (25 shown, 3 thin omitted)
+- Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `cf9054be`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Community 0|Community 0]]
-- [[_COMMUNITY_Community 1|Community 1]]
-- [[_COMMUNITY_Community 2|Community 2]]
-- [[_COMMUNITY_Community 3|Community 3]]
-- [[_COMMUNITY_Community 4|Community 4]]
-- [[_COMMUNITY_Community 5|Community 5]]
-- [[_COMMUNITY_Community 6|Community 6]]
-- [[_COMMUNITY_Community 7|Community 7]]
-- [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 9|Community 9]]
-- [[_COMMUNITY_Community 10|Community 10]]
-- [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Command Center Dashboard|Command Center Dashboard]]
+- [[_COMMUNITY_Spatial Zone Navigation|Spatial Zone Navigation]]
+- [[_COMMUNITY_IPTV Channels & EPG|IPTV Channels & EPG]]
+- [[_COMMUNITY_Widget Plugin Contract|Widget Plugin Contract]]
+- [[_COMMUNITY_Data Models & Installed Apps|Data Models & Installed Apps]]
+- [[_COMMUNITY_System Monitoring|System Monitoring]]
+- [[_COMMUNITY_Built-in Widgets|Built-in Widgets]]
+- [[_COMMUNITY_Media Library|Media Library]]
+- [[_COMMUNITY_Main Activity Key Handling|Main Activity Key Handling]]
+- [[_COMMUNITY_Ambient Info Services|Ambient Info Services]]
+- [[_COMMUNITY_App Composition Root|App Composition Root]]
+- [[_COMMUNITY_Ambient Mode Screen|Ambient Mode Screen]]
+- [[_COMMUNITY_Media Screen UI|Media Screen UI]]
+- [[_COMMUNITY_Tools Screen|Tools Screen]]
+- [[_COMMUNITY_Gradle Build Config|Gradle Build Config]]
+- [[_COMMUNITY_Spatial Navigation Concept|Spatial Navigation Concept]]
+- [[_COMMUNITY_Gradle Settings|Gradle Settings]]
+- [[_COMMUNITY_UI Module Build|UI Module Build]]
+- [[_COMMUNITY_Widget Module Build|Widget Module Build]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `MainActivity` - 18 edges
-2. `widget()` - 14 edges
-3. `GlassPanel()` - 14 edges
-4. `StatBar()` - 14 edges
-5. `DemoChannelRepository` - 13 edges
-6. `SystemMonitor` - 13 edges
-7. `HqApplication` - 12 edges
-8. `SpatialNavController` - 12 edges
-9. `ChannelRepository` - 12 edges
-10. `FocusableGlassCard()` - 12 edges
+1. `MainActivity` - 19 edges
+2. `PersistentChannelRepository` - 17 edges
+3. `HqApplication` - 16 edges
+4. `GlassPanel()` - 16 edges
+5. `widget()` - 14 edges
+6. `InMemoryPrefsStore` - 14 edges
+7. `StatBar()` - 14 edges
+8. `SystemMonitor` - 13 edges
+9. `FocusableGlassCard()` - 13 edges
+10. `SpatialNavController` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Demo Repository Pattern` --rationale_for--> `DemoAmbientInfoRepository`  [INFERRED]
-  /home/bobbygenerik/repos/LRHQ/README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt
+  README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt
 - `Demo Repository Pattern` --rationale_for--> `DemoMediaRepository`  [INFERRED]
-  /home/bobbygenerik/repos/LRHQ/README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt
+  README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt
 - `OLED-Dark Glassmorphism Design System` --conceptually_related_to--> `FocusableGlassCard()`  [INFERRED]
-  /home/bobbygenerik/repos/LRHQ/README.md → core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt
+  README.md → core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt
 - `Demo Repository Pattern` --rationale_for--> `DemoChannelRepository`  [INFERRED]
-  /home/bobbygenerik/repos/LRHQ/README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt
+  README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt
 - `Command Center Dashboard` --references--> `SystemMonitor`  [EXTRACTED]
-  /home/bobbygenerik/repos/LRHQ/README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt
+  README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt
 
 ## Import Cycles
 - None detected.
@@ -58,71 +75,111 @@
 - **Widget Plugin Contract and Registry** — widget_widgetplugin_widgetplugin, widget_widgetplugin_widgetstate, widget_widgetplugin_widgetstat, widget_widgetregistry_widgetregistry [EXTRACTED 1.00]
 - **Demo Repository Implementations Behind Stable Interfaces** — repo_ambientinforepository_demoambientinforepository, repo_channelrepository_demochannelrepository, repo_mediarepository_demomediarepository, readme_demo_repository_pattern [INFERRED 0.95]
 
-## Communities (17 total, 2 thin omitted)
+## Communities (28 total, 3 thin omitted)
 
-### Community 0 - "Community 0"
+### Community 0 - "Command Center Dashboard"
+Cohesion: 0.07
+Nodes (31): Boolean, Channel, Modifier, HqApplication, SpatialNavController, Boolean, HqApplication, List (+23 more)
+
+### Community 1 - "Spatial Zone Navigation"
 Cohesion: 0.08
-Nodes (33): HqApplication, List, SpatialNavController, SystemStats, Boolean, HqApplication, List, MediaItem (+25 more)
+Nodes (22): Boolean, Int, Intent, SpatialNavController, Boolean, Direction, Long, Zone (+14 more)
 
-### Community 1 - "Community 1"
-Cohesion: 0.08
-Nodes (24): Boolean, Int, SpatialNavController, Boolean, Direction, Long, Zone, Modifier (+16 more)
+### Community 2 - "IPTV Channels & EPG"
+Cohesion: 0.10
+Nodes (21): Modifier, WidgetPlugin, WidgetState, LauncherPrefsStore, Modifier, HqApplication, SpatialNavController, String (+13 more)
 
-### Community 2 - "Community 2"
-Cohesion: 0.09
-Nodes (22): Modifier, WidgetPlugin, WidgetState, Boolean, Channel, Modifier, HqApplication, SpatialNavController (+14 more)
+### Community 3 - "Widget Plugin Contract"
+Cohesion: 0.13
+Nodes (18): Float, Long, Flow, List, StateFlow, DownloadJob, MediaItem, MediaType (+10 more)
 
-### Community 3 - "Community 3"
-Cohesion: 0.12
-Nodes (19): Float, Long, Flow, List, StateFlow, DownloadJob, Channel, MediaItem (+11 more)
-
-### Community 4 - "Community 4"
+### Community 4 - "Data Models & Installed Apps"
 Cohesion: 0.18
-Nodes (10): Channel, List, Pair, StateFlow, String, Map, Program, Demo Repository Pattern (+2 more)
+Nodes (10): Channel, List, Pair, Program, StateFlow, String, Channel, Demo Repository Pattern (+2 more)
 
-### Community 5 - "Community 5"
+### Community 5 - "System Monitoring"
 Cohesion: 0.12
 Nodes (16): Composable, Flow, Set, String, Unit, List, StateFlow, String (+8 more)
 
-### Community 6 - "Community 6"
+### Community 6 - "Built-in Widgets"
 Cohesion: 0.17
 Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, SystemStats, Command Center Dashboard (+1 more)
 
-### Community 7 - "Community 7"
+### Community 7 - "Media Library"
 Cohesion: 0.25
 Nodes (19): Flow, HqApplication, Set, String, WidgetPlugin, WidgetRegistry, WidgetState, WidgetZone (+11 more)
 
-### Community 8 - "Community 8"
-Cohesion: 0.13
-Nodes (16): AmbientInfoRepository, WidgetRegistry, HqApplication, SpatialNavController, String, Application, ChannelRepository, InstalledAppsRepository (+8 more)
+### Community 8 - "Main Activity Key Handling"
+Cohesion: 0.10
+Nodes (19): AmbientInfoRepository, ChannelRepository, LauncherPrefsStore, WidgetRegistry, HqApplication, SpatialNavController, String, Application (+11 more)
 
-### Community 9 - "Community 9"
+### Community 9 - "Ambient Info Services"
 Cohesion: 0.32
-Nodes (7): Int, List, MediaItem, StateFlow, MediaType, DemoMediaRepository, MediaRepository
+Nodes (7): Int, List, MediaItem, MediaType, StateFlow, DemoMediaRepository, MediaRepository
 
-### Community 10 - "Community 10"
-Cohesion: 0.25
-Nodes (5): List, String, LaunchableApp, LaunchableApp, InstalledAppsRepository
+### Community 10 - "App Composition Root"
+Cohesion: 0.22
+Nodes (6): Boolean, List, String, LaunchableApp, LaunchableApp, InstalledAppsRepository
+
+### Community 13 - "Media Screen UI"
+Cohesion: 0.29
+Nodes (6): Architecture, Building, Design language, Knowledge graph, LivingRoom HQ, Spatial navigation
+
+### Community 17 - "Tools Screen"
+Cohesion: 0.08
+Nodes (17): Boolean, Flow, List, Set, String, Channel, List, Pair (+9 more)
+
+### Community 18 - "Gradle Build Config"
+Cohesion: 0.16
+Nodes (12): HqApplication, List, SpatialNavController, SystemStats, Float, MediaType, com, CommandCenterScreen() (+4 more)
+
+### Community 19 - "Spatial Navigation Concept"
+Cohesion: 0.12
+Nodes (15): File Structure, Launcher Completion Implementation Plan, Manual verification on device (post-implementation), Out of scope (deliberately), Task 10: Watch Next publisher + sync, Task 11: Final verification + knowledge graph refresh, Task 1: JVM test infrastructure, Task 2: M3U playlist parser (+7 more)
+
+### Community 20 - "Gradle Settings"
+Cohesion: 0.23
+Nodes (8): Boolean, Flow, List, Set, String, LauncherPrefsStore, DataStorePrefsStore, Keys
+
+### Community 21 - "UI Module Build"
+Cohesion: 0.24
+Nodes (6): Boolean, Intent, Context, DefaultHomeHelper, shouldPromptForDefault(), DefaultHomeHelperTest
+
+### Community 22 - "Widget Module Build"
+Cohesion: 0.28
+Nodes (6): Channel, List, Program, String, Map, DemoLineup
+
+### Community 23 - "Community 23"
+Cohesion: 0.32
+Nodes (5): Modifier, StateFlow, String, MessageOverlay(), UiMessages
+
+### Community 25 - "Community 25"
+Cohesion: 0.47
+Nodes (4): List, toWatchNextEntry(), WatchNextEntry, WatchNextPublisher
+
+### Community 26 - "Community 26"
+Cohesion: 0.33
+Nodes (4): Channel, List, String, M3uParser
 
 ## Knowledge Gaps
-- **84 isolated node(s):** `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository`, `SystemMonitor`, `InstalledAppsRepository` (+79 more)
+- **125 isolated node(s):** `LauncherPrefsStore`, `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository`, `SystemMonitor` (+120 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `StatBar()` connect `Community 0` to `Community 1`, `Community 2`, `Community 7`?**
-  _High betweenness centrality (0.438) - this node is a cross-community bridge._
-- **Why does `WidgetStat` connect `Community 7` to `Community 0`, `Community 3`, `Community 5`?**
-  _High betweenness centrality (0.321) - this node is a cross-community bridge._
-- **Why does `DownloadJob` connect `Community 0` to `Community 3`?**
-  _High betweenness centrality (0.235) - this node is a cross-community bridge._
-- **Are the 6 inferred relationships involving `GlassPanel()` (e.g. with `Color` and `NetworkPanel()`) actually correct?**
-  _`GlassPanel()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 6 inferred relationships involving `StatBar()` (e.g. with `DownloadJob` and `WidgetStat`) actually correct?**
-  _`StatBar()` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository` to the rest of the system?**
-  _87 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.07557354925775979 - nodes in this community are weakly interconnected._
+- **Why does `StatBar()` connect `Command Center Dashboard` to `IPTV Channels & EPG`, `Gradle Build Config`, `Media Library`?**
+  _High betweenness centrality (0.233) - this node is a cross-community bridge._
+- **Why does `HqApplication` connect `Main Activity Key Handling` to `Spatial Zone Navigation`, `Media Library`?**
+  _High betweenness centrality (0.202) - this node is a cross-community bridge._
+- **Why does `WidgetStat` connect `Media Library` to `Command Center Dashboard`, `Widget Plugin Contract`, `System Monitoring`?**
+  _High betweenness centrality (0.187) - this node is a cross-community bridge._
+- **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist keeps current lineup`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
+  _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 8 inferred relationships involving `GlassPanel()` (e.g. with `Color` and `DefaultHomeBanner()`) actually correct?**
+  _`GlassPanel()` has 8 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `LauncherPrefsStore`, `ChannelRepository`, `MediaRepository` to the rest of the system?**
+  _128 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Command Center Dashboard` be split into smaller, more focused modules?**
+  _Cohesion score 0.07112375533428165 - nodes in this community are weakly interconnected._
