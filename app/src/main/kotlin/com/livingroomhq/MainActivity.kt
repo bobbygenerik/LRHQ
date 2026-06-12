@@ -1,5 +1,6 @@
 package com.livingroomhq
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
@@ -84,6 +85,17 @@ class MainActivity : ComponentActivity() {
         }
         if (direction != null && nav.navigate(direction)) return true
         return super.onKeyDown(keyCode, event)
+    }
+
+    /**
+     * As the default home app the activity is `singleTask`, so pressing the
+     * hardware HOME button while another app is foregrounded re-delivers the
+     * MAIN/HOME intent here instead of starting a new instance. Reset to the
+     * center zone so HOME always returns to Home, per the navigation model.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (::nav.isInitialized) nav.goHome()
     }
 
     override fun onUserInteraction() {
