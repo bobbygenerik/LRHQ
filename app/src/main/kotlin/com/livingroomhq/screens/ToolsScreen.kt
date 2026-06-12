@@ -65,7 +65,7 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
             ) { index, plugin ->
                 WidgetCard(
                     plugin = plugin,
-                    onLaunch = app.installedApps::launch,
+                    onLaunch = { pkg -> app.installedApps.launch(pkg) },
                     modifier = if (index == 0) Modifier.initialFocus() else Modifier,
                 )
             }

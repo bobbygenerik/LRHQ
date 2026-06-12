@@ -11,7 +11,10 @@ import kotlinx.coroutines.withContext
  * launcher entries (TV-native apps) and falling back to standard launcher
  * activities for sideloaded tools.
  */
-class InstalledAppsRepository(private val context: Context) {
+class InstalledAppsRepository(
+    private val context: Context,
+    private val onLaunchError: (packageName: String) -> Unit = {},
+) {
 
     suspend fun launchableApps(): List<LaunchableApp> = withContext(Dispatchers.IO) {
         val pm = context.packageManager
@@ -35,10 +38,21 @@ class InstalledAppsRepository(private val context: Context) {
             .sortedBy { it.label.lowercase() }
     }
 
-    fun launch(packageName: String) {
+    /** Launches the app, reporting failure (uninstalled race, no intent, blocked). */
+    fun launch(packageName: String): Boolean {
         val intent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName)
             ?: context.packageManager.getLaunchIntentForPackage(packageName)
-            ?: return
-        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        if (intent == null) {
+            onLaunchError(packageName)
+            return false
+        }
+        return try {
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        } catch (e: Exception) {
+            // ActivityNotFoundException or SecurityException from a stale entry.
+            onLaunchError(packageName)
+            false
+        }
     }
 }

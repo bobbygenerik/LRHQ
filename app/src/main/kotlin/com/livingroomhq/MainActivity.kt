@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -20,6 +21,7 @@ import com.livingroomhq.screens.HomeScreen
 import com.livingroomhq.screens.LiveScreen
 import com.livingroomhq.screens.MediaScreen
 import com.livingroomhq.screens.ToolsScreen
+import com.livingroomhq.ui.MessageOverlay
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -44,15 +46,18 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            SpatialNavHost(zone = controller.zone, modifier = Modifier.fillMaxSize()) { zone ->
-                when (zone) {
-                    Zone.HOME -> HomeScreen(app, controller)
-                    Zone.LIVE -> LiveScreen(app, controller)
-                    Zone.MEDIA -> MediaScreen(app, controller)
-                    Zone.TOOLS -> ToolsScreen(app, controller)
-                    Zone.AMBIENT -> AmbientScreen(app, controller)
-                    Zone.COMMAND_CENTER -> CommandCenterScreen(app, controller)
+            Box(Modifier.fillMaxSize()) {
+                SpatialNavHost(zone = controller.zone, modifier = Modifier.fillMaxSize()) { zone ->
+                    when (zone) {
+                        Zone.HOME -> HomeScreen(app, controller)
+                        Zone.LIVE -> LiveScreen(app, controller)
+                        Zone.MEDIA -> MediaScreen(app, controller)
+                        Zone.TOOLS -> ToolsScreen(app, controller)
+                        Zone.AMBIENT -> AmbientScreen(app, controller)
+                        Zone.COMMAND_CENTER -> CommandCenterScreen(app, controller)
+                    }
                 }
+                MessageOverlay()
             }
         }
     }

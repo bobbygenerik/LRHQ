@@ -119,7 +119,7 @@ fun HomeScreen(app: HqApplication, nav: SpatialNavController) {
             widgets.filter { WidgetZone.HOME in it.zones }.forEach { plugin ->
                 WidgetCard(
                     plugin = plugin,
-                    onLaunch = app.installedApps::launch,
+                    onLaunch = { pkg -> app.installedApps.launch(pkg) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

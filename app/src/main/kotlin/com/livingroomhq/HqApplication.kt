@@ -12,6 +12,7 @@ import com.livingroomhq.core.data.repo.MediaRepository
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
+import com.livingroomhq.ui.UiMessages
 import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,9 @@ class HqApplication : Application() {
     val media: MediaRepository by lazy { DemoMediaRepository() }
     val ambientInfo: AmbientInfoRepository by lazy { DemoAmbientInfoRepository() }
     val systemMonitor: SystemMonitor by lazy { SystemMonitor(this) }
-    val installedApps: InstalledAppsRepository by lazy { InstalledAppsRepository(this) }
+    val installedApps: InstalledAppsRepository by lazy {
+        InstalledAppsRepository(this) { UiMessages.post("Couldn't open that app") }
+    }
     val widgets: WidgetRegistry by lazy {
         WidgetRegistry().also { registerBuiltInWidgets(it, this) }
     }

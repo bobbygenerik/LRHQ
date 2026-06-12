@@ -68,7 +68,7 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 // is the D-pad's entry point into this dashboard.
                 WidgetCard(
                     plugin = plugin,
-                    onLaunch = app.installedApps::launch,
+                    onLaunch = { pkg -> app.installedApps.launch(pkg) },
                     modifier = if (index == 0) Modifier.initialFocus() else Modifier,
                 )
             }
