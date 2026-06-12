@@ -1339,7 +1339,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "widgets_builtinwidgets",
-      "community": 7,
+      "community": 5,
       "norm_label": "builtinwidgets.kt"
     },
     {
@@ -1349,7 +1349,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_registerbuiltinwidgets",
-      "community": 7,
+      "community": 5,
       "norm_label": "registerbuiltinwidgets()"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetregistry",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetregistry"
     },
     {
@@ -1369,7 +1369,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_hqapplication",
-      "community": 7,
+      "community": 5,
       "norm_label": "hqapplication"
     },
     {
@@ -1379,7 +1379,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_widget",
-      "community": 7,
+      "community": 5,
       "norm_label": "widget()"
     },
     {
@@ -1389,7 +1389,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_string",
-      "community": 7,
+      "community": 5,
       "norm_label": "string"
     },
     {
@@ -1399,7 +1399,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_set",
-      "community": 7,
+      "community": 5,
       "norm_label": "set"
     },
     {
@@ -1409,7 +1409,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetzone",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetzone"
     },
     {
@@ -1419,7 +1419,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "widgetsize",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetsize"
     },
     {
@@ -1429,7 +1429,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_flow",
-      "community": 7,
+      "community": 5,
       "norm_label": "flow"
     },
     {
@@ -1439,7 +1439,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetstate",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetstate"
     },
     {
@@ -1449,7 +1449,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetplugin",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetplugin"
     },
     {
@@ -1459,7 +1459,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_storagewidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "storagewidget()"
     },
     {
@@ -1469,7 +1469,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_downloadswidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "downloadswidget()"
     },
     {
@@ -1479,7 +1479,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_weatherwidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "weatherwidget()"
     },
     {
@@ -1489,7 +1489,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_smarthomewidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "smarthomewidget()"
     },
     {
@@ -1499,7 +1499,7 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_continuewatchingwidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "continuewatchingwidget()"
     },
     {
@@ -1509,7 +1509,7 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_mediaserverwidget",
-      "community": 7,
+      "community": 5,
       "norm_label": "mediaserverwidget()"
     },
     {
@@ -1703,6 +1703,16 @@
       "norm_label": "channel"
     },
     {
+      "label": ".displayName()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "iptv_m3uparser_m3uparser_displayname",
+      "community": 26,
+      "norm_label": ".displayname()"
+    },
+    {
       "label": "Models.kt",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/model/Models.kt",
@@ -1719,7 +1729,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "model_models_channel",
-      "community": 4,
+      "community": 3,
       "norm_label": "channel"
     },
     {
@@ -3213,10 +3223,20 @@
       "norm_label": ".`channel name keeps embedded commas`()"
     },
     {
-      "label": ".`parses single-quoted attribute values`()",
+      "label": ".`channel name starts after comma outside quoted attributes`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
       "source_location": "L59",
+      "_origin": "ast",
+      "id": "iptv_m3uparsertest_m3uparsertest_channel_name_starts_after_comma_outside_quoted_attributes",
+      "community": 24,
+      "norm_label": ".`channel name starts after comma outside quoted attributes`()"
+    },
+    {
+      "label": ".`parses single-quoted attribute values`()",
+      "file_type": "code",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
+      "source_location": "L65",
       "_origin": "ast",
       "id": "iptv_m3uparsertest_m3uparsertest_parses_single_quoted_attribute_values",
       "community": 24,
@@ -3669,7 +3689,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "widget_widgetplugin_widgetstat",
-      "community": 7,
+      "community": 5,
       "norm_label": "widgetstat"
     },
     {
@@ -4148,7 +4168,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Each widget turns a repository flow into a WidgetState so apps surface live information before they are opened \u2014 the core promise of the card system. Tools zone shows widget cards first and other apps as cards, never an icon grid.",
-      "community": 7,
+      "community": 5,
       "norm_label": "widget card system (live info before launch)",
       "id": "widgets_builtinwidgets_widget_card_system"
     },
@@ -4257,9 +4277,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "livingroomhq_hqapplication_hqapplication",
-      "target": "app_src_main_kotlin_com_livingroomhq_hqapplication_kt_channelrepository",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_hqapplication_kt_channelrepository"
     },
     {
       "relation": "references",
@@ -4268,9 +4288,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "livingroomhq_hqapplication_hqapplication",
-      "target": "app_src_main_kotlin_com_livingroomhq_hqapplication_kt_launcherprefsstore",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_hqapplication_kt_launcherprefsstore"
     },
     {
       "relation": "references",
@@ -4321,9 +4341,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/HqApplication.kt",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "livingroomhq_hqapplication_hqapplication",
-      "target": "livingroomhq_hqapplication_hqapplication_oncreate",
-      "confidence_score": 1.0
+      "target": "livingroomhq_hqapplication_hqapplication_oncreate"
     },
     {
       "relation": "references",
@@ -4354,9 +4374,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "livingroomhq_hqapplication_hqapplication",
-      "target": "watchnextpublisher",
-      "confidence_score": 1.0
+      "target": "watchnextpublisher"
     },
     {
       "relation": "rationale_for",
@@ -4465,9 +4485,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
       "source_location": "L101",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "livingroomhq_mainactivity_mainactivity",
-      "target": "livingroomhq_mainactivity_mainactivity_onnewintent",
-      "confidence_score": 1.0
+      "target": "livingroomhq_mainactivity_mainactivity_onnewintent"
     },
     {
       "relation": "method",
@@ -4729,9 +4749,9 @@
       "source_location": "L101",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "livingroomhq_mainactivity_mainactivity_onnewintent",
-      "target": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_intent",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_intent"
     },
     {
       "relation": "contains",
@@ -4869,9 +4889,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeBanner.kt",
       "source_location": "L35",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomebanner",
-      "target": "home_defaulthomebanner_defaulthomebanner",
-      "confidence_score": 1.0
+      "target": "home_defaulthomebanner_defaulthomebanner"
     },
     {
       "relation": "references",
@@ -4880,9 +4900,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomebanner_defaulthomebanner",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_launcherprefsstore",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_launcherprefsstore"
     },
     {
       "relation": "references",
@@ -4891,9 +4911,9 @@
       "source_location": "L35",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomebanner_defaulthomebanner",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_modifier",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_modifier"
     },
     {
       "relation": "calls",
@@ -4934,9 +4954,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper",
-      "target": "home_defaulthomehelper_defaulthomehelper",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelper_defaulthomehelper"
     },
     {
       "relation": "contains",
@@ -4944,9 +4964,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper",
-      "target": "home_defaulthomehelper_shouldpromptfordefault",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelper_shouldpromptfordefault"
     },
     {
       "relation": "references",
@@ -4955,9 +4975,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_shouldpromptfordefault",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_boolean",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_boolean"
     },
     {
       "relation": "calls",
@@ -4977,9 +4997,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper_isdefaulthome",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_boolean",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_boolean"
     },
     {
       "relation": "method",
@@ -4987,9 +5007,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper",
-      "target": "home_defaulthomehelper_defaulthomehelper_createrequestintent",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelper_defaulthomehelper_createrequestintent"
     },
     {
       "relation": "method",
@@ -4997,9 +5017,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper",
-      "target": "home_defaulthomehelper_defaulthomehelper_isdefaulthome",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelper_defaulthomehelper_isdefaulthome"
     },
     {
       "relation": "calls",
@@ -5008,9 +5028,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper_isdefaulthome",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_intent",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_intent"
     },
     {
       "relation": "references",
@@ -5019,9 +5039,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper_isdefaulthome",
-      "target": "context",
-      "confidence_score": 1.0
+      "target": "context"
     },
     {
       "relation": "references",
@@ -5030,9 +5050,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper_createrequestintent",
-      "target": "context",
-      "confidence_score": 1.0
+      "target": "context"
     },
     {
       "relation": "references",
@@ -5041,9 +5061,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/home/DefaultHomeHelper.kt",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelper_defaulthomehelper_createrequestintent",
-      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_intent",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_home_defaulthomehelper_kt_intent"
     },
     {
       "relation": "contains",
@@ -6106,9 +6126,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/tvintegration/WatchNext.kt",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext",
-      "target": "tvintegration_watchnext_towatchnextentry",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_towatchnextentry"
     },
     {
       "relation": "contains",
@@ -6116,9 +6136,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/tvintegration/WatchNext.kt",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext",
-      "target": "tvintegration_watchnext_watchnextentry",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_watchnextentry"
     },
     {
       "relation": "contains",
@@ -6126,9 +6146,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/tvintegration/WatchNext.kt",
       "source_location": "L39",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext",
-      "target": "tvintegration_watchnext_watchnextpublisher",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_watchnextpublisher"
     },
     {
       "relation": "references",
@@ -6137,9 +6157,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/tvintegration/WatchNext.kt",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext_towatchnextentry",
-      "target": "tvintegration_watchnext_watchnextentry",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_watchnextentry"
     },
     {
       "relation": "references",
@@ -6148,9 +6168,9 @@
       "source_location": "L41",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext_watchnextpublisher_sync",
-      "target": "tvintegration_watchnext_watchnextentry",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_watchnextentry"
     },
     {
       "relation": "method",
@@ -6158,9 +6178,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/tvintegration/WatchNext.kt",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext_watchnextpublisher",
-      "target": "tvintegration_watchnext_watchnextpublisher_sync",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnext_watchnextpublisher_sync"
     },
     {
       "relation": "references",
@@ -6169,9 +6189,9 @@
       "source_location": "L41",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnext_watchnextpublisher_sync",
-      "target": "app_src_main_kotlin_com_livingroomhq_tvintegration_watchnext_kt_list",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_tvintegration_watchnext_kt_list"
     },
     {
       "relation": "contains",
@@ -6179,9 +6199,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_uimessages",
-      "target": "ui_uimessages_messageoverlay",
-      "confidence_score": 1.0
+      "target": "ui_uimessages_messageoverlay"
     },
     {
       "relation": "contains",
@@ -6189,9 +6209,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_uimessages",
-      "target": "ui_uimessages_uimessages",
-      "confidence_score": 1.0
+      "target": "ui_uimessages_uimessages"
     },
     {
       "relation": "references",
@@ -6200,9 +6220,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "ui_uimessages_uimessages",
-      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_stateflow",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_stateflow"
     },
     {
       "relation": "references",
@@ -6211,9 +6231,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "ui_uimessages_uimessages",
-      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_string",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_string"
     },
     {
       "relation": "method",
@@ -6221,9 +6241,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_uimessages_uimessages",
-      "target": "ui_uimessages_uimessages_clear",
-      "confidence_score": 1.0
+      "target": "ui_uimessages_uimessages_clear"
     },
     {
       "relation": "method",
@@ -6231,9 +6251,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_uimessages_uimessages",
-      "target": "ui_uimessages_uimessages_post",
-      "confidence_score": 1.0
+      "target": "ui_uimessages_uimessages_post"
     },
     {
       "relation": "references",
@@ -6242,9 +6262,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "ui_uimessages_uimessages_post",
-      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_string",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_string"
     },
     {
       "relation": "calls",
@@ -6253,9 +6273,9 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt",
       "source_location": "L43",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "ui_uimessages_messageoverlay",
-      "target": "ui_uimessages_uimessages_clear",
-      "confidence_score": 1.0
+      "target": "ui_uimessages_uimessages_clear"
     },
     {
       "relation": "references",
@@ -6264,9 +6284,9 @@
       "source_location": "L36",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "ui_uimessages_messageoverlay",
-      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_modifier",
-      "confidence_score": 1.0
+      "target": "app_src_main_kotlin_com_livingroomhq_ui_uimessages_kt_modifier"
     },
     {
       "relation": "calls",
@@ -6804,9 +6824,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/home/DefaultHomeHelperTest.kt",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelpertest",
-      "target": "home_defaulthomehelpertest_defaulthomehelpertest",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelpertest_defaulthomehelpertest"
     },
     {
       "relation": "method",
@@ -6814,9 +6834,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/home/DefaultHomeHelperTest.kt",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "home_defaulthomehelpertest_defaulthomehelpertest",
-      "target": "home_defaulthomehelpertest_defaulthomehelpertest_prompts_only_when_not_default_and_not_dismissed",
-      "confidence_score": 1.0
+      "target": "home_defaulthomehelpertest_defaulthomehelpertest_prompts_only_when_not_default_and_not_dismissed"
     },
     {
       "relation": "contains",
@@ -6824,9 +6844,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest",
-      "target": "tvintegration_watchnexttest_watchnexttest",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest"
     },
     {
       "relation": "method",
@@ -6834,9 +6854,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest",
-      "target": "tvintegration_watchnexttest_watchnexttest_in_progress_item_maps_with_duration_and_position",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_in_progress_item_maps_with_duration_and_position"
     },
     {
       "relation": "method",
@@ -6844,9 +6864,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest",
-      "target": "tvintegration_watchnexttest_watchnexttest_item",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_item"
     },
     {
       "relation": "method",
@@ -6854,9 +6874,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest",
-      "target": "tvintegration_watchnexttest_watchnexttest_music_is_excluded_from_watch_next",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_music_is_excluded_from_watch_next"
     },
     {
       "relation": "method",
@@ -6864,9 +6884,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest",
-      "target": "tvintegration_watchnexttest_watchnexttest_unwatched_and_finished_items_are_excluded",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_unwatched_and_finished_items_are_excluded"
     },
     {
       "relation": "calls",
@@ -6875,9 +6895,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest_in_progress_item_maps_with_duration_and_position",
-      "target": "tvintegration_watchnexttest_watchnexttest_item",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_item"
     },
     {
       "relation": "references",
@@ -6886,9 +6906,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest_item",
-      "target": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_float",
-      "confidence_score": 1.0
+      "target": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_float"
     },
     {
       "relation": "references",
@@ -6897,9 +6917,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest_item",
-      "target": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_mediatype",
-      "confidence_score": 1.0
+      "target": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_mediatype"
     },
     {
       "relation": "calls",
@@ -6908,9 +6928,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest_music_is_excluded_from_watch_next",
-      "target": "tvintegration_watchnexttest_watchnexttest_item",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_item"
     },
     {
       "relation": "calls",
@@ -6919,9 +6939,9 @@
       "source_file": "app/src/test/kotlin/com/livingroomhq/tvintegration/WatchNextTest.kt",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tvintegration_watchnexttest_watchnexttest_unwatched_and_finished_items_are_excluded",
-      "target": "tvintegration_watchnexttest_watchnexttest_item",
-      "confidence_score": 1.0
+      "target": "tvintegration_watchnexttest_watchnexttest_item"
     },
     {
       "relation": "contains",
@@ -6929,8 +6949,18 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser",
-      "target": "iptv_m3uparser_m3uparser",
+      "target": "iptv_m3uparser_m3uparser"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "iptv_m3uparser_m3uparser",
+      "target": "iptv_m3uparser_m3uparser_displayname",
       "confidence_score": 1.0
     },
     {
@@ -6939,9 +6969,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser",
-      "target": "iptv_m3uparser_m3uparser_parse",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparser_m3uparser_parse"
     },
     {
       "relation": "references",
@@ -6950,9 +6980,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser_parse",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_channel",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_channel"
     },
     {
       "relation": "references",
@@ -6961,9 +6991,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser_parse",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_list"
     },
     {
       "relation": "references",
@@ -6972,7 +7002,29 @@
       "source_location": "L13",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser_parse",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_string"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "iptv_m3uparser_m3uparser_parse",
+      "target": "iptv_m3uparser_m3uparser_displayname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
+      "source_location": "L46",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "iptv_m3uparser_m3uparser_displayname",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_string",
       "confidence_score": 1.0
     },
@@ -7235,9 +7287,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_datastoreprefsstore",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_datastoreprefsstore"
     },
     {
       "relation": "contains",
@@ -7245,9 +7297,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_keys",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_keys"
     },
     {
       "relation": "references",
@@ -7256,9 +7308,9 @@
       "source_location": "L37",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_boolean"
     },
     {
       "relation": "references",
@@ -7267,9 +7319,9 @@
       "source_location": "L37",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_flow",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_flow"
     },
     {
       "relation": "references",
@@ -7278,9 +7330,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_list"
     },
     {
       "relation": "references",
@@ -7289,9 +7341,9 @@
       "source_location": "L26",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_set",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_set"
     },
     {
       "relation": "references",
@@ -7300,9 +7352,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string"
     },
     {
       "relation": "implements",
@@ -7310,9 +7362,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "launcherprefsstore",
-      "confidence_score": 1.0
+      "target": "launcherprefsstore"
     },
     {
       "relation": "method",
@@ -7320,9 +7372,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_datastoreprefsstore_setdefaultpromptdismissed",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_datastoreprefsstore_setdefaultpromptdismissed"
     },
     {
       "relation": "method",
@@ -7330,9 +7382,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_datastoreprefsstore_setfavorites",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_datastoreprefsstore_setfavorites"
     },
     {
       "relation": "method",
@@ -7340,9 +7392,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L48",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_datastoreprefsstore_setplaylisturl",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_datastoreprefsstore_setplaylisturl"
     },
     {
       "relation": "method",
@@ -7350,9 +7402,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore",
-      "target": "persist_datastoreprefsstore_datastoreprefsstore_setrecents",
-      "confidence_score": 1.0
+      "target": "persist_datastoreprefsstore_datastoreprefsstore_setrecents"
     },
     {
       "relation": "references",
@@ -7361,9 +7413,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_set",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_set"
     },
     {
       "relation": "references",
@@ -7372,9 +7424,9 @@
       "source_location": "L40",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7383,9 +7435,9 @@
       "source_location": "L48",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setplaylisturl",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7394,9 +7446,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7405,9 +7457,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_list"
     },
     {
       "relation": "references",
@@ -7416,9 +7468,9 @@
       "source_location": "L54",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_datastoreprefsstore_datastoreprefsstore_setdefaultpromptdismissed",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_datastoreprefsstore_kt_boolean"
     },
     {
       "relation": "contains",
@@ -7426,9 +7478,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore",
-      "target": "persist_launcherprefsstore_inmemoryprefsstore",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_inmemoryprefsstore"
     },
     {
       "relation": "contains",
@@ -7436,9 +7488,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore"
     },
     {
       "relation": "implements",
@@ -7446,9 +7498,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore"
     },
     {
       "relation": "references",
@@ -7457,9 +7509,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean"
     },
     {
       "relation": "references",
@@ -7468,9 +7520,9 @@
       "source_location": "L14",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_flow",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_flow"
     },
     {
       "relation": "references",
@@ -7479,9 +7531,9 @@
       "source_location": "L12",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list"
     },
     {
       "relation": "references",
@@ -7490,9 +7542,9 @@
       "source_location": "L11",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set"
     },
     {
       "relation": "references",
@@ -7501,9 +7553,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "method",
@@ -7511,9 +7563,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore_setdefaultpromptdismissed",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore_setdefaultpromptdismissed"
     },
     {
       "relation": "method",
@@ -7521,9 +7573,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore_setfavorites",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore_setfavorites"
     },
     {
       "relation": "method",
@@ -7531,9 +7583,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore_setplaylisturl",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore_setplaylisturl"
     },
     {
       "relation": "method",
@@ -7541,9 +7593,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore",
-      "target": "persist_launcherprefsstore_launcherprefsstore_setrecents",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_launcherprefsstore_setrecents"
     },
     {
       "relation": "references",
@@ -7552,9 +7604,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set"
     },
     {
       "relation": "references",
@@ -7563,9 +7615,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set"
     },
     {
       "relation": "references",
@@ -7574,9 +7626,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7585,9 +7637,9 @@
       "source_location": "L30",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setplaylisturl",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7596,9 +7648,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7607,9 +7659,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setfavorites",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7618,9 +7670,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setplaylisturl",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7629,9 +7681,9 @@
       "source_location": "L17",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string"
     },
     {
       "relation": "references",
@@ -7640,9 +7692,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list"
     },
     {
       "relation": "references",
@@ -7651,9 +7703,9 @@
       "source_location": "L17",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setrecents",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list"
     },
     {
       "relation": "references",
@@ -7662,9 +7714,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore_setdefaultpromptdismissed",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean"
     },
     {
       "relation": "references",
@@ -7673,9 +7725,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_launcherprefsstore_setdefaultpromptdismissed",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean"
     },
     {
       "relation": "calls",
@@ -7705,9 +7757,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore",
-      "target": "persist_launcherprefsstore_inmemoryprefsstore_setdefaultpromptdismissed",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_inmemoryprefsstore_setdefaultpromptdismissed"
     },
     {
       "relation": "method",
@@ -7715,9 +7767,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore",
-      "target": "persist_launcherprefsstore_inmemoryprefsstore_setfavorites",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_inmemoryprefsstore_setfavorites"
     },
     {
       "relation": "method",
@@ -7725,9 +7777,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore",
-      "target": "persist_launcherprefsstore_inmemoryprefsstore_setplaylisturl",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_inmemoryprefsstore_setplaylisturl"
     },
     {
       "relation": "method",
@@ -7735,9 +7787,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/LauncherPrefsStore.kt",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_launcherprefsstore_inmemoryprefsstore",
-      "target": "persist_launcherprefsstore_inmemoryprefsstore_setrecents",
-      "confidence_score": 1.0
+      "target": "persist_launcherprefsstore_inmemoryprefsstore_setrecents"
     },
     {
       "relation": "calls",
@@ -8315,9 +8367,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_channelrepository_channelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program"
     },
     {
       "relation": "references",
@@ -8337,9 +8389,9 @@
       "source_location": "L37",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_channelrepository_demochannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program"
     },
     {
       "relation": "rationale_for",
@@ -8407,9 +8459,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup",
-      "target": "repo_demolineup_demolineup",
-      "confidence_score": 1.0
+      "target": "repo_demolineup_demolineup"
     },
     {
       "relation": "method",
@@ -8417,9 +8469,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup",
-      "target": "repo_demolineup_demolineup_channels",
-      "confidence_score": 1.0
+      "target": "repo_demolineup_demolineup_channels"
     },
     {
       "relation": "method",
@@ -8427,9 +8479,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup",
-      "target": "repo_demolineup_demolineup_epg",
-      "confidence_score": 1.0
+      "target": "repo_demolineup_demolineup_epg"
     },
     {
       "relation": "references",
@@ -8438,9 +8490,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_channels",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_channel",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_channel"
     },
     {
       "relation": "references",
@@ -8449,9 +8501,9 @@
       "source_location": "L9",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_channels",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list"
     },
     {
       "relation": "calls",
@@ -8460,9 +8512,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_epg",
-      "target": "repo_demolineup_demolineup_channels",
-      "confidence_score": 1.0
+      "target": "repo_demolineup_demolineup_channels"
     },
     {
       "relation": "references",
@@ -8471,9 +8523,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list"
     },
     {
       "relation": "references",
@@ -8482,9 +8534,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_program",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_program"
     },
     {
       "relation": "references",
@@ -8493,9 +8545,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_string"
     },
     {
       "relation": "references",
@@ -8504,9 +8556,9 @@
       "source_location": "L28",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_demolineup_demolineup_epg",
-      "target": "map",
-      "confidence_score": 1.0
+      "target": "map"
     },
     {
       "relation": "contains",
@@ -8567,9 +8619,9 @@
       "source_location": "L42",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_installedappsrepository_installedappsrepository_launch",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_installedappsrepository_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_installedappsrepository_kt_boolean"
     },
     {
       "relation": "references",
@@ -8891,9 +8943,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_mediarepository_bytype",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype"
     },
     {
       "relation": "references",
@@ -8902,9 +8954,9 @@
       "source_location": "L33",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_demomediarepository_bytype",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype"
     },
     {
       "relation": "rationale_for",
@@ -8962,9 +9014,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_httpget",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_httpget"
     },
     {
       "relation": "contains",
@@ -8972,9 +9024,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository"
     },
     {
       "relation": "implements",
@@ -8982,9 +9034,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "channelrepository",
-      "confidence_score": 1.0
+      "target": "channelrepository"
     },
     {
       "relation": "references",
@@ -8993,9 +9045,9 @@
       "source_location": "L39",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_channel",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_channel"
     },
     {
       "relation": "references",
@@ -9004,9 +9056,9 @@
       "source_location": "L39",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_list"
     },
     {
       "relation": "references",
@@ -9015,9 +9067,9 @@
       "source_location": "L39",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_stateflow",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_stateflow"
     },
     {
       "relation": "method",
@@ -9025,9 +9077,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext"
     },
     {
       "relation": "method",
@@ -9035,9 +9087,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_groups",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_groups"
     },
     {
       "relation": "method",
@@ -9045,9 +9097,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u"
     },
     {
       "relation": "method",
@@ -9055,9 +9107,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L55",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_markwatched",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_markwatched"
     },
     {
       "relation": "method",
@@ -9065,9 +9117,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L78",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_restore",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_restore"
     },
     {
       "relation": "method",
@@ -9075,9 +9127,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_togglefavorite",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_togglefavorite"
     },
     {
       "relation": "calls",
@@ -9152,9 +9204,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_groups",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_list",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_list"
     },
     {
       "relation": "references",
@@ -9163,9 +9215,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_groups",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9174,9 +9226,9 @@
       "source_location": "L87",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_httpget",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9185,9 +9237,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9196,9 +9248,9 @@
       "source_location": "L69",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9207,9 +9259,9 @@
       "source_location": "L55",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_markwatched",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9218,9 +9270,9 @@
       "source_location": "L62",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_togglefavorite",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string"
     },
     {
       "relation": "references",
@@ -9229,9 +9281,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_pair",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_pair"
     },
     {
       "relation": "references",
@@ -9240,9 +9292,9 @@
       "source_location": "L47",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_program",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_program"
     },
     {
       "relation": "calls",
@@ -9251,9 +9303,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepository_persistentchannelrepository_restore",
-      "target": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u"
     },
     {
       "relation": "contains",
@@ -9601,9 +9653,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/SanityTest.kt",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_sanitytest",
-      "target": "data_sanitytest_sanitytest",
-      "confidence_score": 1.0
+      "target": "data_sanitytest_sanitytest"
     },
     {
       "relation": "method",
@@ -9611,9 +9663,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/SanityTest.kt",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "data_sanitytest_sanitytest",
-      "target": "data_sanitytest_sanitytest_test_harness_runs",
-      "confidence_score": 1.0
+      "target": "data_sanitytest_sanitytest_test_harness_runs"
     },
     {
       "relation": "contains",
@@ -9621,9 +9673,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparsertest_m3uparsertest"
     },
     {
       "relation": "method",
@@ -9631,39 +9683,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_channel_name_keeps_embedded_commas",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
-      "source_location": "L48",
-      "weight": 1.0,
-      "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_empty_input_parses_to_empty_list",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_missing_attributes_fall_back_to_url_id_and_other_group",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
-      "source_location": "L17",
-      "weight": 1.0,
-      "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_parses_attributes_name_and_url",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparsertest_m3uparsertest_channel_name_keeps_embedded_commas"
     },
     {
       "relation": "method",
@@ -9672,8 +9694,48 @@
       "source_location": "L59",
       "weight": 1.0,
       "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_parses_single_quoted_attribute_values",
+      "target": "iptv_m3uparsertest_m3uparsertest_channel_name_starts_after_comma_outside_quoted_attributes",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "iptv_m3uparsertest_m3uparsertest",
+      "target": "iptv_m3uparsertest_m3uparsertest_empty_input_parses_to_empty_list"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "iptv_m3uparsertest_m3uparsertest",
+      "target": "iptv_m3uparsertest_m3uparsertest_missing_attributes_fall_back_to_url_id_and_other_group"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "iptv_m3uparsertest_m3uparsertest",
+      "target": "iptv_m3uparsertest_m3uparsertest_parses_attributes_name_and_url"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "iptv_m3uparsertest_m3uparsertest",
+      "target": "iptv_m3uparsertest_m3uparsertest_parses_single_quoted_attribute_values"
     },
     {
       "relation": "method",
@@ -9681,9 +9743,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_skips_extinf_without_a_following_url_and_ignores_junk_lines",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparsertest_m3uparsertest_skips_extinf_without_a_following_url_and_ignores_junk_lines"
     },
     {
       "relation": "contains",
@@ -9691,9 +9753,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/persist/InMemoryPrefsStoreTest.kt",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_inmemoryprefsstoretest",
-      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest",
-      "confidence_score": 1.0
+      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest"
     },
     {
       "relation": "method",
@@ -9701,9 +9763,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/persist/InMemoryPrefsStoreTest.kt",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest",
-      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_defaults_are_empty",
-      "confidence_score": 1.0
+      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_defaults_are_empty"
     },
     {
       "relation": "method",
@@ -9711,9 +9773,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/persist/InMemoryPrefsStoreTest.kt",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest",
-      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_writes_are_observable",
-      "confidence_score": 1.0
+      "target": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_writes_are_observable"
     },
     {
       "relation": "contains",
@@ -9721,9 +9783,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest"
     },
     {
       "relation": "method",
@@ -9731,9 +9793,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup"
     },
     {
       "relation": "method",
@@ -9741,9 +9803,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L65",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_loadm3u_replaces_lineup_and_persists_url",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_loadm3u_replaces_lineup_and_persists_url"
     },
     {
       "relation": "method",
@@ -9751,9 +9813,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_markwatched_orders_recents_newest_first_dedupes_caps_at_8",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_markwatched_orders_recents_newest_first_dedupes_caps_at_8"
     },
     {
       "relation": "method",
@@ -9761,9 +9823,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L78",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_restore_reloads_persisted_playlist_at_startup",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_restore_reloads_persisted_playlist_at_startup"
     },
     {
       "relation": "method",
@@ -9771,9 +9833,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup"
     },
     {
       "relation": "method",
@@ -9781,9 +9843,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_togglefavorite_persists_and_reflects_in_channels",
-      "confidence_score": 1.0
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_togglefavorite_persists_and_reflects_in_channels"
     },
     {
       "relation": "contains",
@@ -10462,9 +10524,9 @@
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme",
-      "target": "readme_livingroom_hq",
-      "confidence_score": 1.0
+      "target": "readme_livingroom_hq"
     },
     {
       "relation": "contains",
@@ -10472,9 +10534,9 @@
       "source_file": "README.md",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_livingroom_hq",
-      "target": "readme_architecture",
-      "confidence_score": 1.0
+      "target": "readme_architecture"
     },
     {
       "relation": "contains",
@@ -10482,9 +10544,9 @@
       "source_file": "README.md",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_livingroom_hq",
-      "target": "readme_building",
-      "confidence_score": 1.0
+      "target": "readme_building"
     },
     {
       "relation": "contains",
@@ -10492,9 +10554,9 @@
       "source_file": "README.md",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_livingroom_hq",
-      "target": "readme_design_language",
-      "confidence_score": 1.0
+      "target": "readme_design_language"
     },
     {
       "relation": "contains",
@@ -10502,9 +10564,9 @@
       "source_file": "README.md",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_livingroom_hq",
-      "target": "readme_knowledge_graph",
-      "confidence_score": 1.0
+      "target": "readme_knowledge_graph"
     },
     {
       "relation": "contains",
@@ -10512,9 +10574,9 @@
       "source_file": "README.md",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "readme_livingroom_hq",
-      "target": "readme_spatial_navigation",
-      "confidence_score": 1.0
+      "target": "readme_spatial_navigation"
     },
     {
       "relation": "contains",
@@ -10522,9 +10584,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion",
-      "target": "plans_2026_06_12_launcher_completion_launcher_completion_implementation_plan",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_launcher_completion_implementation_plan"
     },
     {
       "relation": "contains",
@@ -10532,9 +10594,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_launcher_completion_implementation_plan",
-      "target": "plans_2026_06_12_launcher_completion_file_structure",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_file_structure"
     },
     {
       "relation": "contains",
@@ -10542,9 +10604,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1374",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_launcher_completion_implementation_plan",
-      "target": "plans_2026_06_12_launcher_completion_manual_verification_on_device_post_implementation",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_manual_verification_on_device_post_implementation"
     },
     {
       "relation": "contains",
@@ -10552,9 +10614,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1383",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_launcher_completion_implementation_plan",
-      "target": "plans_2026_06_12_launcher_completion_out_of_scope_deliberately",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_out_of_scope_deliberately"
     },
     {
       "relation": "contains",
@@ -10562,9 +10624,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1253",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_10_watch_next_publisher_sync",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_10_watch_next_publisher_sync"
     },
     {
       "relation": "contains",
@@ -10572,9 +10634,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1350",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_11_final_verification_knowledge_graph_refresh",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_11_final_verification_knowledge_graph_refresh"
     },
     {
       "relation": "contains",
@@ -10582,9 +10644,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_1_jvm_test_infrastructure",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_1_jvm_test_infrastructure"
     },
     {
       "relation": "contains",
@@ -10592,9 +10654,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_2_m3u_playlist_parser",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_2_m3u_playlist_parser"
     },
     {
       "relation": "contains",
@@ -10602,9 +10664,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L243",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_3_launcherprefsstore_interface_in_memory_implementation",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_3_launcherprefsstore_interface_in_memory_implementation"
     },
     {
       "relation": "contains",
@@ -10612,9 +10674,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L344",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_4_datastore_backed_implementation",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_4_datastore_backed_implementation"
     },
     {
       "relation": "contains",
@@ -10622,9 +10684,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L438",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_5_extract_demolineup_add_persistentchannelrepository",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_5_extract_demolineup_add_persistentchannelrepository"
     },
     {
       "relation": "contains",
@@ -10632,9 +10694,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L724",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_6_wire_persistence_into_the_composition_root",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_6_wire_persistence_into_the_composition_root"
     },
     {
       "relation": "contains",
@@ -10642,9 +10704,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L791",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_7_app_launch_error_handling",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_7_app_launch_error_handling"
     },
     {
       "relation": "contains",
@@ -10652,9 +10714,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L947",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_8_role_home_set_as_default_prompt",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_8_role_home_set_as_default_prompt"
     },
     {
       "relation": "contains",
@@ -10662,9 +10724,9 @@
       "source_file": "docs/superpowers/plans/2026-06-12-launcher-completion.md",
       "source_location": "L1150",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_06_12_launcher_completion_file_structure",
-      "target": "plans_2026_06_12_launcher_completion_task_9_watch_next_mapping_pure_logic",
-      "confidence_score": 1.0
+      "target": "plans_2026_06_12_launcher_completion_task_9_watch_next_mapping_pure_logic"
     }
   ],
   "hyperedges": [
@@ -10755,5 +10817,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "cf9054be0bf4b677669026610fe008d0a2a4b3f3"
+  "built_at_commit": "172943a25878e3e1b045c5bc14e67ea717026df5"
 }

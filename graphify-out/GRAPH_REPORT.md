@@ -1,16 +1,16 @@
 # Graph Report - LRHQ  (2026-06-12)
 
 ## Corpus Check
-- 51 files · ~16,171 words
+- 51 files · ~16,244 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 408 nodes · 611 edges · 28 communities (25 shown, 3 thin omitted)
+- 410 nodes · 615 edges · 27 communities (24 shown, 3 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cf9054be`
+- Built from commit: `172943a2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,7 +22,6 @@
 - [[_COMMUNITY_Data Models & Installed Apps|Data Models & Installed Apps]]
 - [[_COMMUNITY_System Monitoring|System Monitoring]]
 - [[_COMMUNITY_Built-in Widgets|Built-in Widgets]]
-- [[_COMMUNITY_Media Library|Media Library]]
 - [[_COMMUNITY_Main Activity Key Handling|Main Activity Key Handling]]
 - [[_COMMUNITY_Ambient Info Services|Ambient Info Services]]
 - [[_COMMUNITY_App Composition Root|App Composition Root]]
@@ -75,7 +74,7 @@
 - **Widget Plugin Contract and Registry** — widget_widgetplugin_widgetplugin, widget_widgetplugin_widgetstate, widget_widgetplugin_widgetstat, widget_widgetregistry_widgetregistry [EXTRACTED 1.00]
 - **Demo Repository Implementations Behind Stable Interfaces** — repo_ambientinforepository_demoambientinforepository, repo_channelrepository_demochannelrepository, repo_mediarepository_demomediarepository, readme_demo_repository_pattern [INFERRED 0.95]
 
-## Communities (28 total, 3 thin omitted)
+## Communities (27 total, 3 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
 Cohesion: 0.07
@@ -90,24 +89,20 @@ Cohesion: 0.10
 Nodes (21): Modifier, WidgetPlugin, WidgetState, LauncherPrefsStore, Modifier, HqApplication, SpatialNavController, String (+13 more)
 
 ### Community 3 - "Widget Plugin Contract"
-Cohesion: 0.13
-Nodes (18): Float, Long, Flow, List, StateFlow, DownloadJob, MediaItem, MediaType (+10 more)
+Cohesion: 0.12
+Nodes (19): Float, Long, Flow, List, StateFlow, DownloadJob, Channel, MediaItem (+11 more)
 
 ### Community 4 - "Data Models & Installed Apps"
-Cohesion: 0.18
-Nodes (10): Channel, List, Pair, Program, StateFlow, String, Channel, Demo Repository Pattern (+2 more)
+Cohesion: 0.19
+Nodes (9): Channel, List, Pair, Program, StateFlow, String, Demo Repository Pattern, ChannelRepository (+1 more)
 
 ### Community 5 - "System Monitoring"
-Cohesion: 0.12
-Nodes (16): Composable, Flow, Set, String, Unit, List, StateFlow, String (+8 more)
+Cohesion: 0.09
+Nodes (35): Flow, HqApplication, Set, String, WidgetPlugin, WidgetRegistry, WidgetState, WidgetZone (+27 more)
 
 ### Community 6 - "Built-in Widgets"
 Cohesion: 0.17
 Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, SystemStats, Command Center Dashboard (+1 more)
-
-### Community 7 - "Media Library"
-Cohesion: 0.25
-Nodes (19): Flow, HqApplication, Set, String, WidgetPlugin, WidgetRegistry, WidgetState, WidgetZone (+11 more)
 
 ### Community 8 - "Main Activity Key Handling"
 Cohesion: 0.10
@@ -158,28 +153,28 @@ Cohesion: 0.47
 Nodes (4): List, toWatchNextEntry(), WatchNextEntry, WatchNextPublisher
 
 ### Community 26 - "Community 26"
-Cohesion: 0.33
+Cohesion: 0.38
 Nodes (4): Channel, List, String, M3uParser
 
 ## Knowledge Gaps
-- **125 isolated node(s):** `LauncherPrefsStore`, `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository`, `SystemMonitor` (+120 more)
+- **124 isolated node(s):** `LauncherPrefsStore`, `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository`, `SystemMonitor` (+119 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `StatBar()` connect `Command Center Dashboard` to `IPTV Channels & EPG`, `Gradle Build Config`, `Media Library`?**
-  _High betweenness centrality (0.233) - this node is a cross-community bridge._
-- **Why does `HqApplication` connect `Main Activity Key Handling` to `Spatial Zone Navigation`, `Media Library`?**
-  _High betweenness centrality (0.202) - this node is a cross-community bridge._
-- **Why does `WidgetStat` connect `Media Library` to `Command Center Dashboard`, `Widget Plugin Contract`, `System Monitoring`?**
-  _High betweenness centrality (0.187) - this node is a cross-community bridge._
+- **Why does `StatBar()` connect `Command Center Dashboard` to `IPTV Channels & EPG`, `Gradle Build Config`, `System Monitoring`?**
+  _High betweenness centrality (0.231) - this node is a cross-community bridge._
+- **Why does `HqApplication` connect `Main Activity Key Handling` to `Spatial Zone Navigation`, `System Monitoring`?**
+  _High betweenness centrality (0.200) - this node is a cross-community bridge._
+- **Why does `WidgetStat` connect `System Monitoring` to `Command Center Dashboard`, `Widget Plugin Contract`?**
+  _High betweenness centrality (0.185) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist keeps current lineup`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
   _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 8 inferred relationships involving `GlassPanel()` (e.g. with `Color` and `DefaultHomeBanner()`) actually correct?**
   _`GlassPanel()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `LauncherPrefsStore`, `ChannelRepository`, `MediaRepository` to the rest of the system?**
-  _128 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _127 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Command Center Dashboard` be split into smaller, more focused modules?**
   _Cohesion score 0.07112375533428165 - nodes in this community are weakly interconnected._
