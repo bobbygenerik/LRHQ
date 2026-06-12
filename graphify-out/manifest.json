@@ -1,0 +1,172 @@
+{
+  "/home/bobbygenerik/repos/LRHQ/app/build.gradle.kts": {
+    "mtime": 1781239850.4720843,
+    "ast_hash": "a0e63da38c8fd228e3f9d288554a6a64",
+    "semantic_hash": "a0e63da38c8fd228e3f9d288554a6a64"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/HqApplication.kt": {
+    "mtime": 1781239887.0600278,
+    "ast_hash": "8f0e0c35722e5ce85df9deeabbc3bbdd",
+    "semantic_hash": "8f0e0c35722e5ce85df9deeabbc3bbdd"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/MainActivity.kt": {
+    "mtime": 1781239933.2020075,
+    "ast_hash": "25e486300ed4f417409714c3a2d644e0",
+    "semantic_hash": "25e486300ed4f417409714c3a2d644e0"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/components/WidgetCard.kt": {
+    "mtime": 1781239968.6140275,
+    "ast_hash": "9851f4b39fc02126f895302259530635",
+    "semantic_hash": "9851f4b39fc02126f895302259530635"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/navigation/SpatialNavController.kt": {
+    "mtime": 1781239907.574012,
+    "ast_hash": "a1acecb376ff138e5a6efff49040c910",
+    "semantic_hash": "a1acecb376ff138e5a6efff49040c910"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/navigation/SpatialNavHost.kt": {
+    "mtime": 1781239915.8880086,
+    "ast_hash": "9b9ffb4aa73501d64d1e0741a55045e6",
+    "semantic_hash": "9b9ffb4aa73501d64d1e0741a55045e6"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/navigation/Zone.kt": {
+    "mtime": 1781239893.165022,
+    "ast_hash": "ea4408892995bc09a53aa587f0e0a008",
+    "semantic_hash": "ea4408892995bc09a53aa587f0e0a008"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt": {
+    "mtime": 1781239980.3280404,
+    "ast_hash": "4be83c1665b5e14dc78530d289d2ea3f",
+    "semantic_hash": "4be83c1665b5e14dc78530d289d2ea3f"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt": {
+    "mtime": 1781240080.5042703,
+    "ast_hash": "f66a9cb2e54c7586a29fb9a2f31596dc",
+    "semantic_hash": "f66a9cb2e54c7586a29fb9a2f31596dc"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt": {
+    "mtime": 1781240098.0753307,
+    "ast_hash": "a1a7b02425d374793cff68fd5a170a55",
+    "semantic_hash": "a1a7b02425d374793cff68fd5a170a55"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
+    "mtime": 1781240004.8240776,
+    "ast_hash": "614ecd96779306352549e9d311a735af",
+    "semantic_hash": "614ecd96779306352549e9d311a735af"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {
+    "mtime": 1781240022.6741126,
+    "ast_hash": "0e91728d895a0ea9c2c6113b194e218c",
+    "semantic_hash": "0e91728d895a0ea9c2c6113b194e218c"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt": {
+    "mtime": 1781240049.0891767,
+    "ast_hash": "335738eff1765f6af35ff2efe42bea9b",
+    "semantic_hash": "335738eff1765f6af35ff2efe42bea9b"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt": {
+    "mtime": 1781240059.452792,
+    "ast_hash": "5e72163bcdc4fcfbb3d6cbe9bf71ec6b",
+    "semantic_hash": "5e72163bcdc4fcfbb3d6cbe9bf71ec6b"
+  },
+  "/home/bobbygenerik/repos/LRHQ/app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt": {
+    "mtime": 1781239959.6920197,
+    "ast_hash": "fb492f2854771109b1b2da7464947381",
+    "semantic_hash": "fb492f2854771109b1b2da7464947381"
+  },
+  "/home/bobbygenerik/repos/LRHQ/build.gradle.kts": {
+    "mtime": 1781239663.0380445,
+    "ast_hash": "ef9ff6495864961fe1ca5c1ecd4f3269",
+    "semantic_hash": "ef9ff6495864961fe1ca5c1ecd4f3269"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/build.gradle.kts": {
+    "mtime": 1781239704.5217233,
+    "ast_hash": "c89edebfa5b42060373bd38dfe06cc3a",
+    "semantic_hash": "c89edebfa5b42060373bd38dfe06cc3a"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/model/Models.kt": {
+    "mtime": 1781239714.2416577,
+    "ast_hash": "577f3c0cb61b1cf2c21e28045a51d827",
+    "semantic_hash": "577f3c0cb61b1cf2c21e28045a51d827"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt": {
+    "mtime": 1781239777.996313,
+    "ast_hash": "38e818d817120039c129224dba3d24d6",
+    "semantic_hash": "38e818d817120039c129224dba3d24d6"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt": {
+    "mtime": 1781239737.9705126,
+    "ast_hash": "73ce2afd11c8262281d49491c027daa9",
+    "semantic_hash": "73ce2afd11c8262281d49491c027daa9"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/repo/InstalledAppsRepository.kt": {
+    "mtime": 1781239784.696285,
+    "ast_hash": "24ba6bff3d6549a91b851fe3081f9edc",
+    "semantic_hash": "24ba6bff3d6549a91b851fe3081f9edc"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt": {
+    "mtime": 1781239751.485439,
+    "ast_hash": "40ad0a9c9ec27b2ac010b23631c5ba9b",
+    "semantic_hash": "40ad0a9c9ec27b2ac010b23631c5ba9b"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt": {
+    "mtime": 1781239767.723359,
+    "ast_hash": "e7939a17156947f0ce6cf987df0513d7",
+    "semantic_hash": "e7939a17156947f0ce6cf987df0513d7"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/build.gradle.kts": {
+    "mtime": 1781239792.8862526,
+    "ast_hash": "9c8b87423b139d5cea1e36a2d36c47e4",
+    "semantic_hash": "9c8b87423b139d5cea1e36a2d36c47e4"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt": {
+    "mtime": 1781239829.6901336,
+    "ast_hash": "a885871a62f7dfc9bde1cffc0d1ceb6b",
+    "semantic_hash": "a885871a62f7dfc9bde1cffc0d1ceb6b"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/GlassPanel.kt": {
+    "mtime": 1781239817.7201676,
+    "ast_hash": "73aee2064a6d767c39469f13e5fa6c50",
+    "semantic_hash": "73aee2064a6d767c39469f13e5fa6c50"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/StatBar.kt": {
+    "mtime": 1781239837.777113,
+    "ast_hash": "123ed420b304b94f35248b78ce395f74",
+    "semantic_hash": "123ed420b304b94f35248b78ce395f74"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt": {
+    "mtime": 1781239806.119205,
+    "ast_hash": "d782f8632adbae364f6c48c30ad0b838",
+    "semantic_hash": "d782f8632adbae364f6c48c30ad0b838"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/widget/build.gradle.kts": {
+    "mtime": 1781239683.297879,
+    "ast_hash": "f79ee4a526e743b202eb0063e615a9be",
+    "semantic_hash": "f79ee4a526e743b202eb0063e615a9be"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/widget/src/main/kotlin/com/livingroomhq/core/widget/WidgetPlugin.kt": {
+    "mtime": 1781239692.7448075,
+    "ast_hash": "6ee89a03f2a929399a34c997b6972bbc",
+    "semantic_hash": "6ee89a03f2a929399a34c997b6972bbc"
+  },
+  "/home/bobbygenerik/repos/LRHQ/core/widget/src/main/kotlin/com/livingroomhq/core/widget/WidgetRegistry.kt": {
+    "mtime": 1781239697.338774,
+    "ast_hash": "232595c3b11312f3df5ff436b1e1aa39",
+    "semantic_hash": "232595c3b11312f3df5ff436b1e1aa39"
+  },
+  "/home/bobbygenerik/repos/LRHQ/gradlew": {
+    "mtime": 1781240192.7197459,
+    "ast_hash": "f092910dfa8e47c5a37a452c3f6baf8a",
+    "semantic_hash": "f092910dfa8e47c5a37a452c3f6baf8a"
+  },
+  "/home/bobbygenerik/repos/LRHQ/settings.gradle.kts": {
+    "mtime": 1781239661.6180568,
+    "ast_hash": "4f7bdde899a942540c2ede2b506fe836",
+    "semantic_hash": "4f7bdde899a942540c2ede2b506fe836"
+  },
+  "/home/bobbygenerik/repos/LRHQ/README.md": {
+    "mtime": 1781240117.8864052,
+    "ast_hash": "e3adb135cc978b2734e31261fd96a449",
+    "semantic_hash": "e3adb135cc978b2734e31261fd96a449"
+  }
+}
