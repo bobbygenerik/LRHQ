@@ -1,5 +1,8 @@
 package com.livingroomhq.tvintegration
 
+import android.content.Context
+import androidx.tvprovider.media.tv.TvContractCompat
+import androidx.tvprovider.media.tv.WatchNextProgram
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
 
@@ -26,4 +29,36 @@ fun MediaItem.toWatchNextEntry(): WatchNextEntry? {
         lastPositionMillis = (duration * watchProgress).toLong(),
         isEpisode = type == MediaType.SHOW,
     )
+}
+
+/**
+ * Publishes continue-watching entries to the system Watch Next row, so this
+ * launcher's library surfaces even when the stock Google TV launcher is
+ * active. The provider is absent on some devices; every call is best-effort.
+ */
+class WatchNextPublisher(private val context: Context) {
+
+    fun sync(entries: List<WatchNextEntry>) {
+        runCatching {
+            val resolver = context.contentResolver
+            // Apps only see their own rows; null selection clears just ours.
+            resolver.delete(TvContractCompat.WatchNextPrograms.CONTENT_URI, null, null)
+            entries.forEach { entry ->
+                val program = WatchNextProgram.Builder()
+                    .setType(
+                        if (entry.isEpisode) TvContractCompat.WatchNextPrograms.TYPE_TV_EPISODE
+                        else TvContractCompat.WatchNextPrograms.TYPE_MOVIE
+                    )
+                    .setWatchNextType(TvContractCompat.WatchNextPrograms.WATCH_NEXT_TYPE_CONTINUE)
+                    .setInternalProviderId(entry.id)
+                    .setTitle(entry.title)
+                    .setDescription(entry.description)
+                    .setDurationMillis(entry.durationMillis.toInt())
+                    .setLastPlaybackPositionMillis(entry.lastPositionMillis.toInt())
+                    .setLastEngagementTimeUtcMillis(System.currentTimeMillis())
+                    .build()
+                resolver.insert(TvContractCompat.WatchNextPrograms.CONTENT_URI, program.toContentValues())
+            }
+        }
+    }
 }

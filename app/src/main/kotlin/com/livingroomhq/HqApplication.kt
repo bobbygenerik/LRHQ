@@ -12,11 +12,14 @@ import com.livingroomhq.core.data.repo.MediaRepository
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
+import com.livingroomhq.tvintegration.WatchNextPublisher
+import com.livingroomhq.tvintegration.toWatchNextEntry
 import com.livingroomhq.ui.UiMessages
 import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Composition root. The launcher must cold-start fast, so wiring is plain
@@ -40,5 +43,16 @@ class HqApplication : Application() {
     }
     val widgets: WidgetRegistry by lazy {
         WidgetRegistry().also { registerBuiltInWidgets(it, this) }
+    }
+    val watchNext: WatchNextPublisher by lazy { WatchNextPublisher(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        // Keep the system Watch Next row in step with the library.
+        appScope.launch {
+            media.library.collect { items ->
+                watchNext.sync(items.mapNotNull { it.toWatchNextEntry() })
+            }
+        }
     }
 }
