@@ -29,6 +29,7 @@ import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.widget.WidgetZone
+import com.livingroomhq.home.DefaultHomeBanner
 import com.livingroomhq.navigation.SpatialNavController
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.LivePreview
@@ -110,6 +111,7 @@ fun HomeScreen(app: HqApplication, nav: SpatialNavController) {
 
         // Side column: clock/weather + quick access widget cards.
         Column(Modifier.weight(0.38f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            DefaultHomeBanner(prefs = app.prefs)
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
                 Text(clock, style = HqType.Display)
                 Text("${weather.temperatureF}°F · ${weather.summary}", style = HqType.Body)
