@@ -49,4 +49,18 @@ class M3uParserTest {
     fun `empty input parses to empty list`() {
         assertTrue(M3uParser.parse("").isEmpty())
     }
+
+    @Test
+    fun `channel name keeps embedded commas`() {
+        val text = "#EXTM3U\n#EXTINF:-1 group-title=\"News\",Breaking News, Live\nhttp://s/1.m3u8"
+        assertEquals("Breaking News, Live", M3uParser.parse(text)[0].name)
+    }
+
+    @Test
+    fun `parses single-quoted attribute values`() {
+        val text = "#EXTM3U\n#EXTINF:-1 tvg-id='one' tvg-logo='http://x/l.png',One\nhttp://s/1.m3u8"
+        val ch = M3uParser.parse(text)[0]
+        assertEquals("one", ch.id)
+        assertEquals("http://x/l.png", ch.logoUrl)
+    }
 }

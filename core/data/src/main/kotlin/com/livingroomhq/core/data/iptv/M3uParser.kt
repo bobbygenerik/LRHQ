@@ -8,7 +8,7 @@ import com.livingroomhq.core.data.model.Channel
  */
 object M3uParser {
 
-    private val attrRegex = Regex("([\\w-]+)=\"([^\"]*)\"")
+    private val attrRegex = Regex("([\\w-]+)=(?:\"([^\"]*)\"|'([^']*)')")
 
     fun parse(text: String): List<Channel> {
         val channels = mutableListOf<Channel>()
@@ -24,8 +24,10 @@ object M3uParser {
                     pendingExtinf = null
                     if (extinf != null) {
                         val attrs = attrRegex.findAll(extinf)
-                            .associate { it.groupValues[1].lowercase() to it.groupValues[2] }
-                        val name = extinf.substringAfterLast(',').trim().ifEmpty { line }
+                            .associate { m ->
+                                m.groupValues[1].lowercase() to (m.groupValues[2].ifEmpty { m.groupValues[3] })
+                            }
+                        val name = extinf.substringAfter(',').trim().ifEmpty { line }
                         channels += Channel(
                             id = attrs["tvg-id"]?.takeIf { it.isNotBlank() } ?: line,
                             number = channels.size + 1,
