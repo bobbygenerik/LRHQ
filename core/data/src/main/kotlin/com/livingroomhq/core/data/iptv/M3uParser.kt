@@ -27,7 +27,7 @@ object M3uParser {
                             .associate { m ->
                                 m.groupValues[1].lowercase() to (m.groupValues[2].ifEmpty { m.groupValues[3] })
                             }
-                        val name = extinf.substringAfter(',').trim().ifEmpty { line }
+                        val name = extinf.displayName().ifEmpty { line }
                         channels += Channel(
                             id = attrs["tvg-id"]?.takeIf { it.isNotBlank() } ?: line,
                             number = channels.size + 1,
@@ -41,5 +41,20 @@ object M3uParser {
             }
         }
         return channels
+    }
+
+    private fun String.displayName(): String {
+        var inSingleQuote = false
+        var inDoubleQuote = false
+        forEachIndexed { index, char ->
+            when (char) {
+                '\'' -> if (!inDoubleQuote) inSingleQuote = !inSingleQuote
+                '"' -> if (!inSingleQuote) inDoubleQuote = !inDoubleQuote
+                ',' -> if (!inSingleQuote && !inDoubleQuote) {
+                    return substring(index + 1).trim()
+                }
+            }
+        }
+        return ""
     }
 }

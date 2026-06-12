@@ -57,6 +57,12 @@ class M3uParserTest {
     }
 
     @Test
+    fun `channel name starts after comma outside quoted attributes`() {
+        val text = "#EXTM3U\n#EXTINF:-1 tvg-name=\"News, Live\" group-title=\"News\",CNN\nhttp://s/1.m3u8"
+        assertEquals("CNN", M3uParser.parse(text)[0].name)
+    }
+
+    @Test
     fun `parses single-quoted attribute values`() {
         val text = "#EXTM3U\n#EXTINF:-1 tvg-id='one' tvg-logo='http://x/l.png',One\nhttp://s/1.m3u8"
         val ch = M3uParser.parse(text)[0]
