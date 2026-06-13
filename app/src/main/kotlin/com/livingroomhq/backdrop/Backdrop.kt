@@ -46,16 +46,19 @@ object BackdropProvider {
         channel: Channel?,
         showLive: Boolean,
         mediaBackdrops: List<String>,
+        ambientUrls: List<String> = AmbientBackdrops.urls,
     ): List<BackdropSource> = when {
         showLive && channel != null -> listOf(BackdropSource.Live(channel))
-        else -> artwork(mediaBackdrops)
+        else -> artwork(mediaBackdrops, ambientUrls)
     }
 
-    fun forAmbient(mediaBackdrops: List<String>): List<BackdropSource> =
-        artwork(mediaBackdrops)
+    fun forAmbient(
+        mediaBackdrops: List<String>,
+        ambientUrls: List<String> = AmbientBackdrops.urls,
+    ): List<BackdropSource> = artwork(mediaBackdrops, ambientUrls)
 
-    private fun artwork(mediaBackdrops: List<String>): List<BackdropSource> {
-        val urls = (mediaBackdrops + AmbientBackdrops.urls).distinct()
+    private fun artwork(mediaBackdrops: List<String>, ambientUrls: List<String>): List<BackdropSource> {
+        val urls = (mediaBackdrops + ambientUrls).distinct()
         return if (urls.isEmpty()) listOf(BackdropSource.Painted)
         else urls.map { BackdropSource.Artwork(it) }
     }

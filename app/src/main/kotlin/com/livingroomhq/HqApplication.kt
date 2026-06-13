@@ -1,6 +1,8 @@
 package com.livingroomhq
 
 import android.app.Application
+import com.livingroomhq.backdrop.AmbientBackdrops
+import com.livingroomhq.backdrop.UnsplashClient
 import com.livingroomhq.core.data.persist.DataStorePrefsStore
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import com.livingroomhq.core.data.repo.AmbientInfoRepository
@@ -19,6 +21,9 @@ import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -46,6 +51,11 @@ class HqApplication : Application() {
     }
     val watchNext: WatchNextPublisher by lazy { WatchNextPublisher(this) }
 
+    private val _ambientBackdropUrls = MutableStateFlow(AmbientBackdrops.urls)
+
+    /** Landscape stills for the hero / ambient cycle; bundled set until Unsplash responds. */
+    val ambientBackdropUrls: StateFlow<List<String>> = _ambientBackdropUrls.asStateFlow()
+
     override fun onCreate() {
         super.onCreate()
         // Keep the system Watch Next row in step with the library.
@@ -53,6 +63,11 @@ class HqApplication : Application() {
             media.library.collect { items ->
                 watchNext.sync(items.mapNotNull { it.toWatchNextEntry() })
             }
+        }
+        // Refresh the ambient backdrop pool once per launch (demo tier: 50 req/hr).
+        appScope.launch {
+            val urls = UnsplashClient.fetchLandscapeUrls()
+            if (urls.isNotEmpty()) _ambientBackdropUrls.value = urls
         }
     }
 }
