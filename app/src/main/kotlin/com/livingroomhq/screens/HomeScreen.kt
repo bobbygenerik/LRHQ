@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
+import com.livingroomhq.backdrop.BackdropProvider
+import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.initialFocus
@@ -61,7 +63,6 @@ import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.SpatialNavController
 import com.livingroomhq.navigation.Zone
-import com.livingroomhq.player.LivePreview
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,10 +86,17 @@ fun HomeScreen(
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val weather by app.ambientInfo.weather.collectAsState()
+    val library by app.media.library.collectAsState()
     val customSettings = LocalCustomSettings.current
 
     val current = recents.firstOrNull() ?: channels.firstOrNull()
     val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
+
+    val isLive = current != null && customSettings.showLivePreview
+    val mediaBackdrops = remember(library) { library.mapNotNull { it.backdropUrl }.distinct() }
+    val backdropSources = remember(current, customSettings.showLivePreview, mediaBackdrops) {
+        BackdropProvider.forHome(current, customSettings.showLivePreview, mediaBackdrops)
+    }
 
     var clockTime by remember { mutableStateOf(timeNow()) }
     var clockDate by remember { mutableStateOf(dateNow()) }
@@ -123,11 +131,19 @@ fun HomeScreen(
                 temperatureF = weather?.temperatureF,
                 weatherSummary = weather?.summary,
                 showWeather = customSettings.showWeather,
-                showLivePreview = customSettings.showLivePreview,
                 nowTitle = nowProgram?.title,
                 nowDescription = nowProgram?.description,
                 progress = nowProgram?.progressAt(System.currentTimeMillis()),
                 nextTitle = nextProgram?.title,
+                backdrop = {
+                    // Live stream when playing; otherwise gently cycle library
+                    // landscape art + the curated ambient set, painted floor under all.
+                    HeroBackdrop(
+                        sources = backdropSources,
+                        modifier = Modifier.fillMaxSize(),
+                        cycle = !isLive,
+                    )
+                },
             )
             // Focus affordance: a brand accent line along the bottom edge.
             if (heroFocused) {
@@ -185,18 +201,14 @@ private fun HeroContent(
     temperatureF: Int?,
     weatherSummary: String?,
     showWeather: Boolean,
-    showLivePreview: Boolean,
     nowTitle: String?,
     nowDescription: String?,
     progress: Float?,
     nextTitle: String?,
+    backdrop: @Composable () -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
-        if (channel != null && showLivePreview) {
-            LivePreview(channel = channel, modifier = Modifier.fillMaxSize())
-        } else {
-            SunsetCitySkyline(Modifier.fillMaxSize())
-        }
+        backdrop()
 
         // Legibility scrim under the bottom overlay.
         Box(
