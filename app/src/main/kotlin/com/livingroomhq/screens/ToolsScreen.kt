@@ -73,21 +73,18 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
                 label = "File Manager",
                 desc = "Browse Files",
                 icon = Icons.Default.Folder,
-                color = Color(0xFFECC94B),
                 onClick = { app.installedApps.launch("com.android.documentsui") }
             ),
             UtilItem(
                 label = "Web Browser",
                 desc = "Browse the web",
                 icon = Icons.Default.Language,
-                color = Color(0xFF3182CE),
                 onClick = { app.installedApps.launch("com.android.chrome") }
             ),
             UtilItem(
                 label = "App Manager",
                 desc = "Manage Apps",
                 icon = Icons.Default.Android,
-                color = Color(0xFF48BB78),
                 onClick = {
                     val intent = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -99,35 +96,30 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
                 label = "Emulator",
                 desc = "Retro Games",
                 icon = Icons.Default.Gamepad,
-                color = Color(0xFF9F7AEA),
                 onClick = { app.installedApps.launch("com.retroarch") }
             ),
             UtilItem(
                 label = "Downloads",
                 desc = "Manage Downloads",
                 icon = Icons.Default.GetApp,
-                color = Color(0xFF38B2AC),
                 onClick = { app.installedApps.launch("com.android.providers.downloads.ui") }
             ),
             UtilItem(
                 label = "Weather",
                 desc = "Party Cloudy",
                 icon = Icons.Default.Cloud,
-                color = Color(0xFFED8936),
                 onClick = { /* show weather detail */ }
             ),
             UtilItem(
                 label = "Notes",
                 desc = "Quick Notes",
                 icon = Icons.Default.Note,
-                color = Color(0xFFD69E2E),
                 onClick = { /* open notes */ }
             ),
             UtilItem(
                 label = "Smart Home",
                 desc = "Devices & Scenes",
                 icon = Icons.Default.Home,
-                color = Color(0xFF00B5D8),
                 onClick = { /* toggle home appliances */ }
             )
         )
@@ -170,13 +162,13 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(util.color.copy(alpha = 0.15f)),
+                                    .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else Color(0x0FFFFFFF)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = util.icon,
                                     contentDescription = util.label,
-                                    tint = util.color,
+                                    tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -279,6 +271,5 @@ data class UtilItem(
     val label: String,
     val desc: String,
     val icon: ImageVector,
-    val color: Color,
     val onClick: () -> Unit
 )

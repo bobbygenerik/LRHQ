@@ -81,7 +81,6 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "System",
                     icon = Icons.Default.Computer,
-                    color = Color(0xFF68D391),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -102,7 +101,6 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Storage",
                     icon = Icons.Default.Folder,
-                    color = Color(0xFF4299E1),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -123,14 +121,13 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Network",
                     icon = Icons.Default.Wifi,
-                    color = Color(0xFFED8936),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Home Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("STATUS", style = HqType.Label)
-                            Text("Connected", style = HqType.Label.copy(color = Color(0xFF68D391)))
+                            Text("Connected", style = HqType.Label.copy(color = HqColors.Positive))
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("LOCAL IP", style = HqType.Label)
@@ -145,7 +142,6 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Downloads",
                     icon = Icons.Default.CloudDownload,
-                    color = Color(0xFF319795),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -161,14 +157,13 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Media Server",
                     icon = Icons.Default.Dns,
-                    color = Color(0xFF805AD5),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Local Server", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("STATUS", style = HqType.Label)
-                            Text("Online", style = HqType.Label.copy(color = Color(0xFF68D391)))
+                            Text("Online", style = HqType.Label.copy(color = HqColors.Positive))
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("LIBRARIES", style = HqType.Label)
@@ -184,14 +179,13 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "VPN",
                     icon = Icons.Default.Lock,
-                    color = if (vpnActive) Color(0xFF48BB78) else Color(0xFFE53E3E),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Private Tunnel", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("STATUS", style = HqType.Label)
-                            Text(if (vpnActive) "Connected" else "Disconnected", style = HqType.Label.copy(color = if (vpnActive) Color(0xFF48BB78) else HqColors.TextTertiary))
+                            Text(if (vpnActive) "Connected" else "Disconnected", style = HqType.Label.copy(color = if (vpnActive) HqColors.Positive else HqColors.TextTertiary))
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("GATEWAY", style = HqType.Label)
@@ -207,14 +201,13 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Tailscale",
                     icon = Icons.Default.Security,
-                    color = Color(0xFF38B2AC),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Mesh Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("STATUS", style = HqType.Label)
-                            Text(if (isTsConnected) "Connected" else "Offline", style = HqType.Label.copy(color = if (isTsConnected) Color(0xFF48BB78) else HqColors.TextTertiary))
+                            Text(if (isTsConnected) "Connected" else "Offline", style = HqType.Label.copy(color = if (isTsConnected) HqColors.Positive else HqColors.TextTertiary))
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("TAIL IP", style = HqType.Label)
@@ -229,7 +222,6 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Backups",
                     icon = Icons.Default.Backup,
-                    color = Color(0xFFECC94B),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -251,14 +243,13 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
                 MetricCard(
                     title = "Updates",
                     icon = Icons.Default.CheckCircle,
-                    color = Color(0xFF48BB78),
                     onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Firmware Status", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("SYSTEM", style = HqType.Label)
-                            Text("Up to date", style = HqType.Label.copy(color = Color(0xFF48BB78)))
+                            Text("Up to date", style = HqType.Label.copy(color = HqColors.Positive))
                         }
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                             Text("VERSION", style = HqType.Label)
@@ -275,7 +266,6 @@ fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
 private fun MetricCard(
     title: String,
     icon: ImageVector,
-    color: Color,
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -297,17 +287,18 @@ private fun MetricCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(title.uppercase(), style = HqType.Label)
+                // Neutral icon badge; lights up with the single brand accent on focus.
                 Box(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(color.copy(alpha = 0.15f)),
+                        .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else Color(0x0FFFFFFF)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = title,
-                        tint = color,
+                        tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
