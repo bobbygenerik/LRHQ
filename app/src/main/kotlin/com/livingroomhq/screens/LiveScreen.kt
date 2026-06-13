@@ -168,7 +168,8 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
                 .weight(0.48f)
                 .fillMaxHeight()
         ) {
-            Text("All Channels", style = HqType.Headline.copy(fontWeight = FontWeight.Bold))
+            val activeCategoryName = categories.firstOrNull { it.id == selectedCategoryId }?.name ?: "All Channels"
+            Text(activeCategoryName, style = HqType.Headline.copy(fontWeight = FontWeight.Bold))
             Spacer(Modifier.height(16.dp))
             if (visibleChannels.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
