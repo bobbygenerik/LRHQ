@@ -236,7 +236,7 @@
       "label": "MainActivity",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L32",
+      "source_location": "L46",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity",
       "community": 1,
@@ -256,7 +256,7 @@
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L34",
+      "source_location": "L48",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_spatialnavcontroller",
       "community": 1,
@@ -266,7 +266,7 @@
       "label": ".onCreate()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L43",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_oncreate",
       "community": 1,
@@ -276,7 +276,7 @@
       "label": "Bundle",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L43",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "bundle",
       "community": 1,
@@ -286,7 +286,7 @@
       "label": ".onKeyDown()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L84",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onkeydown",
       "community": 1,
@@ -296,7 +296,7 @@
       "label": "Int",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L84",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_int",
       "community": 1,
@@ -306,7 +306,7 @@
       "label": "KeyEvent",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L84",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "keyevent",
       "community": 1,
@@ -316,7 +316,7 @@
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L84",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_boolean",
       "community": 1,
@@ -326,7 +326,7 @@
       "label": ".onNewIntent()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L114",
+      "source_location": "L151",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onnewintent",
       "community": 1,
@@ -336,7 +336,7 @@
       "label": "Intent",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L114",
+      "source_location": "L151",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_intent",
       "community": 1,
@@ -346,7 +346,7 @@
       "label": ".onUserInteraction()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L119",
+      "source_location": "L156",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onuserinteraction",
       "community": 1,
@@ -356,11 +356,101 @@
       "label": ".requestMediaPermissions()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L124",
+      "source_location": "L161",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_requestmediapermissions",
       "community": 1,
       "norm_label": ".requestmediapermissions()"
+    },
+    {
+      "label": "Sidebar.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_sidebar",
+      "community": 18,
+      "norm_label": "sidebar.kt"
+    },
+    {
+      "label": "NavigationItem",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "components_sidebar_navigationitem",
+      "community": 18,
+      "norm_label": "navigationitem"
+    },
+    {
+      "label": "Sidebar()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "components_sidebar_sidebar",
+      "community": 18,
+      "norm_label": "sidebar()"
+    },
+    {
+      "label": "Zone",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_zone",
+      "community": 18,
+      "norm_label": "zone"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_modifier",
+      "community": 18,
+      "norm_label": "modifier"
+    },
+    {
+      "label": "SidebarItem()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "components_sidebar_sidebaritem",
+      "community": 18,
+      "norm_label": "sidebaritem()"
+    },
+    {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_string",
+      "community": 18,
+      "norm_label": "string"
+    },
+    {
+      "label": "ImageVector",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_imagevector",
+      "community": 18,
+      "norm_label": "imagevector"
+    },
+    {
+      "label": "Boolean",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_boolean",
+      "community": 18,
+      "norm_label": "boolean"
     },
     {
       "label": "WidgetCard.kt",
@@ -369,7 +459,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_widgetcard",
-      "community": 30,
+      "community": 0,
       "norm_label": "widgetcard.kt"
     },
     {
@@ -379,7 +469,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "components_widgetcard_widgetcard",
-      "community": 30,
+      "community": 0,
       "norm_label": "widgetcard()"
     },
     {
@@ -389,7 +479,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetplugin",
-      "community": 30,
+      "community": 0,
       "norm_label": "widgetplugin"
     },
     {
@@ -399,7 +489,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_modifier",
-      "community": 30,
+      "community": 0,
       "norm_label": "modifier"
     },
     {
@@ -409,7 +499,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "components_widgetcard_defaultwidgetbody",
-      "community": 30,
+      "community": 0,
       "norm_label": "defaultwidgetbody()"
     },
     {
@@ -419,7 +509,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetstate",
-      "community": 30,
+      "community": 0,
       "norm_label": "widgetstate"
     },
     {
@@ -429,7 +519,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "home_defaulthomebanner",
-      "community": 2,
+      "community": 0,
       "norm_label": "defaulthomebanner.kt"
     },
     {
@@ -439,7 +529,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "home_defaulthomebanner_defaulthomebanner",
-      "community": 2,
+      "community": 0,
       "norm_label": "defaulthomebanner()"
     },
     {
@@ -449,7 +539,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_launcherprefsstore",
-      "community": 2,
+      "community": 0,
       "norm_label": "launcherprefsstore"
     },
     {
@@ -459,7 +549,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_modifier",
-      "community": 2,
+      "community": 0,
       "norm_label": "modifier"
     },
     {
@@ -726,7 +816,7 @@
       "label": "zoneInDirection()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/navigation/Zone.kt",
-      "source_location": "L25",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "navigation_zone_zoneindirection",
       "community": 1,
@@ -736,7 +826,7 @@
       "label": "Direction",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/navigation/Zone.kt",
-      "source_location": "L25",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_navigation_zone_kt_direction",
       "community": 1,
@@ -746,7 +836,7 @@
       "label": "Direction",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/navigation/Zone.kt",
-      "source_location": "L39",
+      "source_location": "L41",
       "_origin": "ast",
       "id": "navigation_zone_direction",
       "community": 1,
@@ -816,7 +906,7 @@
       "label": "AmbientScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L43",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "screens_ambientscreen_ambientscreen",
       "community": 8,
@@ -826,7 +916,7 @@
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L43",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_hqapplication",
       "community": 8,
@@ -836,17 +926,47 @@
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L43",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_spatialnavcontroller",
       "community": 8,
       "norm_label": "spatialnavcontroller"
     },
     {
+      "label": "StarryMountainLake()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "_origin": "ast",
+      "id": "screens_ambientscreen_starrymountainlake",
+      "community": 8,
+      "norm_label": "starrymountainlake()"
+    },
+    {
+      "label": "Float",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_float",
+      "community": 8,
+      "norm_label": "float"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_modifier",
+      "community": 8,
+      "norm_label": "modifier"
+    },
+    {
       "label": "ambientTime()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L113",
+      "source_location": "L280",
       "_origin": "ast",
       "id": "screens_ambientscreen_ambienttime",
       "community": 8,
@@ -856,7 +976,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L113",
+      "source_location": "L280",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_string",
       "community": 8,
@@ -866,7 +986,7 @@
       "label": "ambientDate()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L114",
+      "source_location": "L281",
       "_origin": "ast",
       "id": "screens_ambientscreen_ambientdate",
       "community": 8,
@@ -879,98 +999,98 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_commandcenterscreen",
-      "community": 18,
+      "community": 29,
       "norm_label": "commandcenterscreen.kt"
     },
     {
       "label": "CommandCenterScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L39",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "screens_commandcenterscreen_commandcenterscreen",
-      "community": 18,
+      "community": 29,
       "norm_label": "commandcenterscreen()"
     },
     {
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L39",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_hqapplication",
-      "community": 18,
+      "community": 29,
       "norm_label": "hqapplication"
     },
     {
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L39",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_spatialnavcontroller",
-      "community": 18,
+      "community": 29,
       "norm_label": "spatialnavcontroller"
     },
     {
-      "label": "SystemGauges()",
+      "label": "MetricCard()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L79",
+      "source_location": "L274",
       "_origin": "ast",
-      "id": "screens_commandcenterscreen_systemgauges",
-      "community": 18,
-      "norm_label": "systemgauges()"
+      "id": "screens_commandcenterscreen_metriccard",
+      "community": 29,
+      "norm_label": "metriccard()"
     },
     {
-      "label": "SystemStats",
+      "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L79",
+      "source_location": "L274",
       "_origin": "ast",
-      "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_systemstats",
-      "community": 18,
-      "norm_label": "systemstats"
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_string",
+      "community": 29,
+      "norm_label": "string"
     },
     {
-      "label": "NetworkPanel()",
+      "label": "ImageVector",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L102",
+      "source_location": "L274",
       "_origin": "ast",
-      "id": "screens_commandcenterscreen_networkpanel",
-      "community": 18,
-      "norm_label": "networkpanel()"
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_imagevector",
+      "community": 29,
+      "norm_label": "imagevector"
     },
     {
-      "label": "ServicesPanel()",
+      "label": "Color",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L274",
       "_origin": "ast",
-      "id": "screens_commandcenterscreen_servicespanel",
-      "community": 18,
-      "norm_label": "servicespanel()"
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_color",
+      "community": 29,
+      "norm_label": "color"
     },
     {
-      "label": "List",
+      "label": "getLocalIpAddress()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L320",
       "_origin": "ast",
-      "id": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_list",
-      "community": 18,
-      "norm_label": "list"
+      "id": "screens_commandcenterscreen_getlocalipaddress",
+      "community": 29,
+      "norm_label": "getlocalipaddress()"
     },
     {
-      "label": "com",
+      "label": "getTailscaleIpAddress()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L330",
       "_origin": "ast",
-      "id": "com",
-      "community": 18,
-      "norm_label": "com"
+      "id": "screens_commandcenterscreen_gettailscaleipaddress",
+      "community": 29,
+      "norm_label": "gettailscaleipaddress()"
     },
     {
       "label": "HomeScreen.kt",
@@ -986,7 +1106,7 @@
       "label": "HomeScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L45",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "screens_homescreen_homescreen",
       "community": 2,
@@ -996,7 +1116,7 @@
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L45",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_hqapplication",
       "community": 2,
@@ -1006,31 +1126,171 @@
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L45",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_spatialnavcontroller",
       "community": 2,
       "norm_label": "spatialnavcontroller"
     },
     {
+      "label": "GuideText()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L387",
+      "_origin": "ast",
+      "id": "screens_homescreen_guidetext",
+      "community": 2,
+      "norm_label": "guidetext()"
+    },
+    {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L387",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "community": 2,
+      "norm_label": "string"
+    },
+    {
+      "label": "RecentChannelCapsule()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L395",
+      "_origin": "ast",
+      "id": "screens_homescreen_recentchannelcapsule",
+      "community": 2,
+      "norm_label": "recentchannelcapsule()"
+    },
+    {
+      "label": "Int",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L395",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_int",
+      "community": 2,
+      "norm_label": "int"
+    },
+    {
+      "label": "QuickAccessRow()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L443",
+      "_origin": "ast",
+      "id": "screens_homescreen_quickaccessrow",
+      "community": 2,
+      "norm_label": "quickaccessrow()"
+    },
+    {
+      "label": "QuickAccessItem",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L499",
+      "_origin": "ast",
+      "id": "screens_homescreen_quickaccessitem",
+      "community": 2,
+      "norm_label": "quickaccessitem"
+    },
+    {
+      "label": "CustomizationCard()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "_origin": "ast",
+      "id": "screens_homescreen_customizationcard",
+      "community": 2,
+      "norm_label": "customizationcard()"
+    },
+    {
+      "label": "CustomSettings",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_customsettings",
+      "community": 2,
+      "norm_label": "customsettings"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
+      "community": 2,
+      "norm_label": "modifier"
+    },
+    {
+      "label": "CustomButtonToggle()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L577",
+      "_origin": "ast",
+      "id": "screens_homescreen_custombuttontoggle",
+      "community": 2,
+      "norm_label": "custombuttontoggle()"
+    },
+    {
+      "label": "List",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L577",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_list",
+      "community": 2,
+      "norm_label": "list"
+    },
+    {
+      "label": "SunsetCitySkyline()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L627",
+      "_origin": "ast",
+      "id": "screens_homescreen_sunsetcityskyline",
+      "community": 2,
+      "norm_label": "sunsetcityskyline()"
+    },
+    {
+      "label": "CircularNavDiagram()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L717",
+      "_origin": "ast",
+      "id": "screens_homescreen_circularnavdiagram",
+      "community": 2,
+      "norm_label": "circularnavdiagram()"
+    },
+    {
+      "label": "RemoteControlGraphic()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L760",
+      "_origin": "ast",
+      "id": "screens_homescreen_remotecontrolgraphic",
+      "community": 2,
+      "norm_label": "remotecontrolgraphic()"
+    },
+    {
       "label": "timeNow()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L135",
+      "source_location": "L824",
       "_origin": "ast",
       "id": "screens_homescreen_timenow",
       "community": 2,
       "norm_label": "timenow()"
     },
     {
-      "label": "String",
+      "label": "dateNow()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L135",
+      "source_location": "L825",
       "_origin": "ast",
-      "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "id": "screens_homescreen_datenow",
       "community": 2,
-      "norm_label": "string"
+      "norm_label": "datenow()"
     },
     {
       "label": "LiveScreen.kt",
@@ -1039,38 +1299,118 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_livescreen",
-      "community": 10,
+      "community": 28,
       "norm_label": "livescreen.kt"
     },
     {
       "label": "LiveScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
-      "source_location": "L38",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "screens_livescreen_livescreen",
-      "community": 10,
+      "community": 28,
       "norm_label": "livescreen()"
     },
     {
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
-      "source_location": "L38",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_hqapplication",
-      "community": 10,
+      "community": 28,
       "norm_label": "hqapplication"
     },
     {
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
-      "source_location": "L38",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_spatialnavcontroller",
-      "community": 10,
+      "community": 28,
       "norm_label": "spatialnavcontroller"
+    },
+    {
+      "label": "CategoryItem",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L285",
+      "_origin": "ast",
+      "id": "screens_livescreen_categoryitem",
+      "community": 28,
+      "norm_label": "categoryitem"
+    },
+    {
+      "label": "CategoryRailItem()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "_origin": "ast",
+      "id": "screens_livescreen_categoryrailitem",
+      "community": 28,
+      "norm_label": "categoryrailitem()"
+    },
+    {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_string",
+      "community": 28,
+      "norm_label": "string"
+    },
+    {
+      "label": "ImageVector",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_imagevector",
+      "community": 28,
+      "norm_label": "imagevector"
+    },
+    {
+      "label": "Boolean",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_boolean",
+      "community": 28,
+      "norm_label": "boolean"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_modifier",
+      "community": 28,
+      "norm_label": "modifier"
+    },
+    {
+      "label": "ChannelGridCard()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "_origin": "ast",
+      "id": "screens_livescreen_channelgridcard",
+      "community": 28,
+      "norm_label": "channelgridcard()"
+    },
+    {
+      "label": "Channel",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_channel",
+      "community": 28,
+      "norm_label": "channel"
     },
     {
       "label": "MediaScreen.kt",
@@ -1079,88 +1419,238 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_mediascreen",
-      "community": 22,
+      "community": 0,
       "norm_label": "mediascreen.kt"
     },
     {
       "label": "MediaScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L55",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "screens_mediascreen_mediascreen",
-      "community": 22,
+      "community": 0,
       "norm_label": "mediascreen()"
     },
     {
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L55",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_hqapplication",
-      "community": 22,
+      "community": 0,
       "norm_label": "hqapplication"
     },
     {
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L55",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_spatialnavcontroller",
-      "community": 22,
+      "community": 0,
       "norm_label": "spatialnavcontroller"
     },
     {
-      "label": "PosterRail()",
+      "label": "MediaFilterItem",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L119",
+      "source_location": "L346",
       "_origin": "ast",
-      "id": "screens_mediascreen_posterrail",
-      "community": 22,
-      "norm_label": "posterrail()"
+      "id": "screens_mediascreen_mediafilteritem",
+      "community": 0,
+      "norm_label": "mediafilteritem"
+    },
+    {
+      "label": "MediaFilterRailItem()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "_origin": "ast",
+      "id": "screens_mediascreen_mediafilterrailitem",
+      "community": 0,
+      "norm_label": "mediafilterrailitem()"
     },
     {
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L119",
+      "source_location": "L352",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_string",
-      "community": 22,
+      "community": 0,
       "norm_label": "string"
+    },
+    {
+      "label": "ImageVector",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_imagevector",
+      "community": 0,
+      "norm_label": "imagevector"
+    },
+    {
+      "label": "Boolean",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_boolean",
+      "community": 0,
+      "norm_label": "boolean"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_modifier",
+      "community": 0,
+      "norm_label": "modifier"
+    },
+    {
+      "label": "PosterRail()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L409",
+      "_origin": "ast",
+      "id": "screens_mediascreen_posterrail",
+      "community": 0,
+      "norm_label": "posterrail()"
     },
     {
       "label": "List",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L119",
+      "source_location": "L409",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_list",
-      "community": 22,
+      "community": 0,
       "norm_label": "list"
     },
     {
       "label": "MediaItem",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L119",
+      "source_location": "L409",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_mediaitem",
-      "community": 22,
+      "community": 0,
       "norm_label": "mediaitem"
     },
     {
-      "label": "Boolean",
+      "label": "SettingsScreen.kt",
       "file_type": "code",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L119",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L1",
       "_origin": "ast",
-      "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_boolean",
-      "community": 22,
-      "norm_label": "boolean"
+      "id": "screens_settingsscreen",
+      "community": 10,
+      "norm_label": "settingsscreen.kt"
+    },
+    {
+      "label": "SettingsScreen()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "screens_settingsscreen_settingsscreen",
+      "community": 10,
+      "norm_label": "settingsscreen()"
+    },
+    {
+      "label": "HqApplication",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_hqapplication",
+      "community": 10,
+      "norm_label": "hqapplication"
+    },
+    {
+      "label": "SpatialNavController",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_spatialnavcontroller",
+      "community": 10,
+      "norm_label": "spatialnavcontroller"
+    },
+    {
+      "label": "CustomSettings",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_customsettings",
+      "community": 10,
+      "norm_label": "customsettings"
+    },
+    {
+      "label": "GlassTextField()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "_origin": "ast",
+      "id": "screens_settingsscreen_glasstextfield",
+      "community": 10,
+      "norm_label": "glasstextfield()"
+    },
+    {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_string",
+      "community": 10,
+      "norm_label": "string"
+    },
+    {
+      "label": "Modifier",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_modifier",
+      "community": 10,
+      "norm_label": "modifier"
+    },
+    {
+      "label": "CustomButtonToggle()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L363",
+      "_origin": "ast",
+      "id": "screens_settingsscreen_custombuttontoggle",
+      "community": 10,
+      "norm_label": "custombuttontoggle()"
+    },
+    {
+      "label": "List",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L363",
+      "_origin": "ast",
+      "id": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_list",
+      "community": 10,
+      "norm_label": "list"
+    },
+    {
+      "label": "PublicPlaylist",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L413",
+      "_origin": "ast",
+      "id": "screens_settingsscreen_publicplaylist",
+      "community": 10,
+      "norm_label": "publicplaylist"
     },
     {
       "label": "ToolsScreen.kt",
@@ -1169,38 +1659,48 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_toolsscreen",
-      "community": 1,
+      "community": 0,
       "norm_label": "toolsscreen.kt"
     },
     {
       "label": "ToolsScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
-      "source_location": "L39",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "screens_toolsscreen_toolsscreen",
-      "community": 1,
+      "community": 0,
       "norm_label": "toolsscreen()"
     },
     {
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
-      "source_location": "L39",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_toolsscreen_kt_hqapplication",
-      "community": 1,
+      "community": 0,
       "norm_label": "hqapplication"
     },
     {
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
-      "source_location": "L39",
+      "source_location": "L61",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_toolsscreen_kt_spatialnavcontroller",
-      "community": 1,
+      "community": 0,
       "norm_label": "spatialnavcontroller"
+    },
+    {
+      "label": "UtilItem",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
+      "source_location": "L278",
+      "_origin": "ast",
+      "id": "screens_toolsscreen_utilitem",
+      "community": 0,
+      "norm_label": "utilitem"
     },
     {
       "label": "WatchNext.kt",
@@ -1739,7 +2239,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "model_models_channel",
-      "community": 3,
+      "community": 4,
       "norm_label": "channel"
     },
     {
@@ -2169,7 +2669,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_ambientinforepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "ambientinforepository.kt"
     },
     {
@@ -2179,7 +2679,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "ambientinforepository"
     },
     {
@@ -2189,7 +2689,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_stateflow",
-      "community": 4,
+      "community": 3,
       "norm_label": "stateflow"
     },
     {
@@ -2199,7 +2699,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "weather",
-      "community": 4,
+      "community": 3,
       "norm_label": "weather"
     },
     {
@@ -2209,7 +2709,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_list",
-      "community": 4,
+      "community": 3,
       "norm_label": "list"
     },
     {
@@ -2219,7 +2719,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "servicestatus",
-      "community": 4,
+      "community": 3,
       "norm_label": "servicestatus"
     },
     {
@@ -2229,7 +2729,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository_downloads",
-      "community": 4,
+      "community": 3,
       "norm_label": ".downloads()"
     },
     {
@@ -2239,7 +2739,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_flow",
-      "community": 4,
+      "community": 3,
       "norm_label": "flow"
     },
     {
@@ -2249,7 +2749,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "downloadjob",
-      "community": 4,
+      "community": 3,
       "norm_label": "downloadjob"
     },
     {
@@ -2259,7 +2759,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "repo_ambientinforepository_unconfiguredambientinforepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "unconfiguredambientinforepository"
     },
     {
@@ -2269,7 +2769,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
-      "community": 4,
+      "community": 3,
       "norm_label": ".downloads()"
     },
     {
@@ -2279,7 +2779,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_channelrepository",
-      "community": 3,
+      "community": 4,
       "norm_label": "channelrepository.kt"
     },
     {
@@ -2289,7 +2789,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository",
-      "community": 3,
+      "community": 4,
       "norm_label": "channelrepository"
     },
     {
@@ -2299,7 +2799,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_stateflow",
-      "community": 3,
+      "community": 4,
       "norm_label": "stateflow"
     },
     {
@@ -2309,7 +2809,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_list",
-      "community": 3,
+      "community": 4,
       "norm_label": "list"
     },
     {
@@ -2319,7 +2819,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_channel",
-      "community": 3,
+      "community": 4,
       "norm_label": "channel"
     },
     {
@@ -2329,7 +2829,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_groups",
-      "community": 3,
+      "community": 4,
       "norm_label": ".groups()"
     },
     {
@@ -2339,7 +2839,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string",
-      "community": 3,
+      "community": 4,
       "norm_label": "string"
     },
     {
@@ -2349,7 +2849,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_epgnownext",
-      "community": 3,
+      "community": 4,
       "norm_label": ".epgnownext()"
     },
     {
@@ -2359,7 +2859,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_pair",
-      "community": 3,
+      "community": 4,
       "norm_label": "pair"
     },
     {
@@ -2369,7 +2869,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program",
-      "community": 3,
+      "community": 4,
       "norm_label": "program"
     },
     {
@@ -2379,7 +2879,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_markwatched",
-      "community": 3,
+      "community": 4,
       "norm_label": ".markwatched()"
     },
     {
@@ -2389,7 +2889,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_togglefavorite",
-      "community": 3,
+      "community": 4,
       "norm_label": ".togglefavorite()"
     },
     {
@@ -2399,7 +2899,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_loadm3u",
-      "community": 3,
+      "community": 4,
       "norm_label": ".loadm3u()"
     },
     {
@@ -2918,7 +3418,7 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt",
       "source_location": "L30",
       "_origin": "ast",
-      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_systemmonitor_kt_systemstats",
+      "id": "systemstats",
       "community": 6,
       "norm_label": "systemstats"
     },
@@ -3319,7 +3819,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_focusableglasscard",
-      "community": 10,
+      "community": 0,
       "norm_label": "focusableglasscard.kt"
     },
     {
@@ -3329,7 +3829,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_focusableglasscard_focusableglasscard",
-      "community": 10,
+      "community": 0,
       "norm_label": "focusableglasscard()"
     },
     {
@@ -3339,7 +3839,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_modifier",
-      "community": 10,
+      "community": 0,
       "norm_label": "modifier"
     },
     {
@@ -3349,7 +3849,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_dp",
-      "community": 10,
+      "community": 0,
       "norm_label": "dp"
     },
     {
@@ -3359,7 +3859,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_paddingvalues",
-      "community": 10,
+      "community": 0,
       "norm_label": "paddingvalues"
     },
     {
@@ -3369,7 +3869,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_unit",
-      "community": 10,
+      "community": 0,
       "norm_label": "unit"
     },
     {
@@ -3379,7 +3879,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_glasspanel",
-      "community": 31,
+      "community": 0,
       "norm_label": "glasspanel.kt"
     },
     {
@@ -3389,7 +3889,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "components_glasspanel_glasspanel",
-      "community": 31,
+      "community": 0,
       "norm_label": "glasspanel()"
     },
     {
@@ -3399,7 +3899,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_modifier",
-      "community": 31,
+      "community": 0,
       "norm_label": "modifier"
     },
     {
@@ -3409,7 +3909,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_boolean",
-      "community": 31,
+      "community": 0,
       "norm_label": "boolean"
     },
     {
@@ -3419,7 +3919,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_dp",
-      "community": 31,
+      "community": 0,
       "norm_label": "dp"
     },
     {
@@ -3429,7 +3929,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_paddingvalues",
-      "community": 31,
+      "community": 0,
       "norm_label": "paddingvalues"
     },
     {
@@ -3518,8 +4018,8 @@
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/StatBar.kt",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "color",
-      "community": 28,
+      "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_statbar_kt_color",
+      "community": 0,
       "norm_label": "color"
     },
     {
@@ -3533,40 +4033,60 @@
       "norm_label": "theme.kt"
     },
     {
+      "label": "CustomSettings",
+      "file_type": "code",
+      "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "theme_theme_customsettings",
+      "community": 0,
+      "norm_label": "customsettings"
+    },
+    {
       "label": "HqColors",
       "file_type": "code",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L15",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "theme_theme_hqcolors",
       "community": 0,
       "norm_label": "hqcolors"
     },
     {
+      "label": "Color",
+      "file_type": "code",
+      "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_theme_theme_kt_color",
+      "community": 0,
+      "norm_label": "color"
+    },
+    {
       "label": ".backdrop()",
       "file_type": "code",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L36",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "theme_theme_hqcolors_backdrop",
-      "community": 28,
+      "community": 0,
       "norm_label": ".backdrop()"
     },
     {
       "label": "Brush",
       "file_type": "code",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L36",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "brush",
-      "community": 28,
+      "community": 0,
       "norm_label": "brush"
     },
     {
       "label": "HqType",
       "file_type": "code",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L45",
+      "source_location": "L71",
       "_origin": "ast",
       "id": "theme_theme_hqtype",
       "community": 0,
@@ -3576,7 +4096,7 @@
       "label": "HqTheme",
       "file_type": "code",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L54",
+      "source_location": "L80",
       "_origin": "ast",
       "id": "theme_theme_hqtheme",
       "community": 0,
@@ -4574,6 +5094,17 @@
     {
       "relation": "calls",
       "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "livingroomhq_mainactivity_mainactivity_oncreate",
+      "target": "components_sidebar_sidebar"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
       "source_location": "L38",
@@ -4654,6 +5185,17 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "livingroomhq_mainactivity_mainactivity_oncreate",
+      "target": "screens_settingsscreen_settingsscreen"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
       "source_location": "L51",
       "weight": 1.0,
       "source": "livingroomhq_mainactivity_mainactivity_oncreate",
@@ -4713,6 +5255,124 @@
       "confidence_score": 1.0,
       "source": "livingroomhq_mainactivity_mainactivity_onnewintent",
       "target": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_intent"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "components_sidebar",
+      "target": "components_sidebar_navigationitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "components_sidebar",
+      "target": "components_sidebar_sidebar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "components_sidebar",
+      "target": "components_sidebar_sidebaritem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "components_sidebar_sidebar",
+      "target": "components_sidebar_navigationitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebar",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebar",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_zone",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "components_sidebar_sidebar",
+      "target": "components_sidebar_sidebaritem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebaritem",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebaritem",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebaritem",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_imagevector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt",
+      "source_location": "L105",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "components_sidebar_sidebaritem",
+      "target": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -5408,17 +6068,6 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt",
-      "source_location": "L85",
-      "weight": 1.0,
-      "source": "player_livepreview_livepreview",
-      "target": "color"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
       "source_location": "L79",
       "weight": 1.0,
@@ -5467,6 +6116,16 @@
       "target": "screens_ambientscreen_ambienttime"
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "weight": 1.0,
+      "source": "screens_ambientscreen",
+      "target": "screens_ambientscreen_starrymountainlake",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5504,10 +6163,10 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
-      "source_location": "L79",
+      "source_location": "L163",
       "weight": 1.0,
       "source": "screens_ambientscreen_ambientscreen",
-      "target": "color"
+      "target": "components_glasspanel_glasspanel"
     },
     {
       "relation": "calls",
@@ -5532,6 +6191,17 @@
       "target": "screens_ambientscreen_ambienttime"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L92",
+      "weight": 1.0,
+      "source": "screens_ambientscreen_ambientscreen",
+      "target": "screens_ambientscreen_starrymountainlake",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "semantically_similar_to",
       "confidence": "INFERRED",
       "confidence_score": 0.75,
@@ -5540,6 +6210,39 @@
       "weight": 1.0,
       "source": "screens_ambientscreen_ambientscreen",
       "target": "screens_homescreen_homescreen"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "screens_ambientscreen_ambientscreen",
+      "target": "screens_homescreen_sunsetcityskyline"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_ambientscreen_starrymountainlake",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_float",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt",
+      "source_location": "L191",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_ambientscreen_starrymountainlake",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_ambientscreen_kt_modifier",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -5577,31 +6280,42 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L102",
+      "source_location": "L320",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "screens_commandcenterscreen",
-      "target": "screens_commandcenterscreen_networkpanel"
+      "target": "screens_commandcenterscreen_getlocalipaddress",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L330",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "screens_commandcenterscreen",
-      "target": "screens_commandcenterscreen_servicespanel"
+      "target": "screens_commandcenterscreen_gettailscaleipaddress",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L79",
+      "source_location": "L274",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "screens_commandcenterscreen",
-      "target": "screens_commandcenterscreen_systemgauges"
+      "target": "screens_commandcenterscreen_metriccard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "screens_commandcenterscreen_commandcenterscreen",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_color",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -5628,24 +6342,13 @@
     {
       "relation": "calls",
       "context": "call",
-      "confidence": "EXTRACTED",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L61",
+      "source_location": "L91",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "screens_commandcenterscreen_commandcenterscreen",
-      "target": "screens_commandcenterscreen_networkpanel"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L62",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "screens_commandcenterscreen_commandcenterscreen",
-      "target": "screens_commandcenterscreen_servicespanel"
+      "target": "components_statbar_statbar"
     },
     {
       "relation": "calls",
@@ -5654,9 +6357,31 @@
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
       "source_location": "L60",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "screens_commandcenterscreen_commandcenterscreen",
-      "target": "screens_commandcenterscreen_systemgauges"
+      "target": "screens_commandcenterscreen_getlocalipaddress",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "screens_commandcenterscreen_commandcenterscreen",
+      "target": "screens_commandcenterscreen_gettailscaleipaddress",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "screens_commandcenterscreen_commandcenterscreen",
+      "target": "screens_commandcenterscreen_metriccard",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -5673,45 +6398,34 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L79",
+      "source_location": "L274",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "screens_commandcenterscreen_systemgauges",
-      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_systemstats"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L81",
-      "weight": 1.0,
-      "source": "screens_commandcenterscreen_systemgauges",
-      "target": "components_glasspanel_glasspanel"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L85",
-      "weight": 1.0,
-      "source": "screens_commandcenterscreen_systemgauges",
-      "target": "components_statbar_statbar"
+      "source": "screens_commandcenterscreen_metriccard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_color",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L102",
+      "source_location": "L274",
       "weight": 1.0,
       "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "screens_commandcenterscreen_networkpanel",
-      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_systemstats"
+      "source": "screens_commandcenterscreen_metriccard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_imagevector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
+      "source_location": "L274",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_commandcenterscreen_metriccard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -5719,43 +6433,82 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L104",
+      "source_location": "L282",
       "weight": 1.0,
-      "source": "screens_commandcenterscreen_networkpanel",
-      "target": "components_glasspanel_glasspanel"
+      "source": "screens_commandcenterscreen_metriccard",
+      "target": "components_focusableglasscard_focusableglasscard"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L320",
       "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "screens_commandcenterscreen_servicespanel",
-      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_list"
+      "context": "return_type",
+      "source": "screens_commandcenterscreen_getlocalipaddress",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L124",
+      "source_location": "L330",
       "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "screens_commandcenterscreen_servicespanel",
-      "target": "com"
+      "context": "return_type",
+      "source": "screens_commandcenterscreen_gettailscaleipaddress",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_commandcenterscreen_kt_string",
+      "confidence_score": 1.0
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt",
-      "source_location": "L126",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L717",
       "weight": 1.0,
-      "source": "screens_commandcenterscreen_servicespanel",
-      "target": "components_glasspanel_glasspanel"
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_circularnavdiagram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L577",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_custombuttontoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_customizationcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L825",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_datenow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L387",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_guidetext",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -5766,6 +6519,56 @@
       "confidence_score": 1.0,
       "source": "screens_homescreen",
       "target": "screens_homescreen_homescreen"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L499",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_quickaccessitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L443",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_quickaccessrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L395",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_recentchannelcapsule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L760",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_remotecontrolgraphic",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L627",
+      "weight": 1.0,
+      "source": "screens_homescreen",
+      "target": "screens_homescreen_sunsetcityskyline",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -5813,6 +6616,105 @@
     {
       "relation": "calls",
       "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L264",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "components_glasspanel_glasspanel"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L332",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_circularnavdiagram",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L377",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_customizationcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L92",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_datenow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L364",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_guidetext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L310",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_quickaccessrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L293",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_recentchannelcapsule",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L361",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_remotecontrolgraphic",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L136",
+      "weight": 1.0,
+      "source": "screens_homescreen_homescreen",
+      "target": "screens_homescreen_sunsetcityskyline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
       "source_location": "L54",
@@ -5825,12 +6727,229 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L443",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_quickaccessrow",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_hqapplication",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L443",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_quickaccessrow",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_spatialnavcontroller",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L387",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_guidetext",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L577",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_custombuttontoggle",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L825",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "screens_homescreen_datenow",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L395",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_recentchannelcapsule",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
       "source_location": "L130",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
       "source": "screens_homescreen_timenow",
       "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L395",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_recentchannelcapsule",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_int",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L466",
+      "weight": 1.0,
+      "source": "screens_homescreen_quickaccessrow",
+      "target": "components_focusableglasscard_focusableglasscard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L446",
+      "weight": 1.0,
+      "source": "screens_homescreen_quickaccessrow",
+      "target": "screens_homescreen_quickaccessitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_customizationcard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_customsettings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L506",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_customizationcard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L512",
+      "weight": 1.0,
+      "source": "screens_homescreen_customizationcard",
+      "target": "components_glasspanel_glasspanel"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L520",
+      "weight": 1.0,
+      "source": "screens_homescreen_customizationcard",
+      "target": "screens_homescreen_custombuttontoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L717",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_circularnavdiagram",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L760",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_remotecontrolgraphic",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L627",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_sunsetcityskyline",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
+      "source_location": "L577",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_homescreen_custombuttontoggle",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_list",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L285",
+      "weight": 1.0,
+      "source": "screens_livescreen",
+      "target": "screens_livescreen_categoryitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "weight": 1.0,
+      "source": "screens_livescreen",
+      "target": "screens_livescreen_categoryrailitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "weight": 1.0,
+      "source": "screens_livescreen",
+      "target": "screens_livescreen_channelgridcard",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -5898,6 +7017,136 @@
       "target": "components_statbar_statbar"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "screens_livescreen_livescreen",
+      "target": "screens_livescreen_categoryitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "screens_livescreen_livescreen",
+      "target": "screens_livescreen_categoryrailitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "screens_livescreen_livescreen",
+      "target": "screens_livescreen_channelgridcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_categoryrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_categoryrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_imagevector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_categoryrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L291",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_categoryrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_channelgridcard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_channelgridcard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt",
+      "source_location": "L348",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_livescreen_channelgridcard",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_channel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L346",
+      "weight": 1.0,
+      "source": "screens_mediascreen",
+      "target": "screens_mediascreen_mediafilteritem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "weight": 1.0,
+      "source": "screens_mediascreen",
+      "target": "screens_mediascreen_mediafilterrailitem",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
@@ -5945,6 +7194,17 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L288",
+      "weight": 1.0,
+      "source": "screens_mediascreen_mediascreen",
+      "target": "components_focusableglasscard_focusableglasscard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
       "source_location": "L75",
       "weight": 1.0,
       "source": "screens_mediascreen_mediascreen",
@@ -5966,11 +7226,88 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "screens_mediascreen_mediascreen",
+      "target": "screens_mediascreen_mediafilteritem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "screens_mediascreen_mediascreen",
+      "target": "screens_mediascreen_mediafilterrailitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
       "source_location": "L109",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "screens_mediascreen_mediascreen",
       "target": "screens_mediascreen_posterrail"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_mediascreen_mediafilterrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_mediascreen_mediafilterrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_imagevector",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_mediascreen_mediafilterrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L352",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_mediascreen_mediafilterrailitem",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
+      "source_location": "L114",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "screens_mediascreen_posterrail",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_string"
     },
     {
       "relation": "references",
@@ -6006,28 +7343,6 @@
       "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_mediaitem"
     },
     {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "screens_mediascreen_posterrail",
-      "target": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_string"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L143",
-      "weight": 1.0,
-      "source": "screens_mediascreen_posterrail",
-      "target": "color"
-    },
-    {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
@@ -6041,12 +7356,194 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L363",
+      "weight": 1.0,
+      "source": "screens_settingsscreen",
+      "target": "screens_settingsscreen_custombuttontoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "weight": 1.0,
+      "source": "screens_settingsscreen",
+      "target": "screens_settingsscreen_glasstextfield",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L413",
+      "weight": 1.0,
+      "source": "screens_settingsscreen",
+      "target": "screens_settingsscreen_publicplaylist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "screens_settingsscreen",
+      "target": "screens_settingsscreen_settingsscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_customsettings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_hqapplication",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L56",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_spatialnavcontroller",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "components_focusableglasscard_focusableglasscard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "components_glasspanel_glasspanel"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L256",
+      "weight": 1.0,
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "screens_settingsscreen_custombuttontoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "screens_settingsscreen_glasstextfield",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "screens_settingsscreen_settingsscreen",
+      "target": "screens_settingsscreen_publicplaylist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_glasstextfield",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_modifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L329",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_glasstextfield",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L363",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_custombuttontoggle",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_string",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt",
+      "source_location": "L363",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "screens_settingsscreen_custombuttontoggle",
+      "target": "app_src_main_kotlin_com_livingroomhq_screens_settingsscreen_kt_list",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
       "source_location": "L39",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "screens_toolsscreen",
       "target": "screens_toolsscreen_toolsscreen"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
+      "source_location": "L278",
+      "weight": 1.0,
+      "source": "screens_toolsscreen",
+      "target": "screens_toolsscreen_utilitem",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -6080,6 +7577,28 @@
       "weight": 1.0,
       "source": "screens_toolsscreen_toolsscreen",
       "target": "components_focusableglasscard_focusableglasscard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
+      "source_location": "L72",
+      "weight": 1.0,
+      "source": "screens_toolsscreen_toolsscreen",
+      "target": "screens_toolsscreen_utilitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt",
+      "source_location": "L152",
+      "weight": 1.0,
+      "source": "screens_toolsscreen_toolsscreen",
+      "target": "tvintegration_watchnexttest_watchnexttest_item"
     },
     {
       "relation": "contains",
@@ -8671,9 +10190,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L74",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository",
-      "target": "repo_mediarepository_localmediarepository_hasaudiopermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_hasaudiopermission"
     },
     {
       "relation": "method",
@@ -8681,9 +10200,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository",
-      "target": "repo_mediarepository_localmediarepository_haspermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_haspermission"
     },
     {
       "relation": "method",
@@ -8691,9 +10210,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository",
-      "target": "repo_mediarepository_localmediarepository_hasvideopermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_hasvideopermission"
     },
     {
       "relation": "method",
@@ -8741,9 +10260,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository",
-      "target": "repo_mediarepository_localmediarepository_refresh",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_refresh"
     },
     {
       "relation": "calls",
@@ -8752,9 +10271,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_refresh",
-      "target": "repo_mediarepository_localmediarepository_loadlocalmedia",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_loadlocalmedia"
     },
     {
       "relation": "calls",
@@ -8763,9 +10282,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L67",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
-      "target": "repo_mediarepository_localmediarepository_hasaudiopermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_hasaudiopermission"
     },
     {
       "relation": "calls",
@@ -8774,9 +10293,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L66",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
-      "target": "repo_mediarepository_localmediarepository_hasvideopermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_hasvideopermission"
     },
     {
       "relation": "calls",
@@ -8807,9 +10326,9 @@
       "source_location": "L71",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_hasvideopermission",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean"
     },
     {
       "relation": "calls",
@@ -8818,9 +10337,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L72",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_hasvideopermission",
-      "target": "repo_mediarepository_localmediarepository_haspermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_haspermission"
     },
     {
       "relation": "references",
@@ -8829,9 +10348,9 @@
       "source_location": "L74",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_hasaudiopermission",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean"
     },
     {
       "relation": "references",
@@ -8840,9 +10359,9 @@
       "source_location": "L77",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_haspermission",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean"
     },
     {
       "relation": "calls",
@@ -8851,9 +10370,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
       "source_location": "L75",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_hasaudiopermission",
-      "target": "repo_mediarepository_localmediarepository_haspermission",
-      "confidence_score": 1.0
+      "target": "repo_mediarepository_localmediarepository_haspermission"
     },
     {
       "relation": "references",
@@ -8862,9 +10381,9 @@
       "source_location": "L77",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "repo_mediarepository_localmediarepository_haspermission",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_string"
     },
     {
       "relation": "contains",
@@ -9297,17 +10816,6 @@
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_systemmonitor_kt_flow"
     },
     {
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_systemmonitor_systemmonitor_stats",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_systemmonitor_kt_systemstats"
-    },
-    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -9383,6 +10891,17 @@
       "confidence_score": 1.0,
       "source": "repo_systemmonitor_systemmonitor_stats",
       "target": "repo_systemmonitor_systemmonitor_storageused"
+    },
+    {
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "repo_systemmonitor_systemmonitor_stats",
+      "target": "systemstats",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -9791,17 +11310,6 @@
       "target": "components_glasspanel_glasspanel"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/GlassPanel.kt",
-      "source_location": "L69",
-      "weight": 1.0,
-      "source": "components_glasspanel_glasspanel",
-      "target": "color"
-    },
-    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/GlassPanel.kt",
@@ -9903,9 +11411,9 @@
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/StatBar.kt",
       "source_location": "L28",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "components_statbar_statbar",
-      "target": "color"
+      "target": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_statbar_kt_color",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -9981,15 +11489,14 @@
       "target": "components_statbar_statbar"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
-      "source_location": "L37",
+      "source_location": "L20",
       "weight": 1.0,
-      "source": "theme_theme_hqcolors_backdrop",
-      "target": "color"
+      "source": "theme_theme",
+      "target": "theme_theme_customsettings",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -10032,6 +11539,17 @@
       "target": "theme_theme_hqcolors"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
+      "source_location": "L50",
+      "weight": 1.0,
+      "context": "field",
+      "source": "theme_theme_hqcolors",
+      "target": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_theme_theme_kt_color",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
@@ -10050,6 +11568,17 @@
       "weight": 1.0,
       "source": "theme_theme_hqtheme",
       "target": "theme_theme_hqcolors"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "theme_theme_hqcolors_backdrop",
+      "target": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_theme_theme_kt_color",
+      "confidence_score": 1.0
     },
     {
       "relation": "references",
@@ -10675,5 +12204,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "93cd0347199320122e209c64fa614e46fe96a42b"
+  "built_at_commit": "d3ae0e57a66ee754e01b179e23f180e0b1db7ee6"
 }

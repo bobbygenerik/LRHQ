@@ -34,7 +34,7 @@ import com.livingroomhq.core.ui.theme.HqColors
 fun GlassPanel(
     modifier: Modifier = Modifier,
     focused: Boolean = false,
-    cornerRadius: Dp = 24.dp,
+    cornerRadius: Dp = 12.dp,
     contentPadding: PaddingValues = PaddingValues(20.dp),
     content: @Composable BoxScope.() -> Unit,
 ) {

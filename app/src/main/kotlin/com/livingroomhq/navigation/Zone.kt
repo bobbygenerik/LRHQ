@@ -19,6 +19,7 @@ enum class Zone(val gridX: Int, val gridY: Int) {
     TOOLS(-1, 0),
     AMBIENT(0, 1),
     COMMAND_CENTER(0, 0),
+    SETTINGS(0, 0),
 }
 
 /** Where a D-pad press at the edge of [from] leads, or null to stay. */
@@ -34,6 +35,7 @@ fun zoneInDirection(from: Zone, direction: Direction): Zone? = when (from) {
     Zone.TOOLS -> if (direction == Direction.RIGHT) Zone.HOME else null
     Zone.AMBIENT -> if (direction == Direction.UP) Zone.HOME else null
     Zone.COMMAND_CENTER -> null
+    Zone.SETTINGS -> null
 }
 
 enum class Direction { UP, DOWN, LEFT, RIGHT }

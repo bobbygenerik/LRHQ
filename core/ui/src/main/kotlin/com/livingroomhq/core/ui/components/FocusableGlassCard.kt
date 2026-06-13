@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 fun FocusableGlassCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    cornerRadius: Dp = 24.dp,
+    cornerRadius: Dp = 12.dp,
     contentPadding: PaddingValues = PaddingValues(20.dp),
     onFocused: (() -> Unit)? = null,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
