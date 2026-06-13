@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/AmbientScreen.kt": {
-    "mtime": 1781311945.4107609,
-    "ast_hash": "d9701cf5b9a683d7e3ee85e732f0e87d",
+    "mtime": 1781312993.851079,
+    "ast_hash": "856d64122c3529b43d1a7cd0519553f9",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
-    "mtime": 1781311816.5776377,
-    "ast_hash": "aa3dd8d3b55d714042fdcd55ca070121",
+    "mtime": 1781312995.4271042,
+    "ast_hash": "0d613f35d157795f8c420b85d2eac887",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {

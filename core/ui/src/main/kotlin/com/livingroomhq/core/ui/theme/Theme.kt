@@ -67,14 +67,18 @@ object HqColors {
     )
 }
 
-/** 10-foot typography: large, generous tracking, no thin weights. */
+/**
+ * 10-foot typography, tuned for a dense, premium dashboard rather than oversized
+ * cards. Sizes are deliberately restrained — the reference UI reads small and
+ * crisp from the couch; weight and tracking carry the hierarchy, not bulk.
+ */
 object HqType {
-    val Display = TextStyle(fontSize = 76.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, letterSpacing = (-1).sp)
-    val Title = TextStyle(fontSize = 34.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
-    val Headline = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium, color = HqColors.TextPrimary)
-    val Body = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary)
-    val Label = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp)
-    val Stat = TextStyle(fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
+    val Display = TextStyle(fontSize = 46.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, letterSpacing = (-1).sp)
+    val Title = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
+    val Headline = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = HqColors.TextPrimary)
+    val Body = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary)
+    val Label = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp)
+    val Stat = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
 }
 
 data class HqTheme(

@@ -29,7 +29,6 @@ import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
-import com.livingroomhq.navigation.Direction
 import com.livingroomhq.navigation.SpatialNavController
 import com.livingroomhq.navigation.SpatialNavHost
 import com.livingroomhq.navigation.Zone
@@ -113,33 +112,27 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Zone navigation lives at the activity level: screens consume D-pad
-     * events for their own focus first; whatever reaches here is an edge
-     * press and slides the world to the neighbouring zone. MENU opens the
-     * Command Center; BACK and HOME return to center.
+     * Navigation is driven by the persistent sidebar (focus it with D-pad LEFT,
+     * press OK to switch zone) plus the Compose focus system within each screen —
+     * the activity no longer hijacks directional presses to slide zones, which
+     * previously stole focus that should have moved to the sidebar. We only
+     * handle the two global shortcuts: MENU opens the Command Center, BACK
+     * returns to Home (and is a no-op at Home, since a launcher has nowhere to
+     * back out to).
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         nav.touch()
-        val direction = when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> Direction.UP
-            KeyEvent.KEYCODE_DPAD_DOWN -> Direction.DOWN
-            KeyEvent.KEYCODE_DPAD_LEFT -> Direction.LEFT
-            KeyEvent.KEYCODE_DPAD_RIGHT -> Direction.RIGHT
+        return when (keyCode) {
             KeyEvent.KEYCODE_MENU -> {
                 nav.goTo(Zone.COMMAND_CENTER)
-                return true
+                true
             }
             KeyEvent.KEYCODE_BACK -> {
-                if (nav.zone != Zone.HOME) {
-                    nav.goHome()
-                    return true
-                }
-                return true // Launcher: BACK at home is a no-op.
+                if (nav.zone != Zone.HOME) nav.goHome()
+                true
             }
-            else -> null
+            else -> super.onKeyDown(keyCode, event)
         }
-        if (direction != null && nav.navigate(direction)) return true
-        return super.onKeyDown(keyCode, event)
     }
 
     /**

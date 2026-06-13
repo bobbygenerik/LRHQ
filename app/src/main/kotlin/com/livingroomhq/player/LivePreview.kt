@@ -18,6 +18,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -42,13 +44,28 @@ fun LivePreview(
         ExoPlayer.Builder(context).build().apply {
             playWhenReady = true
             volume = if (muted) 0f else 1f
+            // A stream that fails (offline, bad codec, unreachable demo URL) must
+            // surface as a player error, never crash the launcher.
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    // Swallow: the styled placeholder stays visible behind the surface.
+                }
+            })
         }
     }
 
     DisposableEffect(channel?.id) {
-        channel?.let {
-            player.setMediaItem(MediaItem.fromUri(it.streamUrl))
-            player.prepare()
+        // Guard malformed/blank URIs (e.g. an unconfigured channel) — these throw
+        // synchronously from setMediaItem/prepare and would otherwise crash.
+        val url = channel?.streamUrl?.takeIf { it.isNotBlank() }
+        if (url != null) {
+            runCatching {
+                player.setMediaItem(MediaItem.fromUri(url))
+                player.prepare()
+            }
+        } else {
+            player.stop()
+            player.clearMediaItems()
         }
         onDispose { }
     }
