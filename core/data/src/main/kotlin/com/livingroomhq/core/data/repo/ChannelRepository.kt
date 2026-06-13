@@ -16,4 +16,6 @@ interface ChannelRepository {
     fun markWatched(channelId: String)
     fun toggleFavorite(channelId: String)
     suspend fun loadM3u(playlistUrl: String)
+    suspend fun loadXmltv(epgUrl: String)
+    suspend fun clearXmltv()
 }

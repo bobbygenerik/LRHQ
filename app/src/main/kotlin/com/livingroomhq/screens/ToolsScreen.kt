@@ -130,7 +130,7 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 24.dp)
     ) {
-        Text("TOOLS / APPS & UTILITIES", style = HqType.Title)
+        Text("APPS", style = HqType.Title)
         Spacer(Modifier.height(16.dp))
 
         LazyVerticalGrid(
@@ -142,7 +142,7 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
         ) {
             // Core Utilities Header
             item(span = { GridItemSpan(4) }) {
-                Text("CORE UTILITIES", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+                Text("SYSTEM TOOLS", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
             }
 
             // Core Utilities Cards

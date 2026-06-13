@@ -18,6 +18,7 @@ data class Program(
     val description: String,
     val startMillis: Long,
     val endMillis: Long,
+    val artworkUrl: String? = null,
 ) {
     fun progressAt(now: Long): Float =
         ((now - startMillis).toFloat() / (endMillis - startMillis).toFloat()).coerceIn(0f, 1f)

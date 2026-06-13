@@ -59,11 +59,19 @@ object BackdropProvider {
     fun forHome(
         channel: Channel?,
         showLive: Boolean,
+        programmeArtworkUrl: String?,
         mediaBackdrops: List<String>,
         ambient: List<AmbientPhoto> = AmbientBackdrops.photos,
-    ): List<BackdropSource> = when {
-        showLive && channel != null -> listOf(BackdropSource.Live(channel))
-        else -> artwork(mediaBackdrops, ambient)
+    ): List<BackdropSource> {
+        val programmeArtwork = programmeArtworkUrl
+            ?.takeIf { it.startsWith("https://", ignoreCase = true) || it.startsWith("http://", ignoreCase = true) }
+            ?.let { BackdropSource.Artwork(it) }
+        return when {
+            showLive && channel != null && programmeArtwork != null -> listOf(BackdropSource.Live(channel), programmeArtwork)
+            showLive && channel != null -> listOf(BackdropSource.Live(channel))
+            programmeArtwork != null -> listOf(programmeArtwork) + artwork(mediaBackdrops, ambient)
+            else -> artwork(mediaBackdrops, ambient)
+        }
     }
 
     fun forAmbient(

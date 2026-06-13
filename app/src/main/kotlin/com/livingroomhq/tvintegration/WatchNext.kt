@@ -5,6 +5,8 @@ import androidx.tvprovider.media.tv.TvContractCompat
 import androidx.tvprovider.media.tv.WatchNextProgram
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Provider-agnostic Watch Next row entry; pure so the mapping is unit-testable. */
 data class WatchNextEntry(
@@ -38,7 +40,7 @@ fun MediaItem.toWatchNextEntry(): WatchNextEntry? {
  */
 class WatchNextPublisher(private val context: Context) {
 
-    fun sync(entries: List<WatchNextEntry>) {
+    suspend fun sync(entries: List<WatchNextEntry>) = withContext(Dispatchers.IO) {
         runCatching {
             val resolver = context.contentResolver
             // Apps only see their own rows; null selection clears just ours.

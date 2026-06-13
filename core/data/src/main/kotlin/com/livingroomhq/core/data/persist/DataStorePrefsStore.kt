@@ -20,6 +20,7 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
         val FAVORITES = stringSetPreferencesKey("favorite_channel_ids")
         val RECENTS = stringPreferencesKey("recent_channel_ids")
         val PLAYLIST_URL = stringPreferencesKey("playlist_url")
+        val EPG_URL = stringPreferencesKey("epg_url")
         val PROMPT_DISMISSED = booleanPreferencesKey("default_prompt_dismissed")
     }
 
@@ -33,6 +34,9 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
 
     override val playlistUrl: Flow<String?> =
         store.data.map { it[Keys.PLAYLIST_URL] }
+
+    override val epgUrl: Flow<String?> =
+        store.data.map { it[Keys.EPG_URL] }
 
     override val defaultPromptDismissed: Flow<Boolean> =
         store.data.map { it[Keys.PROMPT_DISMISSED] ?: false }
@@ -48,6 +52,12 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
     override suspend fun setPlaylistUrl(url: String?) {
         store.edit { prefs ->
             if (url == null) prefs.remove(Keys.PLAYLIST_URL) else prefs[Keys.PLAYLIST_URL] = url
+        }
+    }
+
+    override suspend fun setEpgUrl(url: String?) {
+        store.edit { prefs ->
+            if (url == null) prefs.remove(Keys.EPG_URL) else prefs[Keys.EPG_URL] = url
         }
     }
 

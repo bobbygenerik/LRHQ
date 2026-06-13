@@ -72,7 +72,7 @@ fun Sidebar(
         NavigationItem("Home", Icons.Default.Home, Zone.HOME),
         NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
         NavigationItem("Media", Icons.Default.Movie, Zone.MEDIA),
-        NavigationItem("Tools", Icons.Default.Apps, Zone.TOOLS),
+        NavigationItem("Apps", Icons.Default.Apps, Zone.TOOLS),
         NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
         NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
     )

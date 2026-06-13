@@ -1,9 +1,11 @@
 package com.livingroomhq.core.data.repo
 
 import com.livingroomhq.core.data.iptv.M3uParser
+import com.livingroomhq.core.data.iptv.XmltvParser
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +17,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import java.net.URL
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.zip.GZIPInputStream
 
 /**
  * [ChannelRepository] with persisted favorites, recents and playlist URL.
@@ -24,10 +28,15 @@ import java.net.URL
 class PersistentChannelRepository(
     private val prefs: LauncherPrefsStore,
     private val scope: CoroutineScope,
+    private val nowMillis: () -> Long = System::currentTimeMillis,
+    private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val fetchPlaylist: suspend (String) -> String = ::httpGet,
 ) : ChannelRepository {
 
     private val lineup = MutableStateFlow<List<Channel>>(emptyList())
+
+    /** Programmes keyed by channel id (tvg-id) from a loaded XMLTV guide. */
+    private val loadedEpg = MutableStateFlow<Map<String, List<Program>>>(emptyMap())
 
     override val channels: StateFlow<List<Channel>> =
         combine(lineup, prefs.favorites) { list, favs ->
@@ -43,7 +52,12 @@ class PersistentChannelRepository(
         channels.value.map { it.group }.distinct()
 
     override fun epgNowNext(channelId: String): Pair<Program?, Program?> {
-        return null to null
+        val programs = loadedEpg.value[channelId].orEmpty()
+        if (programs.isEmpty()) return null to null
+        val now = nowMillis()
+        val current = programs.firstOrNull { now in it.startMillis until it.endMillis }
+        val next = programs.firstOrNull { it.startMillis >= (current?.endMillis ?: now) }
+        return current to next
     }
 
     override fun markWatched(channelId: String) {
@@ -61,23 +75,48 @@ class PersistentChannelRepository(
     }
 
     override suspend fun loadM3u(playlistUrl: String) {
-        val parsed = M3uParser.parse(fetchPlaylist(playlistUrl))
+        val parsed = withContext(workDispatcher) {
+            M3uParser.parse(fetchPlaylist(playlistUrl))
+        }
         if (parsed.isNotEmpty()) {
             lineup.value = parsed
             prefs.setPlaylistUrl(playlistUrl)
         }
     }
 
-    /** Re-applies the persisted playlist; network errors leave the channel list empty. */
+    override suspend fun loadXmltv(epgUrl: String) {
+        val parsed = withContext(workDispatcher) {
+            XmltvParser.parse(fetchPlaylist(epgUrl))
+        }
+        require(parsed.isNotEmpty()) { "No programmes found in guide" }
+        loadedEpg.value = parsed
+        prefs.setEpgUrl(epgUrl)
+    }
+
+    override suspend fun clearXmltv() {
+        loadedEpg.value = emptyMap()
+        prefs.setEpgUrl(null)
+    }
+
+    /** Re-applies the persisted playlist and EPG guide; network errors are swallowed. */
     fun restore() {
         scope.launch {
-            prefs.playlistUrl.first()?.let { url ->
-                runCatching { loadM3u(url) }
-            }
+            prefs.playlistUrl.first()?.let { url -> runCatching { loadM3u(url) } }
+        }
+        scope.launch {
+            prefs.epgUrl.first()?.let { url -> runCatching { loadXmltv(url) } }
         }
     }
 }
 
 private suspend fun httpGet(url: String): String = withContext(Dispatchers.IO) {
-    URL(url).readText()
+    val connection = URL(url).openConnection()
+    val stream = connection.getInputStream()
+    val contentEncoding = connection.contentEncoding.orEmpty()
+    val input = if (contentEncoding.equals("gzip", ignoreCase = true) || url.endsWith(".gz", ignoreCase = true)) {
+        GZIPInputStream(stream)
+    } else {
+        stream
+    }
+    input.bufferedReader(UTF_8).use { it.readText() }
 }
