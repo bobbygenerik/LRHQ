@@ -277,5 +277,5 @@ fun StarryMountainLake(drift: Float, modifier: Modifier = Modifier) {
     }
 }
 
-private fun ambientTime(): String = SimpleDateFormat("h:mm AM", Locale.getDefault()).format(Date())
+private fun ambientTime(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 private fun ambientDate(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())

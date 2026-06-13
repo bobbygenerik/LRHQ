@@ -821,5 +821,5 @@ fun RemoteControlGraphic(modifier: Modifier = Modifier) {
     }
 }
 
-private fun timeNow(): String = SimpleDateFormat("h:mm AM", Locale.getDefault()).format(Date())
+private fun timeNow(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 private fun dateNow(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())
