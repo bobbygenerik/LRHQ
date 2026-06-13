@@ -1,8 +1,10 @@
 package com.livingroomhq.components
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.core.ui.theme.HqColors
@@ -46,57 +47,70 @@ import com.livingroomhq.navigation.Zone
 data class NavigationItem(
     val title: String,
     val icon: ImageVector,
-    val zone: Zone
+    val zone: Zone,
 )
 
+private val COLLAPSED_WIDTH = 68.dp
+private val EXPANDED_WIDTH = 210.dp
+
+/**
+ * Collapsible navigation rail. Sits as an icon-only strip by default and
+ * expands to reveal labels the moment focus enters it (D-pad LEFT from the
+ * content), then collapses again when focus leaves — keeping the content area
+ * maximised, in line with modern TV launchers.
+ */
 @Composable
 fun Sidebar(
     currentZone: Zone,
     onZoneSelected: (Zone) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val width by animateDpAsState(if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH, label = "sidebarWidth")
+
+    val navItems = listOf(
+        NavigationItem("Home", Icons.Default.Home, Zone.HOME),
+        NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
+        NavigationItem("Media", Icons.Default.Movie, Zone.MEDIA),
+        NavigationItem("Tools", Icons.Default.Apps, Zone.TOOLS),
+        NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
+        NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
+    )
+
     Column(
         modifier = modifier
-            .background(Color(0xFF04060A).copy(alpha = 0.6f))
-            .padding(vertical = 36.dp, horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .focusGroup()
+            .onFocusChanged { expanded = it.hasFocus }
+            .width(width)
+            .background(Color(0xFF04060A))
+            .padding(vertical = 28.dp, horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        // App branding at the top
+        // Brand mark: dot always, wordmark only when expanded.
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(HqColors.Accent)
-            )
-            Spacer(Modifier.width(10.dp))
-            Text(
-                text = "LivingRoom HQ",
-                style = HqType.Headline.copy(fontWeight = FontWeight.Bold, color = HqColors.TextPrimary)
-            )
+            Box(Modifier.size(8.dp).clip(CircleShape).background(HqColors.Accent))
+            if (expanded) {
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "LivingRoom HQ",
+                    style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.SemiBold),
+                    maxLines = 1,
+                )
+            }
         }
-        Spacer(Modifier.height(16.dp))
-
-        val navItems = listOf(
-            NavigationItem("Home", Icons.Default.Home, Zone.HOME),
-            NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
-            NavigationItem("Media", Icons.Default.Movie, Zone.MEDIA),
-            NavigationItem("Tools", Icons.Default.Apps, Zone.TOOLS),
-            NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
-            NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
-        )
+        Spacer(Modifier.height(14.dp))
 
         navItems.forEach { item ->
-            val isSelected = currentZone == item.zone
             SidebarItem(
                 title = item.title,
                 icon = item.icon,
-                active = isSelected,
+                active = currentZone == item.zone,
+                expanded = expanded,
                 onClick = { onZoneSelected(item.zone) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -107,22 +121,20 @@ private fun SidebarItem(
     title: String,
     icon: ImageVector,
     active: Boolean,
+    expanded: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(10.dp)
 
     val background = when {
-        focused && active -> HqColors.Accent.copy(alpha = 0.25f)
-        focused -> Color(0x14FFFFFF)
-        active -> HqColors.Accent.copy(alpha = 0.15f)
+        focused -> HqColors.Accent.copy(alpha = 0.20f)
+        active -> HqColors.Accent.copy(alpha = 0.12f)
         else -> Color.Transparent
     }
-
     val contentColor = when {
-        active -> HqColors.Accent
-        focused -> HqColors.TextPrimary
+        focused || active -> HqColors.Accent
         else -> HqColors.TextSecondary
     }
 
@@ -131,31 +143,26 @@ private fun SidebarItem(
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
             .background(background)
-            .then(
-                if (focused) Modifier.border(1.dp, HqColors.Accent, shape)
-                else Modifier.border(1.dp, Color.Transparent, shape)
-            )
+            .border(1.dp, if (focused) HqColors.Accent else Color.Transparent, shape)
             .clickable { onClick() }
             .focusable()
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        contentAlignment = Alignment.CenterStart
+            .height(40.dp)
+            .padding(horizontal = 10.dp),
+        contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = contentColor,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(14.dp))
-            Text(
-                text = title,
-                style = HqType.Body.copy(
-                    color = contentColor,
-                    fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                    fontSize = 16.sp
+            Icon(icon, contentDescription = title, tint = contentColor, modifier = Modifier.size(20.dp))
+            if (expanded) {
+                Spacer(Modifier.width(14.dp))
+                Text(
+                    title,
+                    style = HqType.Body.copy(
+                        color = contentColor,
+                        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+                    ),
+                    maxLines = 1,
                 )
-            )
+            }
         }
     }
 }

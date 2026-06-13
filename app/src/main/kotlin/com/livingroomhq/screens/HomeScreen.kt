@@ -68,14 +68,13 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Home — the IPTV-first landing zone. Following Apple TV's "top shelf" and the
- * 2025 Google TV refresh, Home stays deliberately sparse: one dominant live
- * hero, a rail of recent channels, and a row of quick-access tiles. The
- * explainer panels (remote guide, navigation diagram, full customization) live
- * in Settings, not here.
+ * Home — the IPTV-first landing zone. A single full-bleed live hero anchors the
+ * screen (Apple TV "top shelf"); below it sit a rail of recent channels and a
+ * row of quick-access tiles. The palette is deliberately restrained: one brand
+ * accent (green) plus neutrals, with red reserved only for the LIVE marker.
  *
- * [onSettingsChanged] is retained for signature compatibility with the host;
- * Home no longer edits settings inline.
+ * [onSettingsChanged] is retained for host signature compatibility; Home no
+ * longer edits settings inline (that lives in the Settings zone).
  */
 @Composable
 fun HomeScreen(
@@ -104,28 +103,19 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 40.dp, vertical = 28.dp),
+            .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            text = "HOME",
-            style = HqType.Label.copy(color = HqColors.TextTertiary, letterSpacing = 2.sp),
-        )
-        Spacer(Modifier.height(14.dp))
-
-        // Compact default-launcher prompt (only renders when not the default home).
-        com.livingroomhq.home.DefaultHomeBanner(prefs = app.prefs)
-
-        // Dominant live hero.
-        FocusableGlassCard(
-            onClick = { nav.goTo(Zone.LIVE) },
+        // Full-bleed hero — spans the content area edge to edge, no card chrome.
+        var heroFocused by remember { mutableStateOf(false) }
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(360.dp)
+                .onFocusChanged { heroFocused = it.isFocused }
+                .clickable { nav.goTo(Zone.LIVE) }
+                .focusable()
                 .initialFocus(),
-            contentPadding = PaddingValues(0.dp),
-            cornerRadius = 14.dp,
-        ) { _ ->
+        ) {
             HeroContent(
                 channel = current,
                 clockTime = clockTime,
@@ -139,37 +129,46 @@ fun HomeScreen(
                 progress = nowProgram?.progressAt(System.currentTimeMillis()),
                 nextTitle = nextProgram?.title,
             )
-        }
-
-        Spacer(Modifier.height(28.dp))
-        SectionHeader("RECENT CHANNELS")
-        Spacer(Modifier.height(10.dp))
-
-        val recentList = recents.ifEmpty { channels.take(6) }
-        if (recentList.isEmpty()) {
-            Text(
-                "No channels yet — add an M3U playlist in Settings to begin.",
-                style = HqType.Body,
-            )
-        } else {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                itemsIndexed(recentList, key = { _, c -> c.id }) { index, channel ->
-                    RecentChannelChip(
-                        channel = channel,
-                        accent = channelPalette[index % channelPalette.size],
-                        onClick = {
-                            app.channels.markWatched(channel.id)
-                            nav.goTo(Zone.LIVE)
-                        },
-                    )
-                }
+            // Focus affordance: a brand accent line along the bottom edge.
+            if (heroFocused) {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(HqColors.Accent),
+                )
             }
         }
 
-        Spacer(Modifier.height(28.dp))
-        SectionHeader("QUICK ACCESS")
-        Spacer(Modifier.height(10.dp))
-        QuickAccessRow(app = app, nav = nav)
+        Column(
+            modifier = Modifier.padding(horizontal = 40.dp, vertical = 28.dp),
+        ) {
+            SectionHeader("RECENT CHANNELS")
+            Spacer(Modifier.height(10.dp))
+
+            val recentList = recents.ifEmpty { channels.take(6) }
+            if (recentList.isEmpty()) {
+                Text("No channels yet — add an M3U playlist in Settings to begin.", style = HqType.Body)
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    itemsIndexed(recentList, key = { _, c -> c.id }) { _, channel ->
+                        RecentChannelChip(
+                            channel = channel,
+                            onClick = {
+                                app.channels.markWatched(channel.id)
+                                nav.goTo(Zone.LIVE)
+                            },
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(28.dp))
+            SectionHeader("QUICK ACCESS")
+            Spacer(Modifier.height(10.dp))
+            QuickAccessRow(app = app, nav = nav)
+        }
     }
 }
 
@@ -216,7 +215,7 @@ private fun HeroContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
+                .padding(horizontal = 40.dp, vertical = 28.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
@@ -260,7 +259,7 @@ private fun HeroContent(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
-                .padding(18.dp),
+                .padding(horizontal = 40.dp, vertical = 28.dp),
             verticalAlignment = Alignment.Bottom,
         ) {
             Column(Modifier.weight(1f)) {
@@ -271,7 +270,7 @@ private fun HeroContent(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     nowTitle ?: (channel?.name ?: "No live TV loaded"),
-                    style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+                    style = HqType.Title.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
                 )
                 Text(
@@ -280,10 +279,9 @@ private fun HeroContent(
                     maxLines = 1,
                 )
                 Spacer(Modifier.height(10.dp))
-                // Progress bar.
                 Box(
                     Modifier
-                        .fillMaxWidth(0.82f)
+                        .fillMaxWidth(0.7f)
                         .height(4.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f)),
@@ -299,16 +297,16 @@ private fun HeroContent(
             }
 
             if (nextTitle != null) {
-                Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(18.dp))
                 Column(
                     Modifier
-                        .width(190.dp)
+                        .width(200.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0x40FFFFFF))
+                        .background(Color(0x33FFFFFF))
                         .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(10.dp))
                         .padding(12.dp),
                 ) {
-                    Text("NEXT", style = HqType.Label.copy(color = HqColors.TextTertiary, fontSize = 9.sp))
+                    Text("NEXT", style = HqType.Label.copy(color = Color.White.copy(alpha = 0.6f), fontSize = 9.sp))
                     Spacer(Modifier.height(3.dp))
                     Text(
                         nextTitle,
@@ -324,18 +322,18 @@ private fun HeroContent(
 @Composable
 private fun RecentChannelChip(
     channel: Channel,
-    accent: Color,
     onClick: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(22.dp)
+    val active = focused
 
     Row(
         modifier = Modifier
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
-            .background(if (focused) HqColors.Accent.copy(alpha = 0.16f) else Color(0x0CFFFFFF))
-            .border(1.dp, if (focused) HqColors.Accent else Color(0x14FFFFFF), shape)
+            .background(if (active) HqColors.Accent.copy(alpha = 0.16f) else Color(0x0CFFFFFF))
+            .border(1.dp, if (active) HqColors.Accent else Color(0x14FFFFFF), shape)
             .clickable { onClick() }
             .focusable()
             .padding(start = 6.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
@@ -345,18 +343,22 @@ private fun RecentChannelChip(
             Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(accent.copy(alpha = 0.22f)),
+                .background(if (active) HqColors.Accent.copy(alpha = 0.22f) else Color(0x14FFFFFF)),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 channel.number.toString(),
-                style = HqType.Label.copy(color = accent, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                style = HqType.Label.copy(
+                    color = if (active) HqColors.Accent else HqColors.TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                ),
             )
         }
         Spacer(Modifier.width(10.dp))
         Text(
             channel.name,
-            style = HqType.Body.copy(color = if (focused) HqColors.TextPrimary else HqColors.TextSecondary),
+            style = HqType.Body.copy(color = if (active) HqColors.TextPrimary else HqColors.TextSecondary),
             maxLines = 1,
         )
     }
@@ -365,18 +367,18 @@ private fun RecentChannelChip(
 @Composable
 private fun QuickAccessRow(app: HqApplication, nav: SpatialNavController) {
     val items = listOf(
-        QuickAccessItem("Live TV", Icons.Default.Tv, Color(0xFF2BE080)) { nav.goTo(Zone.LIVE) },
-        QuickAccessItem("Media", Icons.Default.Movie, Color(0xFF9F7AEA)) { nav.goTo(Zone.MEDIA) },
-        QuickAccessItem("YouTube", Icons.Default.PlayCircle, Color(0xFFE53E3E)) {
+        QuickAccessItem("Live TV", Icons.Default.Tv) { nav.goTo(Zone.LIVE) },
+        QuickAccessItem("Media", Icons.Default.Movie) { nav.goTo(Zone.MEDIA) },
+        QuickAccessItem("YouTube", Icons.Default.PlayCircle) {
             app.installedApps.launch("com.google.android.youtube.tv")
         },
-        QuickAccessItem("Files", Icons.Default.Folder, Color(0xFFECC94B)) {
+        QuickAccessItem("Files", Icons.Default.Folder) {
             app.installedApps.launch("com.android.documentsui")
         },
-        QuickAccessItem("Browser", Icons.Default.Language, Color(0xFF3182CE)) {
+        QuickAccessItem("Browser", Icons.Default.Language) {
             if (!app.installedApps.launch("com.android.chrome")) nav.goTo(Zone.TOOLS)
         },
-        QuickAccessItem("Settings", Icons.Default.Settings, Color(0xFF718096)) { nav.goTo(Zone.SETTINGS) },
+        QuickAccessItem("Settings", Icons.Default.Settings) { nav.goTo(Zone.SETTINGS) },
     )
 
     Row(
@@ -397,17 +399,18 @@ private fun QuickAccessRow(app: HqApplication, nav: SpatialNavController) {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    // Single brand accent on focus; neutral at rest — no per-tile colors.
                     Box(
                         Modifier
                             .size(36.dp)
                             .clip(RoundedCornerShape(9.dp))
-                            .background(item.color.copy(alpha = if (focused) 0.30f else 0.16f)),
+                            .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else Color(0x0FFFFFFF)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             item.icon,
                             contentDescription = item.label,
-                            tint = item.color,
+                            tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -428,18 +431,7 @@ private fun QuickAccessRow(app: HqApplication, nav: SpatialNavController) {
 private data class QuickAccessItem(
     val label: String,
     val icon: ImageVector,
-    val color: Color,
     val onClick: () -> Unit,
-)
-
-/** Distinct accents cycled across recent-channel chips, echoing the mockup. */
-private val channelPalette = listOf(
-    Color(0xFF2BE080),
-    Color(0xFF63B3ED),
-    Color(0xFF9F7AEA),
-    Color(0xFFF6AD55),
-    Color(0xFF4FD1C5),
-    Color(0xFFFC8181),
 )
 
 /**

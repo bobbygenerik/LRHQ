@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,9 +86,7 @@ class MainActivity : ComponentActivity() {
                         Sidebar(
                             currentZone = controller.zone,
                             onZoneSelected = { zone -> controller.goTo(zone) },
-                            modifier = Modifier
-                                .width(220.dp)
-                                .fillMaxHeight()
+                            modifier = Modifier.fillMaxHeight()
                         )
                     }
                     Box(Modifier.weight(1f).fillMaxHeight()) {
