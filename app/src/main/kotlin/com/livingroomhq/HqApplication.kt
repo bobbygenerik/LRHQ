@@ -5,12 +5,12 @@ import com.livingroomhq.core.data.persist.DataStorePrefsStore
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import com.livingroomhq.core.data.repo.AmbientInfoRepository
 import com.livingroomhq.core.data.repo.ChannelRepository
-import com.livingroomhq.core.data.repo.DemoAmbientInfoRepository
-import com.livingroomhq.core.data.repo.DemoMediaRepository
 import com.livingroomhq.core.data.repo.InstalledAppsRepository
+import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.core.data.repo.MediaRepository
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
+import com.livingroomhq.core.data.repo.UnconfiguredAmbientInfoRepository
 import com.livingroomhq.core.widget.WidgetRegistry
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
@@ -35,8 +35,8 @@ class HqApplication : Application() {
     val channels: ChannelRepository by lazy {
         PersistentChannelRepository(prefs, appScope).also { it.restore() }
     }
-    val media: MediaRepository by lazy { DemoMediaRepository() }
-    val ambientInfo: AmbientInfoRepository by lazy { DemoAmbientInfoRepository() }
+    val media: MediaRepository by lazy { LocalMediaRepository(this, appScope) }
+    val ambientInfo: AmbientInfoRepository by lazy { UnconfiguredAmbientInfoRepository() }
     val systemMonitor: SystemMonitor by lazy { SystemMonitor(this) }
     val installedApps: InstalledAppsRepository by lazy {
         InstalledAppsRepository(this) { UiMessages.post("Couldn't open that app") }

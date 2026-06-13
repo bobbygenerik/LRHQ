@@ -55,6 +55,10 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
         Column(Modifier.weight(0.36f)) {
             Text("LIVE", style = HqType.Title)
             Spacer(Modifier.height(16.dp))
+            if (channels.isEmpty()) {
+                Text("No M3U playlist configured", style = HqType.Body)
+                return@Column
+            }
 
             // Group filter chips.
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

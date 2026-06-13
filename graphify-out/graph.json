@@ -236,7 +236,7 @@
       "label": "MainActivity",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L27",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity",
       "community": 1,
@@ -256,7 +256,7 @@
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L29",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_spatialnavcontroller",
       "community": 1,
@@ -266,7 +266,7 @@
       "label": ".onCreate()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L31",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_oncreate",
       "community": 1,
@@ -276,7 +276,7 @@
       "label": "Bundle",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L31",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "bundle",
       "community": 1,
@@ -286,7 +286,7 @@
       "label": ".onKeyDown()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L71",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onkeydown",
       "community": 1,
@@ -296,7 +296,7 @@
       "label": "Int",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L71",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_int",
       "community": 1,
@@ -306,7 +306,7 @@
       "label": "KeyEvent",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L71",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "keyevent",
       "community": 1,
@@ -316,7 +316,7 @@
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L71",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_boolean",
       "community": 1,
@@ -326,7 +326,7 @@
       "label": ".onNewIntent()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L101",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onnewintent",
       "community": 1,
@@ -336,7 +336,7 @@
       "label": "Intent",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L101",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_mainactivity_kt_intent",
       "community": 1,
@@ -346,11 +346,21 @@
       "label": ".onUserInteraction()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
-      "source_location": "L106",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "livingroomhq_mainactivity_mainactivity_onuserinteraction",
       "community": 1,
       "norm_label": ".onuserinteraction()"
+    },
+    {
+      "label": ".requestMediaPermissions()",
+      "file_type": "code",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "livingroomhq_mainactivity_mainactivity_requestmediapermissions",
+      "community": 1,
+      "norm_label": ".requestmediapermissions()"
     },
     {
       "label": "WidgetCard.kt",
@@ -359,7 +369,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_widgetcard",
-      "community": 2,
+      "community": 30,
       "norm_label": "widgetcard.kt"
     },
     {
@@ -369,7 +379,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "components_widgetcard_widgetcard",
-      "community": 2,
+      "community": 30,
       "norm_label": "widgetcard()"
     },
     {
@@ -379,7 +389,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetplugin",
-      "community": 2,
+      "community": 30,
       "norm_label": "widgetplugin"
     },
     {
@@ -389,7 +399,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_modifier",
-      "community": 2,
+      "community": 30,
       "norm_label": "modifier"
     },
     {
@@ -399,7 +409,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "components_widgetcard_defaultwidgetbody",
-      "community": 2,
+      "community": 30,
       "norm_label": "defaultwidgetbody()"
     },
     {
@@ -409,7 +419,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetstate",
-      "community": 2,
+      "community": 30,
       "norm_label": "widgetstate"
     },
     {
@@ -749,47 +759,47 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "player_livepreview",
-      "community": 0,
+      "community": 28,
       "norm_label": "livepreview.kt"
     },
     {
       "label": "LivePreview()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt",
-      "source_location": "L35",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "player_livepreview_livepreview",
-      "community": 0,
+      "community": 28,
       "norm_label": "livepreview()"
     },
     {
       "label": "Channel",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt",
-      "source_location": "L35",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_livepreview_kt_channel",
-      "community": 0,
+      "community": 28,
       "norm_label": "channel"
     },
     {
       "label": "Modifier",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt",
-      "source_location": "L35",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_livepreview_kt_modifier",
-      "community": 0,
+      "community": 28,
       "norm_label": "modifier"
     },
     {
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt",
-      "source_location": "L35",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_livepreview_kt_boolean",
-      "community": 0,
+      "community": 28,
       "norm_label": "boolean"
     },
     {
@@ -1006,7 +1016,7 @@
       "label": "timeNow()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L132",
+      "source_location": "L135",
       "_origin": "ast",
       "id": "screens_homescreen_timenow",
       "community": 2,
@@ -1016,7 +1026,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L132",
+      "source_location": "L135",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
       "community": 2,
@@ -1029,7 +1039,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_livescreen",
-      "community": 0,
+      "community": 10,
       "norm_label": "livescreen.kt"
     },
     {
@@ -1039,7 +1049,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "screens_livescreen_livescreen",
-      "community": 0,
+      "community": 10,
       "norm_label": "livescreen()"
     },
     {
@@ -1049,7 +1059,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_hqapplication",
-      "community": 0,
+      "community": 10,
       "norm_label": "hqapplication"
     },
     {
@@ -1059,7 +1069,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_livescreen_kt_spatialnavcontroller",
-      "community": 0,
+      "community": 10,
       "norm_label": "spatialnavcontroller"
     },
     {
@@ -1069,87 +1079,87 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_mediascreen",
-      "community": 0,
+      "community": 22,
       "norm_label": "mediascreen.kt"
     },
     {
       "label": "MediaScreen()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L54",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "screens_mediascreen_mediascreen",
-      "community": 0,
+      "community": 22,
       "norm_label": "mediascreen()"
     },
     {
       "label": "HqApplication",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L54",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_hqapplication",
-      "community": 0,
+      "community": 22,
       "norm_label": "hqapplication"
     },
     {
       "label": "SpatialNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L54",
+      "source_location": "L55",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_spatialnavcontroller",
-      "community": 0,
+      "community": 22,
       "norm_label": "spatialnavcontroller"
     },
     {
       "label": "PosterRail()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "screens_mediascreen_posterrail",
-      "community": 0,
+      "community": 22,
       "norm_label": "posterrail()"
     },
     {
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_string",
-      "community": 0,
+      "community": 22,
       "norm_label": "string"
     },
     {
       "label": "List",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_list",
-      "community": 0,
+      "community": 22,
       "norm_label": "list"
     },
     {
       "label": "MediaItem",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_mediaitem",
-      "community": 0,
+      "community": 22,
       "norm_label": "mediaitem"
     },
     {
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/MediaScreen.kt",
-      "source_location": "L114",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_mediascreen_kt_boolean",
-      "community": 0,
+      "community": 22,
       "norm_label": "boolean"
     },
     {
@@ -1159,7 +1169,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "screens_toolsscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "toolsscreen.kt"
     },
     {
@@ -1169,7 +1179,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "screens_toolsscreen_toolsscreen",
-      "community": 2,
+      "community": 1,
       "norm_label": "toolsscreen()"
     },
     {
@@ -1179,7 +1189,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_toolsscreen_kt_hqapplication",
-      "community": 2,
+      "community": 1,
       "norm_label": "hqapplication"
     },
     {
@@ -1189,7 +1199,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_toolsscreen_kt_spatialnavcontroller",
-      "community": 2,
+      "community": 1,
       "norm_label": "spatialnavcontroller"
     },
     {
@@ -1339,7 +1349,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "widgets_builtinwidgets",
-      "community": 5,
+      "community": 7,
       "norm_label": "builtinwidgets.kt"
     },
     {
@@ -1349,7 +1359,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_registerbuiltinwidgets",
-      "community": 5,
+      "community": 7,
       "norm_label": "registerbuiltinwidgets()"
     },
     {
@@ -1359,7 +1369,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetregistry",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetregistry"
     },
     {
@@ -1369,7 +1379,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_hqapplication",
-      "community": 5,
+      "community": 7,
       "norm_label": "hqapplication"
     },
     {
@@ -1379,7 +1389,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_widget",
-      "community": 5,
+      "community": 7,
       "norm_label": "widget()"
     },
     {
@@ -1389,7 +1399,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_string",
-      "community": 5,
+      "community": 7,
       "norm_label": "string"
     },
     {
@@ -1399,7 +1409,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_set",
-      "community": 5,
+      "community": 7,
       "norm_label": "set"
     },
     {
@@ -1409,7 +1419,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetzone",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetzone"
     },
     {
@@ -1419,7 +1429,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "widgetsize",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetsize"
     },
     {
@@ -1429,7 +1439,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_flow",
-      "community": 5,
+      "community": 7,
       "norm_label": "flow"
     },
     {
@@ -1439,7 +1449,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetstate",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetstate"
     },
     {
@@ -1449,7 +1459,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_widgets_builtinwidgets_kt_widgetplugin",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetplugin"
     },
     {
@@ -1459,37 +1469,37 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_storagewidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "storagewidget()"
     },
     {
       "label": "downloadsWidget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt",
-      "source_location": "L58",
+      "source_location": "L57",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_downloadswidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "downloadswidget()"
     },
     {
       "label": "weatherWidget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt",
-      "source_location": "L71",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_weatherwidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "weatherwidget()"
     },
     {
       "label": "smartHomeWidget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt",
-      "source_location": "L87",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_smarthomewidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "smarthomewidget()"
     },
     {
@@ -1499,7 +1509,7 @@
       "source_location": "L105",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_continuewatchingwidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "continuewatchingwidget()"
     },
     {
@@ -1509,7 +1519,7 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "widgets_builtinwidgets_mediaserverwidget",
-      "community": 5,
+      "community": 7,
       "norm_label": "mediaserverwidget()"
     },
     {
@@ -1549,7 +1559,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest",
-      "community": 18,
+      "community": 29,
       "norm_label": "watchnexttest.kt"
     },
     {
@@ -1559,7 +1569,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest",
-      "community": 18,
+      "community": 29,
       "norm_label": "watchnexttest"
     },
     {
@@ -1569,7 +1579,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_item",
-      "community": 18,
+      "community": 29,
       "norm_label": ".item()"
     },
     {
@@ -1579,7 +1589,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_float",
-      "community": 18,
+      "community": 29,
       "norm_label": "float"
     },
     {
@@ -1589,7 +1599,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_mediatype",
-      "community": 18,
+      "community": 29,
       "norm_label": "mediatype"
     },
     {
@@ -1599,7 +1609,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_in_progress_item_maps_with_duration_and_position",
-      "community": 18,
+      "community": 29,
       "norm_label": ".`in-progress item maps with duration and position`()"
     },
     {
@@ -1609,7 +1619,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_unwatched_and_finished_items_are_excluded",
-      "community": 18,
+      "community": 29,
       "norm_label": ".`unwatched and finished items are excluded`()"
     },
     {
@@ -1619,7 +1629,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_music_is_excluded_from_watch_next",
-      "community": 18,
+      "community": 29,
       "norm_label": ".`music is excluded from watch next`()"
     },
     {
@@ -1829,7 +1839,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "model_models_launchableapp",
-      "community": 10,
+      "community": 3,
       "norm_label": "launchableapp"
     },
     {
@@ -2159,107 +2169,107 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_ambientinforepository",
-      "community": 3,
+      "community": 4,
       "norm_label": "ambientinforepository.kt"
     },
     {
       "label": "AmbientInfoRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L21",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository",
-      "community": 3,
+      "community": 4,
       "norm_label": "ambientinforepository"
     },
     {
       "label": "StateFlow",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L22",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_stateflow",
-      "community": 3,
+      "community": 4,
       "norm_label": "stateflow"
     },
     {
       "label": "Weather",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L22",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "weather",
-      "community": 3,
+      "community": 4,
       "norm_label": "weather"
     },
     {
       "label": "List",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L23",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_list",
-      "community": 3,
+      "community": 4,
       "norm_label": "list"
     },
     {
       "label": "ServiceStatus",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L23",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "servicestatus",
-      "community": 3,
+      "community": 4,
       "norm_label": "servicestatus"
     },
     {
       "label": ".downloads()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L24",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository_downloads",
-      "community": 3,
+      "community": 4,
       "norm_label": ".downloads()"
     },
     {
       "label": "Flow",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L24",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_flow",
-      "community": 3,
+      "community": 4,
       "norm_label": "flow"
     },
     {
       "label": "DownloadJob",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L24",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "downloadjob",
-      "community": 3,
+      "community": 4,
       "norm_label": "downloadjob"
     },
     {
-      "label": "DemoAmbientInfoRepository",
+      "label": "UnconfiguredAmbientInfoRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L27",
+      "source_location": "L23",
       "_origin": "ast",
-      "id": "repo_ambientinforepository_demoambientinforepository",
-      "community": 3,
-      "norm_label": "demoambientinforepository"
+      "id": "repo_ambientinforepository_unconfiguredambientinforepository",
+      "community": 4,
+      "norm_label": "unconfiguredambientinforepository"
     },
     {
       "label": ".downloads()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L45",
+      "source_location": "L31",
       "_origin": "ast",
-      "id": "repo_ambientinforepository_demoambientinforepository_downloads",
-      "community": 3,
+      "id": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
+      "community": 4,
       "norm_label": ".downloads()"
     },
     {
@@ -2269,278 +2279,128 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_channelrepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "channelrepository.kt"
     },
     {
       "label": "ChannelRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L14",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository",
-      "community": 4,
+      "community": 3,
       "norm_label": "channelrepository"
     },
     {
       "label": "StateFlow",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L15",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_stateflow",
-      "community": 4,
+      "community": 3,
       "norm_label": "stateflow"
     },
     {
       "label": "List",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L15",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_list",
-      "community": 4,
+      "community": 3,
       "norm_label": "list"
     },
     {
       "label": "Channel",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L15",
+      "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_channel",
-      "community": 4,
+      "community": 3,
       "norm_label": "channel"
     },
     {
       "label": ".groups()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L17",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_groups",
-      "community": 4,
+      "community": 3,
       "norm_label": ".groups()"
     },
     {
       "label": "String",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L17",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string",
-      "community": 4,
+      "community": 3,
       "norm_label": "string"
     },
     {
       "label": ".epgNowNext()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L18",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_epgnownext",
-      "community": 4,
+      "community": 3,
       "norm_label": ".epgnownext()"
     },
     {
       "label": "Pair",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L18",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_pair",
-      "community": 4,
+      "community": 3,
       "norm_label": "pair"
     },
     {
       "label": "Program",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L18",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program",
-      "community": 4,
+      "community": 3,
       "norm_label": "program"
     },
     {
       "label": ".markWatched()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L19",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_markwatched",
-      "community": 4,
+      "community": 3,
       "norm_label": ".markwatched()"
     },
     {
       "label": ".toggleFavorite()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L20",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_togglefavorite",
-      "community": 4,
+      "community": 3,
       "norm_label": ".togglefavorite()"
     },
     {
       "label": ".loadM3u()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L21",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "repo_channelrepository_channelrepository_loadm3u",
-      "community": 4,
+      "community": 3,
       "norm_label": ".loadm3u()"
-    },
-    {
-      "label": "DemoChannelRepository",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L24",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository",
-      "community": 4,
-      "norm_label": "demochannelrepository"
-    },
-    {
-      "label": ".groups()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L34",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository_groups",
-      "community": 4,
-      "norm_label": ".groups()"
-    },
-    {
-      "label": ".epgNowNext()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L37",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository_epgnownext",
-      "community": 4,
-      "norm_label": ".epgnownext()"
-    },
-    {
-      "label": ".markWatched()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L45",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository_markwatched",
-      "community": 4,
-      "norm_label": ".markwatched()"
-    },
-    {
-      "label": ".toggleFavorite()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L50",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository_togglefavorite",
-      "community": 4,
-      "norm_label": ".togglefavorite()"
-    },
-    {
-      "label": ".loadM3u()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L56",
-      "_origin": "ast",
-      "id": "repo_channelrepository_demochannelrepository_loadm3u",
-      "community": 4,
-      "norm_label": ".loadm3u()"
-    },
-    {
-      "label": "DemoLineup.kt",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "repo_demolineup",
-      "community": 22,
-      "norm_label": "demolineup.kt"
-    },
-    {
-      "label": "DemoLineup",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L7",
-      "_origin": "ast",
-      "id": "repo_demolineup_demolineup",
-      "community": 22,
-      "norm_label": "demolineup"
-    },
-    {
-      "label": ".channels()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "repo_demolineup_demolineup_channels",
-      "community": 22,
-      "norm_label": ".channels()"
-    },
-    {
-      "label": "List",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list",
-      "community": 22,
-      "norm_label": "list"
-    },
-    {
-      "label": "Channel",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "_origin": "ast",
-      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_channel",
-      "community": 22,
-      "norm_label": "channel"
-    },
-    {
-      "label": ".epg()",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "repo_demolineup_demolineup_epg",
-      "community": 22,
-      "norm_label": ".epg()"
-    },
-    {
-      "label": "Map",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "map",
-      "community": 22,
-      "norm_label": "map"
-    },
-    {
-      "label": "String",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_string",
-      "community": 22,
-      "norm_label": "string"
-    },
-    {
-      "label": "Program",
-      "file_type": "code",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "_origin": "ast",
-      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_program",
-      "community": 22,
-      "norm_label": "program"
     },
     {
       "label": "InstalledAppsRepository.kt",
@@ -2549,7 +2409,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_installedappsrepository",
-      "community": 10,
+      "community": 3,
       "norm_label": "installedappsrepository.kt"
     },
     {
@@ -2559,7 +2419,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "repo_installedappsrepository_installedappsrepository",
-      "community": 10,
+      "community": 3,
       "norm_label": "installedappsrepository"
     },
     {
@@ -2569,7 +2429,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "repo_installedappsrepository_installedappsrepository_launchableapps",
-      "community": 10,
+      "community": 3,
       "norm_label": ".launchableapps()"
     },
     {
@@ -2579,7 +2439,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_installedappsrepository_kt_list",
-      "community": 10,
+      "community": 3,
       "norm_label": "list"
     },
     {
@@ -2589,7 +2449,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "launchableapp",
-      "community": 10,
+      "community": 3,
       "norm_label": "launchableapp"
     },
     {
@@ -2599,7 +2459,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "repo_installedappsrepository_installedappsrepository_launch",
-      "community": 10,
+      "community": 3,
       "norm_label": ".launch()"
     },
     {
@@ -2609,7 +2469,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_installedappsrepository_kt_string",
-      "community": 10,
+      "community": 3,
       "norm_label": "string"
     },
     {
@@ -2619,7 +2479,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_installedappsrepository_kt_boolean",
-      "community": 10,
+      "community": 3,
       "norm_label": "boolean"
     },
     {
@@ -2636,7 +2496,7 @@
       "label": "MediaRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L14",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "repo_mediarepository_mediarepository",
       "community": 9,
@@ -2646,7 +2506,7 @@
       "label": "StateFlow",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L15",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_stateflow",
       "community": 9,
@@ -2656,7 +2516,7 @@
       "label": "List",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L15",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list",
       "community": 9,
@@ -2666,7 +2526,7 @@
       "label": "MediaItem",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L15",
+      "source_location": "L25",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem",
       "community": 9,
@@ -2676,7 +2536,7 @@
       "label": ".continueWatching()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L16",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "repo_mediarepository_mediarepository_continuewatching",
       "community": 9,
@@ -2686,7 +2546,7 @@
       "label": ".recentlyAdded()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L17",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "repo_mediarepository_mediarepository_recentlyadded",
       "community": 9,
@@ -2696,7 +2556,7 @@
       "label": "Int",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L17",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_int",
       "community": 9,
@@ -2706,7 +2566,7 @@
       "label": ".byType()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L18",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "repo_mediarepository_mediarepository_bytype",
       "community": 9,
@@ -2716,29 +2576,39 @@
       "label": "MediaType",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L18",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype",
       "community": 9,
       "norm_label": "mediatype"
     },
     {
-      "label": "DemoMediaRepository",
+      "label": "LocalMediaRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L21",
+      "source_location": "L31",
       "_origin": "ast",
-      "id": "repo_mediarepository_demomediarepository",
+      "id": "repo_mediarepository_localmediarepository",
       "community": 9,
-      "norm_label": "demomediarepository"
+      "norm_label": "localmediarepository"
+    },
+    {
+      "label": ".refresh()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_refresh",
+      "community": 9,
+      "norm_label": ".refresh()"
     },
     {
       "label": ".continueWatching()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L26",
+      "source_location": "L55",
       "_origin": "ast",
-      "id": "repo_mediarepository_demomediarepository_continuewatching",
+      "id": "repo_mediarepository_localmediarepository_continuewatching",
       "community": 9,
       "norm_label": ".continuewatching()"
     },
@@ -2746,9 +2616,9 @@
       "label": ".recentlyAdded()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L30",
+      "source_location": "L59",
       "_origin": "ast",
-      "id": "repo_mediarepository_demomediarepository_recentlyadded",
+      "id": "repo_mediarepository_localmediarepository_recentlyadded",
       "community": 9,
       "norm_label": ".recentlyadded()"
     },
@@ -2756,21 +2626,91 @@
       "label": ".byType()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L33",
+      "source_location": "L62",
       "_origin": "ast",
-      "id": "repo_mediarepository_demomediarepository_bytype",
+      "id": "repo_mediarepository_localmediarepository_bytype",
       "community": 9,
       "norm_label": ".bytype()"
     },
     {
-      "label": ".demoLibrary()",
+      "label": ".loadLocalMedia()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L36",
+      "source_location": "L65",
       "_origin": "ast",
-      "id": "repo_mediarepository_demomediarepository_demolibrary",
+      "id": "repo_mediarepository_localmediarepository_loadlocalmedia",
       "community": 9,
-      "norm_label": ".demolibrary()"
+      "norm_label": ".loadlocalmedia()"
+    },
+    {
+      "label": ".hasVideoPermission()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_hasvideopermission",
+      "community": 9,
+      "norm_label": ".hasvideopermission()"
+    },
+    {
+      "label": "Boolean",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
+      "community": 9,
+      "norm_label": "boolean"
+    },
+    {
+      "label": ".hasAudioPermission()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_hasaudiopermission",
+      "community": 9,
+      "norm_label": ".hasaudiopermission()"
+    },
+    {
+      "label": ".hasPermission()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_haspermission",
+      "community": 9,
+      "norm_label": ".haspermission()"
+    },
+    {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_string",
+      "community": 9,
+      "norm_label": "string"
+    },
+    {
+      "label": ".loadVideo()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_loadvideo",
+      "community": 9,
+      "norm_label": ".loadvideo()"
+    },
+    {
+      "label": ".loadAudio()",
+      "file_type": "code",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "repo_mediarepository_localmediarepository_loadaudio",
+      "community": 9,
+      "norm_label": ".loadaudio()"
     },
     {
       "label": "PersistentChannelRepository.kt",
@@ -2786,7 +2726,7 @@
       "label": "PersistentChannelRepository",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L25",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository",
       "community": 17,
@@ -2806,7 +2746,7 @@
       "label": "StateFlow",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L34",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_stateflow",
       "community": 17,
@@ -2816,7 +2756,7 @@
       "label": "List",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L34",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_list",
       "community": 17,
@@ -2826,7 +2766,7 @@
       "label": "Channel",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L34",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_channel",
       "community": 17,
@@ -2836,7 +2776,7 @@
       "label": ".groups()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L44",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_groups",
       "community": 17,
@@ -2846,7 +2786,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L44",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_string",
       "community": 17,
@@ -2856,7 +2796,7 @@
       "label": ".epgNowNext()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L47",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_epgnownext",
       "community": 17,
@@ -2866,7 +2806,7 @@
       "label": "Pair",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L47",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_pair",
       "community": 17,
@@ -2876,7 +2816,7 @@
       "label": "Program",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L47",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepository_kt_program",
       "community": 17,
@@ -2886,7 +2826,7 @@
       "label": ".markWatched()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L55",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_markwatched",
       "community": 17,
@@ -2896,7 +2836,7 @@
       "label": ".toggleFavorite()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L62",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_togglefavorite",
       "community": 17,
@@ -2906,7 +2846,7 @@
       "label": ".loadM3u()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L69",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_loadm3u",
       "community": 17,
@@ -2916,7 +2856,7 @@
       "label": ".restore()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L78",
+      "source_location": "L72",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_persistentchannelrepository_restore",
       "community": 17,
@@ -2926,7 +2866,7 @@
       "label": "httpGet()",
       "file_type": "code",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt",
-      "source_location": "L87",
+      "source_location": "L81",
       "_origin": "ast",
       "id": "repo_persistentchannelrepository_httpget",
       "community": 17,
@@ -3303,20 +3243,20 @@
       "norm_label": "persistentchannelrepositorytest"
     },
     {
-      "label": ".`starts with demo lineup`()",
+      "label": ".`starts empty until a playlist is configured`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L25",
+      "source_location": "L33",
       "_origin": "ast",
-      "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup",
+      "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_empty_until_a_playlist_is_configured",
       "community": 17,
-      "norm_label": ".`starts with demo lineup`()"
+      "norm_label": ".`starts empty until a playlist is configured`()"
     },
     {
       "label": ".`toggleFavorite persists and reflects in channels`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L32",
+      "source_location": "L40",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_togglefavorite_persists_and_reflects_in_channels",
       "community": 17,
@@ -3326,7 +3266,7 @@
       "label": ".`markWatched orders recents newest-first, dedupes, caps at 8`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L49",
+      "source_location": "L58",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_markwatched_orders_recents_newest_first_dedupes_caps_at_8",
       "community": 17,
@@ -3336,7 +3276,7 @@
       "label": ".`loadM3u replaces lineup and persists url`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L65",
+      "source_location": "L75",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_loadm3u_replaces_lineup_and_persists_url",
       "community": 17,
@@ -3346,21 +3286,21 @@
       "label": ".`restore reloads persisted playlist at startup`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L78",
+      "source_location": "L88",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_restore_reloads_persisted_playlist_at_startup",
       "community": 17,
       "norm_label": ".`restore reloads persisted playlist at startup`()"
     },
     {
-      "label": ".`empty playlist keeps current lineup`()",
+      "label": ".`empty playlist leaves channels empty`()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L87",
+      "source_location": "L97",
       "_origin": "ast",
-      "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup",
+      "id": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_leaves_channels_empty",
       "community": 17,
-      "norm_label": ".`empty playlist keeps current lineup`()"
+      "norm_label": ".`empty playlist leaves channels empty`()"
     },
     {
       "label": "build.gradle.kts",
@@ -3379,7 +3319,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_focusableglasscard",
-      "community": 2,
+      "community": 10,
       "norm_label": "focusableglasscard.kt"
     },
     {
@@ -3389,7 +3329,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_focusableglasscard_focusableglasscard",
-      "community": 2,
+      "community": 10,
       "norm_label": "focusableglasscard()"
     },
     {
@@ -3399,7 +3339,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_modifier",
-      "community": 2,
+      "community": 10,
       "norm_label": "modifier"
     },
     {
@@ -3409,7 +3349,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_dp",
-      "community": 2,
+      "community": 10,
       "norm_label": "dp"
     },
     {
@@ -3419,7 +3359,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_paddingvalues",
-      "community": 2,
+      "community": 10,
       "norm_label": "paddingvalues"
     },
     {
@@ -3429,7 +3369,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_unit",
-      "community": 2,
+      "community": 10,
       "norm_label": "unit"
     },
     {
@@ -3439,7 +3379,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_glasspanel",
-      "community": 0,
+      "community": 31,
       "norm_label": "glasspanel.kt"
     },
     {
@@ -3449,7 +3389,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "components_glasspanel_glasspanel",
-      "community": 0,
+      "community": 31,
       "norm_label": "glasspanel()"
     },
     {
@@ -3459,7 +3399,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_modifier",
-      "community": 0,
+      "community": 31,
       "norm_label": "modifier"
     },
     {
@@ -3469,7 +3409,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_boolean",
-      "community": 0,
+      "community": 31,
       "norm_label": "boolean"
     },
     {
@@ -3479,7 +3419,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_dp",
-      "community": 0,
+      "community": 31,
       "norm_label": "dp"
     },
     {
@@ -3489,7 +3429,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_glasspanel_kt_paddingvalues",
-      "community": 0,
+      "community": 31,
       "norm_label": "paddingvalues"
     },
     {
@@ -3579,7 +3519,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "color",
-      "community": 0,
+      "community": 28,
       "norm_label": "color"
     },
     {
@@ -3609,7 +3549,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "theme_theme_hqcolors_backdrop",
-      "community": 0,
+      "community": 28,
       "norm_label": ".backdrop()"
     },
     {
@@ -3619,7 +3559,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "brush",
-      "community": 0,
+      "community": 28,
       "norm_label": "brush"
     },
     {
@@ -3689,7 +3629,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "widget_widgetplugin_widgetstat",
-      "community": 5,
+      "community": 7,
       "norm_label": "widgetstat"
     },
     {
@@ -3916,7 +3856,7 @@
       "label": "Design language",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "readme_design_language",
       "community": 13,
@@ -3926,7 +3866,7 @@
       "label": "Building",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L51",
+      "source_location": "L52",
       "_origin": "ast",
       "id": "readme_building",
       "community": 13,
@@ -3936,7 +3876,7 @@
       "label": "Knowledge graph",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L61",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "readme_knowledge_graph",
       "community": 13,
@@ -4168,7 +4108,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Each widget turns a repository flow into a WidgetState so apps surface live information before they are opened \u2014 the core promise of the card system. Tools zone shows widget cards first and other apps as cards, never an icon grid.",
-      "community": 5,
+      "community": 7,
       "norm_label": "widget card system (live info before launch)",
       "id": "widgets_builtinwidgets_widget_card_system"
     },
@@ -4210,7 +4150,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Repositories are interfaces with in-memory demo implementations so the launcher is fully navigable out of the box; real providers (M3U/Xtream, Jellyfin/Plex, Open-Meteo, NAS/*arr APIs) swap in behind the same surfaces.",
-      "community": 4,
+      "community": 32,
       "norm_label": "demo repository pattern",
       "id": "readme_demo_repository_pattern"
     },
@@ -4500,6 +4440,16 @@
       "target": "livingroomhq_mainactivity_mainactivity_onuserinteraction"
     },
     {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
+      "source_location": "L116",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "livingroomhq_mainactivity_mainactivity",
+      "target": "livingroomhq_mainactivity_mainactivity_requestmediapermissions"
+    },
+    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -4620,6 +4570,17 @@
       "confidence_score": 1.0,
       "source": "livingroomhq_mainactivity_mainactivity_oncreate",
       "target": "bundle"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/kotlin/com/livingroomhq/MainActivity.kt",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "livingroomhq_mainactivity_mainactivity_oncreate",
+      "target": "livingroomhq_mainactivity_mainactivity_requestmediapermissions"
     },
     {
       "relation": "calls",
@@ -6959,9 +6920,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
       "source_location": "L46",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser",
-      "target": "iptv_m3uparser_m3uparser_displayname",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparser_m3uparser_displayname"
     },
     {
       "relation": "method",
@@ -7013,9 +6974,9 @@
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser_parse",
-      "target": "iptv_m3uparser_m3uparser_displayname",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparser_m3uparser_displayname"
     },
     {
       "relation": "references",
@@ -7024,9 +6985,9 @@
       "source_location": "L46",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "iptv_m3uparser_m3uparser_displayname",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_string",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_iptv_m3uparser_kt_string"
     },
     {
       "relation": "contains",
@@ -7797,9 +7758,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L89",
+      "source_location": "L99",
       "weight": 1.0,
-      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup",
+      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_leaves_channels_empty",
       "target": "persist_launcherprefsstore_inmemoryprefsstore"
     },
     {
@@ -7841,9 +7802,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L27",
+      "source_location": "L35",
       "weight": 1.0,
-      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup",
+      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_empty_until_a_playlist_is_configured",
       "target": "persist_launcherprefsstore_inmemoryprefsstore"
     },
     {
@@ -7871,11 +7832,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L27",
+      "source_location": "L23",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "repo_ambientinforepository",
-      "target": "repo_ambientinforepository_demoambientinforepository"
+      "target": "repo_ambientinforepository_unconfiguredambientinforepository"
     },
     {
       "relation": "references",
@@ -7935,32 +7896,32 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": null,
+      "source_location": "L23",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
       "target": "repo_ambientinforepository_ambientinforepository"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L43",
+      "source_location": "L29",
       "weight": 1.0,
       "context": "field",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_stateflow"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L33",
+      "source_location": "L26",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
       "target": "weather"
     },
     {
@@ -7978,33 +7939,33 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L43",
+      "source_location": "L29",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L45",
+      "source_location": "L31",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository_downloads",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L43",
+      "source_location": "L29",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
       "target": "servicestatus"
     },
     {
@@ -8033,43 +7994,33 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L45",
+      "source_location": "L31",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository_downloads",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_flow"
     },
     {
       "relation": "references",
-      "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L45",
+      "source_location": "L31",
       "weight": 1.0,
+      "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository_downloads",
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
       "target": "downloadjob"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_demo_repository_pattern",
-      "target": "repo_ambientinforepository_demoambientinforepository"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt",
-      "source_location": "L45",
+      "source_location": "L31",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_ambientinforepository_demoambientinforepository",
-      "target": "repo_ambientinforepository_demoambientinforepository_downloads"
+      "source": "repo_ambientinforepository_unconfiguredambientinforepository",
+      "target": "repo_ambientinforepository_unconfiguredambientinforepository_downloads"
     },
     {
       "relation": "contains",
@@ -8080,16 +8031,6 @@
       "confidence_score": 1.0,
       "source": "repo_channelrepository",
       "target": "repo_channelrepository_channelrepository"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L24",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository",
-      "target": "repo_channelrepository_demochannelrepository"
     },
     {
       "relation": "references",
@@ -8175,27 +8116,6 @@
       "target": "repo_channelrepository_channelrepository_togglefavorite"
     },
     {
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": null,
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_channelrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L30",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_stateflow"
-    },
-    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
@@ -8205,39 +8125,6 @@
       "confidence_score": 1.0,
       "source": "repo_channelrepository_channelrepository_groups",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_list"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L30",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_list"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_groups",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_list"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L30",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_channel"
     },
     {
       "relation": "references",
@@ -8298,61 +8185,6 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L37",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_groups",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L56",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_loadm3u",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L45",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_markwatched",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L50",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_togglefavorite",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
       "source_location": "L18",
       "weight": 1.0,
       "context": "return_type",
@@ -8370,195 +8202,6 @@
       "confidence_score": 1.0,
       "source": "repo_channelrepository_channelrepository_epgnownext",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L37",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_pair"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L37",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository_epgnownext",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_channelrepository_kt_program"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_demo_repository_pattern",
-      "target": "repo_channelrepository_demochannelrepository"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_demochannelrepository_epgnownext"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_demochannelrepository_groups"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L56",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_demochannelrepository_loadm3u"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L45",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_demochannelrepository_markwatched"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt",
-      "source_location": "L50",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_channelrepository_demochannelrepository",
-      "target": "repo_channelrepository_demochannelrepository_togglefavorite"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup",
-      "target": "repo_demolineup_demolineup"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup",
-      "target": "repo_demolineup_demolineup_channels"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup",
-      "target": "repo_demolineup_demolineup_epg"
-    },
-    {
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_channels",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_channel"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L9",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_channels",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_epg",
-      "target": "repo_demolineup_demolineup_channels"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_list"
-    },
-    {
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_program"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "generic_arg",
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_epg",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_demolineup_kt_string"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/DemoLineup.kt",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "repo_demolineup_demolineup_epg",
-      "target": "map"
     },
     {
       "relation": "contains",
@@ -8638,11 +8281,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L21",
+      "source_location": "L31",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "repo_mediarepository",
-      "target": "repo_mediarepository_demomediarepository"
+      "target": "repo_mediarepository_localmediarepository"
     },
     {
       "relation": "contains",
@@ -8658,10 +8301,10 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": null,
+      "source_location": "L31",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
+      "source": "repo_mediarepository_localmediarepository",
       "target": "repo_mediarepository_mediarepository"
     },
     {
@@ -8731,66 +8374,88 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L24",
+      "source_location": "L37",
       "weight": 1.0,
       "context": "field",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
+      "source": "repo_mediarepository_localmediarepository",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_stateflow"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L24",
+      "source_location": "L37",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
+      "source": "repo_mediarepository_localmediarepository",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L33",
+      "source_location": "L55",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_bytype",
+      "source": "repo_mediarepository_localmediarepository_bytype",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L26",
+      "source_location": "L48",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_continuewatching",
+      "source": "repo_mediarepository_localmediarepository_continuewatching",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L36",
+      "source_location": "L117",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_demolibrary",
+      "source": "repo_mediarepository_localmediarepository_loadaudio",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L30",
+      "source_location": "L58",
       "weight": 1.0,
       "context": "return_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_recentlyadded",
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L74",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadvideo",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_recentlyadded",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_list"
     },
     {
@@ -8830,33 +8495,33 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L24",
+      "source_location": "L37",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
+      "source": "repo_mediarepository_localmediarepository",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L33",
+      "source_location": "L55",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_bytype",
+      "source": "repo_mediarepository_localmediarepository_bytype",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L26",
+      "source_location": "L48",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_continuewatching",
+      "source": "repo_mediarepository_localmediarepository_continuewatching",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
     },
     {
@@ -8864,21 +8529,43 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L36",
+      "source_location": "L117",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_demolibrary",
+      "source": "repo_mediarepository_localmediarepository_loadaudio",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L30",
+      "source_location": "L58",
       "weight": 1.0,
       "context": "generic_arg",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_recentlyadded",
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
+    },
+    {
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadvideo",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_recentlyadded",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediaitem"
     },
     {
@@ -8929,11 +8616,11 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L30",
+      "source_location": "L52",
       "weight": 1.0,
       "context": "parameter_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_recentlyadded",
+      "source": "repo_mediarepository_localmediarepository_recentlyadded",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_int"
     },
     {
@@ -8951,62 +8638,233 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L33",
+      "source_location": "L55",
       "weight": 1.0,
       "context": "parameter_type",
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository_bytype",
+      "source": "repo_mediarepository_localmediarepository_bytype",
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_mediatype"
     },
     {
-      "relation": "rationale_for",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "README.md",
-      "source_location": null,
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L55",
       "weight": 1.0,
-      "source": "readme_demo_repository_pattern",
-      "target": "repo_mediarepository_demomediarepository"
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_bytype"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L33",
+      "source_location": "L48",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
-      "target": "repo_mediarepository_demomediarepository_bytype"
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_continuewatching"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L26",
+      "source_location": "L74",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
-      "target": "repo_mediarepository_demomediarepository_continuewatching"
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_hasaudiopermission",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L36",
+      "source_location": "L77",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
-      "target": "repo_mediarepository_demomediarepository_demolibrary"
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_haspermission",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
-      "source_location": "L30",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_hasvideopermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L117",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "repo_mediarepository_demomediarepository",
-      "target": "repo_mediarepository_demomediarepository_recentlyadded"
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_loadaudio"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L58",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_loadlocalmedia"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_loadvideo"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L52",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_recentlyadded"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository",
+      "target": "repo_mediarepository_localmediarepository_refresh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository_refresh",
+      "target": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "repo_mediarepository_localmediarepository_hasaudiopermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "repo_mediarepository_localmediarepository_hasvideopermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L60",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "repo_mediarepository_localmediarepository_loadaudio"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L60",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "repo_mediarepository_localmediarepository_loadlocalmedia",
+      "target": "repo_mediarepository_localmediarepository_loadvideo"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L71",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "repo_mediarepository_localmediarepository_hasvideopermission",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L72",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository_hasvideopermission",
+      "target": "repo_mediarepository_localmediarepository_haspermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L74",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "repo_mediarepository_localmediarepository_hasaudiopermission",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L77",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "repo_mediarepository_localmediarepository_haspermission",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_boolean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L75",
+      "weight": 1.0,
+      "source": "repo_mediarepository_localmediarepository_hasaudiopermission",
+      "target": "repo_mediarepository_localmediarepository_haspermission",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt",
+      "source_location": "L77",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "repo_mediarepository_localmediarepository_haspermission",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_mediarepository_kt_string",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -9137,9 +8995,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L90",
+      "source_location": "L100",
       "weight": 1.0,
-      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup",
+      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_leaves_channels_empty",
       "target": "repo_persistentchannelrepository_persistentchannelrepository"
     },
     {
@@ -9181,9 +9039,9 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L27",
+      "source_location": "L35",
       "weight": 1.0,
-      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup",
+      "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_empty_until_a_playlist_is_configured",
       "target": "repo_persistentchannelrepository_persistentchannelrepository"
     },
     {
@@ -9693,9 +9551,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt",
       "source_location": "L59",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iptv_m3uparsertest_m3uparsertest",
-      "target": "iptv_m3uparsertest_m3uparsertest_channel_name_starts_after_comma_outside_quoted_attributes",
-      "confidence_score": 1.0
+      "target": "iptv_m3uparsertest_m3uparsertest_channel_name_starts_after_comma_outside_quoted_attributes"
     },
     {
       "relation": "method",
@@ -9791,11 +9649,11 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L87",
+      "source_location": "L97",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_keeps_current_lineup"
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_empty_playlist_leaves_channels_empty"
     },
     {
       "relation": "method",
@@ -9831,11 +9689,11 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L25",
+      "source_location": "L33",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest",
-      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_with_demo_lineup"
+      "target": "repo_persistentchannelrepositorytest_persistentchannelrepositorytest_starts_empty_until_a_playlist_is_configured"
     },
     {
       "relation": "method",
@@ -10817,5 +10675,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "172943a25878e3e1b045c5bc14e67ea717026df5"
+  "built_at_commit": "93cd0347199320122e209c64fa614e46fe96a42b"
 }

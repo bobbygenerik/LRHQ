@@ -1,15 +1,25 @@
 package com.livingroomhq.core.data.repo
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.core.content.ContextCompat
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * Unified media library across movies, shows and music. Demo implementation
- * keeps everything in memory; server-backed implementations (Jellyfin, Plex)
- * conform to the same interface.
+ * Unified media library across movies, shows and music.
  */
 interface MediaRepository {
     val library: StateFlow<List<MediaItem>>
@@ -18,10 +28,29 @@ interface MediaRepository {
     fun byType(type: MediaType): List<MediaItem>
 }
 
-class DemoMediaRepository : MediaRepository {
+class LocalMediaRepository(
+    private val context: Context,
+    private val scope: CoroutineScope,
+) : MediaRepository {
 
-    private val _library = MutableStateFlow(demoLibrary())
+    private val _library = MutableStateFlow<List<MediaItem>>(emptyList())
     override val library: StateFlow<List<MediaItem>> = _library.asStateFlow()
+
+    init {
+        refresh()
+        scope.launch {
+            while (true) {
+                delay(60_000)
+                refresh()
+            }
+        }
+    }
+
+    fun refresh() {
+        scope.launch {
+            _library.value = loadLocalMedia()
+        }
+    }
 
     override fun continueWatching(): List<MediaItem> =
         _library.value.filter { it.watchProgress in 0.01f..0.95f }
@@ -33,42 +62,105 @@ class DemoMediaRepository : MediaRepository {
     override fun byType(type: MediaType): List<MediaItem> =
         _library.value.filter { it.type == type }
 
-    private fun demoLibrary(): List<MediaItem> {
-        val now = System.currentTimeMillis()
-        val day = 24 * 60 * 60 * 1000L
-        return listOf(
-            MediaItem(
-                id = "m1", title = "Signal Lost", type = MediaType.MOVIE,
-                description = "A deep-space relay engineer intercepts a transmission that should not exist.",
-                runtimeMinutes = 128, year = 2025, watchProgress = 0.42f, addedAtMillis = now - 2 * day,
-            ),
-            MediaItem(
-                id = "m2", title = "The Quiet Harbor", type = MediaType.MOVIE,
-                description = "A retired detective settles in a fishing town where nothing is what it seems.",
-                runtimeMinutes = 112, year = 2024, addedAtMillis = now - 9 * day,
-            ),
-            MediaItem(
-                id = "s1", title = "Glasslands", type = MediaType.SHOW,
-                description = "Frontier survival drama on a terraformed moon.",
-                runtimeMinutes = 54, year = 2026, watchProgress = 0.7f,
-                episodeInfo = "S2 · E5 “The Long Thaw”", addedAtMillis = now - day,
-            ),
-            MediaItem(
-                id = "s2", title = "Counterweight", type = MediaType.SHOW,
-                description = "Corporate espionage inside the world's first orbital elevator.",
-                runtimeMinutes = 47, year = 2025, episodeInfo = "S1 · E1 “Tension”",
-                addedAtMillis = now - 4 * day,
-            ),
-            MediaItem(
-                id = "a1", title = "Midnight Drives", type = MediaType.MUSIC,
-                description = "Synthwave for empty highways.",
-                runtimeMinutes = 51, year = 2024, addedAtMillis = now - 12 * day,
-            ),
-            MediaItem(
-                id = "a2", title = "Aurora Sessions", type = MediaType.MUSIC,
-                description = "Live ambient set recorded under the northern lights.",
-                runtimeMinutes = 63, year = 2026, addedAtMillis = now - 3 * day,
-            ),
+    private suspend fun loadLocalMedia(): List<MediaItem> = withContext(Dispatchers.IO) {
+        val video = if (hasVideoPermission()) loadVideo() else emptyList()
+        val audio = if (hasAudioPermission()) loadAudio() else emptyList()
+        (video + audio).sortedByDescending { it.addedAtMillis }
+    }
+
+    private fun hasVideoPermission(): Boolean =
+        hasPermission(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_VIDEO else Manifest.permission.READ_EXTERNAL_STORAGE)
+
+    private fun hasAudioPermission(): Boolean =
+        hasPermission(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.READ_EXTERNAL_STORAGE)
+
+    private fun hasPermission(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+    private fun loadVideo(): List<MediaItem> {
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        }
+        val projection = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.DISPLAY_NAME,
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.DATE_ADDED,
         )
+        return context.contentResolver.query(
+            collection,
+            projection,
+            null,
+            null,
+            "${MediaStore.Video.Media.DATE_ADDED} DESC",
+        )?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val addedCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+            buildList {
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idCol)
+                    val uri = Uri.withAppendedPath(collection, id.toString()).toString()
+                    add(
+                        MediaItem(
+                            id = uri,
+                            title = cursor.getString(titleCol).substringBeforeLast('.'),
+                            type = MediaType.MOVIE,
+                            description = uri,
+                            posterUrl = uri,
+                            runtimeMinutes = (cursor.getLong(durationCol) / 60_000L).toInt(),
+                            addedAtMillis = cursor.getLong(addedCol) * 1_000L,
+                        )
+                    )
+                }
+            }
+        }.orEmpty()
+    }
+
+    private fun loadAudio(): List<MediaItem> {
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        }
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.DATE_ADDED,
+        )
+        return context.contentResolver.query(
+            collection,
+            projection,
+            "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+            null,
+            "${MediaStore.Audio.Media.DATE_ADDED} DESC",
+        )?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+            val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+            val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+            val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val addedCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+            buildList {
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idCol)
+                    val uri = Uri.withAppendedPath(collection, id.toString()).toString()
+                    add(
+                        MediaItem(
+                            id = uri,
+                            title = cursor.getString(titleCol),
+                            type = MediaType.MUSIC,
+                            description = cursor.getString(artistCol).orEmpty(),
+                            runtimeMinutes = (cursor.getLong(durationCol) / 60_000L).toInt(),
+                            addedAtMillis = cursor.getLong(addedCol) * 1_000L,
+                        )
+                    )
+                }
+            }
+        }.orEmpty()
     }
 }

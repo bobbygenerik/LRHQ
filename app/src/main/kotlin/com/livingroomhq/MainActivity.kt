@@ -1,16 +1,21 @@
 package com.livingroomhq
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.navigation.Direction
 import com.livingroomhq.navigation.SpatialNavController
 import com.livingroomhq.navigation.SpatialNavHost
@@ -27,10 +32,18 @@ import kotlinx.coroutines.delay
 class MainActivity : ComponentActivity() {
 
     private lateinit var nav: SpatialNavController
+    private val mediaPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        if (grants.values.any { it }) {
+            ((application as HqApplication).media as? LocalMediaRepository)?.refresh()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        requestMediaPermissions()
 
         val app = application as HqApplication
         nav = SpatialNavController()
@@ -106,5 +119,19 @@ class MainActivity : ComponentActivity() {
     override fun onUserInteraction() {
         super.onUserInteraction()
         if (::nav.isInitialized) nav.touch()
+    }
+
+    private fun requestMediaPermissions() {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        val missing = permissions.filter {
+            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            mediaPermissionLauncher.launch(missing.toTypedArray())
+        }
     }
 }

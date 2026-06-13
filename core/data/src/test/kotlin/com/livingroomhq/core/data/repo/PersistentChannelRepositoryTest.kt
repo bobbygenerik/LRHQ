@@ -22,17 +22,26 @@ class PersistentChannelRepositoryTest {
         http://s/2.m3u8
     """.trimIndent()
 
+    private val longPlaylist = buildString {
+        appendLine("#EXTM3U")
+        repeat(10) { index ->
+            appendLine("#EXTINF:-1 tvg-id=\"ch$index\" group-title=\"All\",Channel $index")
+            appendLine("http://s/$index.m3u8")
+        }
+    }
+
     @Test
-    fun `starts with demo lineup`() = runTest(UnconfinedTestDispatcher()) {
+    fun `starts empty until a playlist is configured`() = runTest(UnconfinedTestDispatcher()) {
         val repo = PersistentChannelRepository(InMemoryPrefsStore(), backgroundScope) { playlist }
         advanceUntilIdle()
-        assertEquals(DemoLineup.channels().size, repo.channels.first().size)
+        assertEquals(emptyList<String>(), repo.channels.first().map { it.id })
     }
 
     @Test
     fun `toggleFavorite persists and reflects in channels`() = runTest(UnconfinedTestDispatcher()) {
         val prefs = InMemoryPrefsStore()
         val repo = PersistentChannelRepository(prefs, backgroundScope) { playlist }
+        repo.loadM3u("http://x/list.m3u")
         advanceUntilIdle()
         val target = repo.channels.first().first { !it.isFavorite }
 
@@ -49,9 +58,10 @@ class PersistentChannelRepositoryTest {
     @Test
     fun `markWatched orders recents newest-first, dedupes, caps at 8`() = runTest(UnconfinedTestDispatcher()) {
         val prefs = InMemoryPrefsStore()
-        val repo = PersistentChannelRepository(prefs, backgroundScope) { playlist }
+        val repo = PersistentChannelRepository(prefs, backgroundScope) { longPlaylist }
+        repo.loadM3u("http://x/list.m3u")
         advanceUntilIdle()
-        val ids = repo.channels.first().take(10).map { it.id }
+        val ids = repo.channels.first().map { it.id }
 
         ids.forEach { repo.markWatched(it); advanceUntilIdle() }
         repo.markWatched(ids[5]); advanceUntilIdle()
@@ -85,13 +95,13 @@ class PersistentChannelRepositoryTest {
     }
 
     @Test
-    fun `empty playlist keeps current lineup`() = runTest(UnconfinedTestDispatcher()) {
+    fun `empty playlist leaves channels empty`() = runTest(UnconfinedTestDispatcher()) {
         val prefs = InMemoryPrefsStore()
         val repo = PersistentChannelRepository(prefs, backgroundScope) { "" }
         advanceUntilIdle()
         repo.loadM3u("http://x/empty.m3u")
         advanceUntilIdle()
-        assertEquals(DemoLineup.channels().size, repo.channels.first().size)
+        assertEquals(emptyList<String>(), repo.channels.first().map { it.id })
         assertEquals(null, prefs.playlistUrl.first())
     }
 }

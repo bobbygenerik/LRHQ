@@ -107,6 +107,9 @@ fun HomeScreen(app: HqApplication, nav: SpatialNavController) {
                     }
                 }
             }
+            if (recents.isEmpty() && channels.isEmpty()) {
+                Text("No playlist configured", style = HqType.Body)
+            }
         }
 
         // Side column: clock/weather + quick access widget cards.
@@ -114,7 +117,7 @@ fun HomeScreen(app: HqApplication, nav: SpatialNavController) {
             DefaultHomeBanner(prefs = app.prefs)
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
                 Text(clock, style = HqType.Display)
-                Text("${weather.temperatureF}°F · ${weather.summary}", style = HqType.Body)
+                Text(weather?.let { "${it.temperatureF}°F · ${it.summary}" } ?: "Weather not configured", style = HqType.Body)
             }
 
             Text("QUICK ACCESS", style = HqType.Label)

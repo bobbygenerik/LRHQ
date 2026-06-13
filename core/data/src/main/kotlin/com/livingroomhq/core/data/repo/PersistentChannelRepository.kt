@@ -18,9 +18,8 @@ import java.net.URL
 
 /**
  * [ChannelRepository] with persisted favorites, recents and playlist URL.
- * Starts on the bundled [DemoLineup]; [restore] swaps in the saved M3U
- * playlist at startup, and [loadM3u] configures a new one. EPG data is only
- * available for the demo lineup until an XMLTV source is added.
+ * A saved M3U playlist is restored at startup, and [loadM3u] configures a new
+ * one. EPG stays empty until an XMLTV source is added.
  */
 class PersistentChannelRepository(
     private val prefs: LauncherPrefsStore,
@@ -28,8 +27,7 @@ class PersistentChannelRepository(
     private val fetchPlaylist: suspend (String) -> String = ::httpGet,
 ) : ChannelRepository {
 
-    private val lineup = MutableStateFlow(DemoLineup.channels())
-    private val demoEpg = DemoLineup.epg()
+    private val lineup = MutableStateFlow<List<Channel>>(emptyList())
 
     override val channels: StateFlow<List<Channel>> =
         combine(lineup, prefs.favorites) { list, favs ->
@@ -45,11 +43,7 @@ class PersistentChannelRepository(
         channels.value.map { it.group }.distinct()
 
     override fun epgNowNext(channelId: String): Pair<Program?, Program?> {
-        val now = System.currentTimeMillis()
-        val programs = demoEpg[channelId].orEmpty().sortedBy { it.startMillis }
-        val current = programs.firstOrNull { now in it.startMillis until it.endMillis }
-        val next = programs.firstOrNull { it.startMillis >= (current?.endMillis ?: now) }
-        return current to next
+        return null to null
     }
 
     override fun markWatched(channelId: String) {
@@ -74,7 +68,7 @@ class PersistentChannelRepository(
         }
     }
 
-    /** Re-applies the persisted playlist; network errors keep the demo lineup. */
+    /** Re-applies the persisted playlist; network errors leave the channel list empty. */
     fun restore() {
         scope.launch {
             prefs.playlistUrl.first()?.let { url ->

@@ -91,7 +91,7 @@ fun AmbientScreen(app: HqApplication, nav: SpatialNavController) {
             Text(clock, style = HqType.Display)
             Text(date, style = HqType.Body)
             Text(
-                "${weather.temperatureF}°F · ${weather.summary}",
+                weather?.let { "${it.temperatureF}°F · ${it.summary}" } ?: "Weather not configured",
                 style = HqType.Headline.copy(color = HqColors.TextSecondary),
             )
         }

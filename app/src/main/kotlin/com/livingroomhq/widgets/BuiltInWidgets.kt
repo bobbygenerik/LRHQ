@@ -48,7 +48,6 @@ private fun storageWidget(app: HqApplication) = widget(
             headline = "Internal Storage",
             stats = listOf(
                 WidgetStat("Used", "$pct%", stats.storagePercent),
-                WidgetStat("NAS", "Connected"),
             ),
             launchPackage = "com.android.documentsui",
         )
@@ -73,14 +72,18 @@ private fun weatherWidget(app: HqApplication) = widget(
     zones = setOf(WidgetZone.HOME, WidgetZone.TOOLS, WidgetZone.AMBIENT),
     size = WidgetSize.SMALL,
     state = app.ambientInfo.weather.map { weather ->
-        WidgetState(
-            title = "Weather",
-            headline = "${weather.temperatureF}°F",
-            stats = listOf(
-                WidgetStat("Now", weather.summary),
-                WidgetStat("Range", "${weather.lowF}° – ${weather.highF}°"),
-            ),
-        )
+        if (weather == null) {
+            WidgetState(title = "Weather", headline = "Not configured", isHealthy = false)
+        } else {
+            WidgetState(
+                title = "Weather",
+                headline = "${weather.temperatureF}°F",
+                stats = listOf(
+                    WidgetStat("Now", weather.summary),
+                    WidgetStat("Range", "${weather.lowF}° – ${weather.highF}°"),
+                ),
+            )
+        }
     },
 )
 
@@ -90,15 +93,12 @@ private fun smartHomeWidget(app: HqApplication) = widget(
     size = WidgetSize.MEDIUM,
     state = app.ambientInfo.services.map { services ->
         val hub = services.firstOrNull { it.name == "Smart Home Hub" }
-        WidgetState(
-            title = "Smart Home",
-            headline = hub?.detail ?: "No hub",
-            stats = listOf(
-                WidgetStat("Lights", "On · Living Room"),
-                WidgetStat("Scenes", "Movie Night ready"),
-            ),
-            isHealthy = hub != null,
-        )
+            WidgetState(
+                title = "Smart Home",
+                headline = hub?.detail ?: "No hub",
+                stats = emptyList(),
+                isHealthy = hub != null,
+            )
     },
 )
 

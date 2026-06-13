@@ -36,10 +36,11 @@ Ambient Mode on its own (`navigation/SpatialNavController.kt`).
 | `:core:data` | Models + repositories: IPTV channels/EPG, media library, system monitor, ambient info, installed apps |
 | `:core:widget` | Widget plugin contract (`WidgetPlugin`, `WidgetRegistry`) — apps are cards, never icons |
 
-Repositories are interfaces with demo implementations so the launcher is fully
-navigable out of the box; M3U/Xtream playlists, Jellyfin/Plex and real service
-monitors plug in behind the same surfaces. `SystemMonitor` reads real device
-metrics (`/proc/stat`, ActivityManager, StatFs, TrafficStats).
+Repositories are interfaces backed by real device or configured sources. Live
+TV stays empty until an M3U playlist is saved, the media library reads Android
+MediaStore, and ambient providers report unavailable until weather, smart-home,
+or service APIs are configured. `SystemMonitor` reads real device metrics
+(`/proc/stat`, ActivityManager, StatFs, TrafficStats).
 
 ## Design language
 

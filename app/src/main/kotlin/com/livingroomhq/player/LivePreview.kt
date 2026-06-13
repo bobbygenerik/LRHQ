@@ -28,9 +28,8 @@ import com.livingroomhq.core.ui.theme.HqType
 
 /**
  * Always-on live preview surface. Plays [channel]'s stream with ExoPlayer,
- * muted by default (the launcher is ambient, not a TV in itself until the
- * user commits). Demo stream URLs fail silently into the styled placeholder,
- * so the UI is identical with or without a real playlist.
+ * muted by default so the launcher can preview streams without taking over
+ * audio until the user commits.
  */
 @Composable
 fun LivePreview(
@@ -74,7 +73,6 @@ fun LivePreview(
             modifier = Modifier.fillMaxSize(),
         )
 
-        // Placeholder wash + channel identity over (or instead of) video.
         Box(
             Modifier
                 .fillMaxSize()

@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import coil.compose.AsyncImage
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
@@ -64,6 +65,10 @@ fun MediaScreen(app: HqApplication, nav: SpatialNavController) {
     ) {
         Text("MEDIA", style = HqType.Title)
         Spacer(Modifier.height(8.dp))
+        if (library.isEmpty()) {
+            Text("No local media found. Grant media access or add files to this device.", style = HqType.Body)
+            return@Column
+        }
 
         // Expanding information panel for the focused title.
         AnimatedVisibility(
@@ -133,7 +138,6 @@ private fun PosterRail(
                 cornerRadius = 18.dp,
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
             ) { _ ->
-                // Poster art placeholder: deep gradient + centered title.
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -144,6 +148,13 @@ private fun PosterRail(
                             )
                         ),
                 ) {
+                    item.posterUrl?.let { poster ->
+                        AsyncImage(
+                            model = poster,
+                            contentDescription = item.title,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                     Column(
                         Modifier
                             .align(Alignment.BottomStart)
