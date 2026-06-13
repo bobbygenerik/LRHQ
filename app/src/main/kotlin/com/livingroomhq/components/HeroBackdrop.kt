@@ -4,16 +4,23 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.livingroomhq.backdrop.BackdropSource
+import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.player.LivePreview
 import com.livingroomhq.screens.SunsetCitySkyline
 import kotlinx.coroutines.delay
@@ -65,6 +72,16 @@ fun HeroBackdrop(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
+                // Unsplash attribution — required when displaying their photos.
+                source.credit?.let { credit ->
+                    Text(
+                        text = "Photo by $credit on Unsplash",
+                        style = HqType.Label.copy(color = Color.White.copy(alpha = 0.55f), fontSize = 9.sp),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
     }

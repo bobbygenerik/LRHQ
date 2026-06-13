@@ -1,37 +1,46 @@
 package com.livingroomhq.player
 
+import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
 import androidx.tv.material3.Text
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
 /**
- * Always-on live preview surface. Plays [channel]'s stream with ExoPlayer,
- * muted by default so the launcher can preview streams without taking over
- * audio until the user commits.
+ * Always-on live preview surface, tuned for use as a hero/ambient backdrop on
+ * Shield-class hardware:
+ *  - **TextureView** (not SurfaceView) so the player composites in the view
+ *    tree and can be alpha-cross-faded smoothly instead of popping.
+ *  - **Capped to 720p** — no point decoding 4K to sit behind frosted glass; it
+ *    saves bandwidth and power on an always-on launcher.
+ *  - **Lifecycle-aware** — playback pauses when the app is backgrounded or the
+ *    screen sleeps, and resumes on return.
+ *  - Muted by default and resilient: a failed stream surfaces as a player error
+ *    behind the placeholder rather than crashing.
+ *
+ * The surface is left unclipped; callers round the corners if they need to.
  */
 @Composable
 fun LivePreview(
@@ -40,15 +49,19 @@ fun LivePreview(
     muted: Boolean = true,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val player = remember {
         ExoPlayer.Builder(context).build().apply {
             playWhenReady = true
             volume = if (muted) 0f else 1f
-            // A stream that fails (offline, bad codec, unreachable demo URL) must
-            // surface as a player error, never crash the launcher.
+            // Backdrop preview: cap the selected video track to 720p.
+            trackSelectionParameters = trackSelectionParameters.buildUpon()
+                .setMaxVideoSize(1280, 720)
+                .build()
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: PlaybackException) {
-                    // Swallow: the styled placeholder stays visible behind the surface.
+                    // Swallow — the styled placeholder stays visible behind the surface.
                 }
             })
         }
@@ -70,22 +83,27 @@ fun LivePreview(
         onDispose { }
     }
 
+    // Pause decode when backgrounded / screen off; resume when the launcher returns.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> player.pause()
+                Lifecycle.Event.ON_RESUME -> player.play()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     DisposableEffect(Unit) {
         onDispose { player.release() }
     }
 
-    Box(
-        modifier
-            .clip(RoundedCornerShape(28.dp))
-            .background(HqColors.Slate),
-    ) {
+    Box(modifier.background(HqColors.Slate)) {
         AndroidView(
-            factory = {
-                PlayerView(it).apply {
-                    useController = false
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                    this.player = player
-                }
+            factory = { ctx ->
+                TextureView(ctx).also { texture -> player.setVideoTextureView(texture) }
             },
             modifier = Modifier.fillMaxSize(),
         )

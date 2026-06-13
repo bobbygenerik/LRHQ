@@ -92,11 +92,11 @@ fun HomeScreen(
     val current = recents.firstOrNull() ?: channels.firstOrNull()
     val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
 
-    val ambientUrls by app.ambientBackdropUrls.collectAsState()
+    val ambientPhotos by app.ambientBackdropPhotos.collectAsState()
     val isLive = current != null && customSettings.showLivePreview
     val mediaBackdrops = remember(library) { library.mapNotNull { it.backdropUrl }.distinct() }
-    val backdropSources = remember(current, customSettings.showLivePreview, mediaBackdrops, ambientUrls) {
-        BackdropProvider.forHome(current, customSettings.showLivePreview, mediaBackdrops, ambientUrls)
+    val backdropSources = remember(current, customSettings.showLivePreview, mediaBackdrops, ambientPhotos) {
+        BackdropProvider.forHome(current, customSettings.showLivePreview, mediaBackdrops, ambientPhotos)
     }
 
     var clockTime by remember { mutableStateOf(timeNow()) }

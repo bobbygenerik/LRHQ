@@ -9,18 +9,22 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**
- * Fetches landscape stills from the Unsplash API for the ambient backdrop
- * cycle. The access key comes from [BuildConfig] (sourced from local.properties,
- * never committed). Call sparingly — the demo tier allows 50 requests/hour — so
- * the app pulls one batch per launch and caches it. Every failure returns an
- * empty list, leaving the bundled [AmbientBackdrops] as the fallback.
+ * Fetches credited landscape stills from the Unsplash API for the ambient
+ * backdrop cycle. The access key comes from [BuildConfig] (sourced from
+ * local.properties, never committed). Call sparingly — the demo tier allows 50
+ * requests/hour — so the app pulls one batch per launch and caches it. Every
+ * failure returns an empty list, leaving the bundled [AmbientBackdrops] as the
+ * fallback. Each photo carries its photographer + profile link so the UI can
+ * satisfy Unsplash's attribution requirement.
  */
 object UnsplashClient {
 
-    suspend fun fetchLandscapeUrls(
+    private const val UTM = "?utm_source=LivingRoomHQ&utm_medium=referral"
+
+    suspend fun fetchLandscapePhotos(
         count: Int = 24,
         query: String = "landscape,nature,cinematic,aerial",
-    ): List<String> = withContext(Dispatchers.IO) {
+    ): List<AmbientPhoto> = withContext(Dispatchers.IO) {
         val key = BuildConfig.UNSPLASH_ACCESS_KEY
         if (key.isBlank()) return@withContext emptyList()
 
@@ -38,12 +42,20 @@ object UnsplashClient {
             val body = conn.inputStream.bufferedReader().use { it.readText() }
 
             val arr = JSONArray(body)
-            val urls = ArrayList<String>(arr.length())
+            val photos = ArrayList<AmbientPhoto>(arr.length())
             for (i in 0 until arr.length()) {
                 val photo = arr.getJSONObject(i)
                 val raw = photo.getJSONObject("urls").getString("raw")
-                // Size the raw URL to a 1080p-ish JPEG for the hero.
-                urls.add("$raw&w=1920&q=80&fm=jpg&fit=crop")
+                val user = photo.getJSONObject("user")
+                val name = user.optString("name").takeIf { it.isNotBlank() }
+                val profile = user.optJSONObject("links")?.optString("html")?.takeIf { it.isNotBlank() }
+                photos.add(
+                    AmbientPhoto(
+                        url = "$raw&w=1920&q=80&fm=jpg&fit=crop",
+                        photographer = name,
+                        profileUrl = profile?.let { it + UTM },
+                    ),
+                )
                 // Unsplash API guideline: ping the download endpoint on use.
                 runCatching {
                     val dl = photo.getJSONObject("links").getString("download_location")
@@ -53,7 +65,7 @@ object UnsplashClient {
                     }.inputStream.close()
                 }
             }
-            urls
+            photos
         }.getOrDefault(emptyList())
     }
 }

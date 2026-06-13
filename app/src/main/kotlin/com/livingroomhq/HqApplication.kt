@@ -2,6 +2,7 @@ package com.livingroomhq
 
 import android.app.Application
 import com.livingroomhq.backdrop.AmbientBackdrops
+import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.UnsplashClient
 import com.livingroomhq.core.data.persist.DataStorePrefsStore
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
@@ -51,10 +52,10 @@ class HqApplication : Application() {
     }
     val watchNext: WatchNextPublisher by lazy { WatchNextPublisher(this) }
 
-    private val _ambientBackdropUrls = MutableStateFlow(AmbientBackdrops.urls)
+    private val _ambientBackdropPhotos = MutableStateFlow(AmbientBackdrops.photos)
 
-    /** Landscape stills for the hero / ambient cycle; bundled set until Unsplash responds. */
-    val ambientBackdropUrls: StateFlow<List<String>> = _ambientBackdropUrls.asStateFlow()
+    /** Credited landscape stills for the hero / ambient cycle; bundled set until Unsplash responds. */
+    val ambientBackdropPhotos: StateFlow<List<AmbientPhoto>> = _ambientBackdropPhotos.asStateFlow()
 
     override fun onCreate() {
         super.onCreate()
@@ -66,8 +67,8 @@ class HqApplication : Application() {
         }
         // Refresh the ambient backdrop pool once per launch (demo tier: 50 req/hr).
         appScope.launch {
-            val urls = UnsplashClient.fetchLandscapeUrls()
-            if (urls.isNotEmpty()) _ambientBackdropUrls.value = urls
+            val photos = UnsplashClient.fetchLandscapePhotos()
+            if (photos.isNotEmpty()) _ambientBackdropPhotos.value = photos
         }
     }
 }
