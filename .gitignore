@@ -9,4 +9,15 @@ captures/
 .cxx
 *.apk
 *.aab
+*.zip
 .remember/
+
+# Agent / IDE tooling config
+.agents/
+.claude/
+.codex/
+.cursor/
+.opencode/
+
+# Stray nested graphify output
+roku/graphify-out/
