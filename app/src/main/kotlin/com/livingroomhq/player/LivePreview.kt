@@ -8,7 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -19,76 +25,62 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.tv.material3.Text
+import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
 /**
- * Always-on live preview surface, tuned for use as a hero/ambient backdrop on
- * Shield-class hardware:
- *  - **TextureView** (not SurfaceView) so the player composites in the view
- *    tree and can be alpha-cross-faded smoothly instead of popping.
- *  - **Capped to 720p** — no point decoding 4K to sit behind frosted glass; it
- *    saves bandwidth and power on an always-on launcher.
- *  - **Lifecycle-aware** — playback pauses when the app is backgrounded or the
- *    screen sleeps, and resumes on return.
- *  - Muted by default and resilient: a failed stream surfaces as a player error
- *    behind the placeholder rather than crashing.
- *
- * The surface is left unclipped; callers round the corners if they need to.
+ * Shared-engine live preview surface for hero/backdrop use:
+ *  - One [ExoPlayer] app-wide via [LivePreviewEngine]
+ *  - TextureView for smooth cross-fades
+ *  - Audio disabled — preview is always silent
+ *  - Lifecycle-aware pause/resume
  */
 @Composable
 fun LivePreview(
     channel: Channel?,
     modifier: Modifier = Modifier,
-    muted: Boolean = true,
+    ownerTag: String,
+    showLabel: Boolean = true,
+    maxVideoWidth: Int = 1280,
+    maxVideoHeight: Int = 720,
+    /** Delay ExoPlayer bind until after the first frame (Home hero launch jank). */
+    deferStartupMillis: Long = 0L,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
+    val textureView = remember { TextureView(context) }
+    var previewReady by remember(channel?.id, deferStartupMillis) {
+        mutableStateOf(deferStartupMillis <= 0L)
+    }
 
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            playWhenReady = true
-            volume = if (muted) 0f else 1f
-            // Backdrop preview: cap the selected video track to 720p.
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setMaxVideoSize(1280, 720)
-                .build()
-            addListener(object : Player.Listener {
-                override fun onPlayerError(error: PlaybackException) {
-                    // Swallow — the styled placeholder stays visible behind the surface.
-                }
-            })
+    LaunchedEffect(channel?.id, deferStartupMillis) {
+        if (deferStartupMillis <= 0L) {
+            previewReady = true
+            return@LaunchedEffect
+        }
+        previewReady = false
+        withFrameNanos { }
+        delay(deferStartupMillis)
+        previewReady = true
+    }
+
+    if (previewReady) {
+        DisposableEffect(ownerTag, channel?.id, maxVideoWidth, maxVideoHeight) {
+            engine.bind(ownerTag, channel, textureView, maxVideoWidth, maxVideoHeight)
+            onDispose { engine.unbind(ownerTag, textureView) }
         }
     }
 
-    DisposableEffect(channel?.id) {
-        // Guard malformed/blank URIs (e.g. an unconfigured channel) — these throw
-        // synchronously from setMediaItem/prepare and would otherwise crash.
-        val url = channel?.streamUrl?.takeIf { it.isNotBlank() }
-        if (url != null) {
-            runCatching {
-                player.setMediaItem(MediaItem.fromUri(url))
-                player.prepare()
-            }
-        } else {
-            player.stop()
-            player.clearMediaItems()
-        }
-        onDispose { }
-    }
-
-    // Pause decode when backgrounded / screen off; resume when the launcher returns.
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, previewReady) {
+        if (!previewReady) return@DisposableEffect onDispose {}
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> player.pause()
-                Lifecycle.Event.ON_RESUME -> player.play()
+                Lifecycle.Event.ON_PAUSE -> engine.pause()
+                Lifecycle.Event.ON_RESUME -> engine.resume()
                 else -> Unit
             }
         }
@@ -96,17 +88,13 @@ fun LivePreview(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    DisposableEffect(Unit) {
-        onDispose { player.release() }
-    }
-
     Box(modifier.background(HqColors.Slate)) {
-        AndroidView(
-            factory = { ctx ->
-                TextureView(ctx).also { texture -> player.setVideoTextureView(texture) }
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (previewReady) {
+            AndroidView(
+                factory = { textureView },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
 
         Box(
             Modifier
@@ -116,18 +104,20 @@ fun LivePreview(
                         0f to Color.Transparent,
                         0.6f to Color.Transparent,
                         1f to Color(0xCC000000),
-                    )
+                    ),
                 ),
         )
-        Column(
-            Modifier
-                .align(Alignment.BottomStart)
-                .padding(24.dp),
-        ) {
-            Text(
-                channel?.let { "CH ${it.number} · ${it.name}" } ?: "No channel",
-                style = HqType.Label,
-            )
+        if (showLabel) {
+            Column(
+                Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(24.dp),
+            ) {
+                Text(
+                    channel?.let { "CH ${it.number} · ${it.name}" } ?: "No channel",
+                    style = HqType.Label,
+                )
+            }
         }
     }
 }

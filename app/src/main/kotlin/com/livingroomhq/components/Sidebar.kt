@@ -1,6 +1,7 @@
 package com.livingroomhq.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,13 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.runtime.Composable
@@ -36,10 +35,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import com.livingroomhq.R
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.Zone
@@ -71,7 +73,6 @@ fun Sidebar(
     val navItems = listOf(
         NavigationItem("Home", Icons.Default.Home, Zone.HOME),
         NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
-        NavigationItem("Media", Icons.Default.Movie, Zone.MEDIA),
         NavigationItem("Apps", Icons.Default.Apps, Zone.TOOLS),
         NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
         NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
@@ -86,22 +87,27 @@ fun Sidebar(
             .padding(vertical = 28.dp, horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        // Brand mark: dot always, wordmark only when expanded.
+        // Brand mark: emblem always, wordmark only when expanded.
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(8.dp).clip(CircleShape).background(HqColors.Accent))
+            Image(
+                painter = painterResource(id = R.drawable.lrhq_mark_transparent),
+                contentDescription = "LRHQ",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(42.dp),
+            )
             if (expanded) {
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(
-                    "LivingRoom HQ",
-                    style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.SemiBold),
+                    "LRHQ",
+                    style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.Bold),
                     maxLines = 1,
                 )
             }
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(10.dp))
 
         navItems.forEach { item ->
             SidebarItem(

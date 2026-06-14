@@ -23,7 +23,7 @@ data class CustomSettings(
     val background: String = "Mountain Lake",
     val showLivePreview: Boolean = true,
     val showWeather: Boolean = true,
-    val idleTimeSeconds: Int = 30,
+    val idleTimeSeconds: Int = 300,
     val animations: String = "Smooth",
     val soundEffects: Boolean = true
 )
@@ -90,4 +90,3 @@ val LocalHqTheme = staticCompositionLocalOf { HqTheme() }
 
 @Composable
 fun hqTheme(): HqTheme = LocalHqTheme.current
-

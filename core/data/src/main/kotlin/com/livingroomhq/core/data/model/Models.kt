@@ -9,6 +9,10 @@ data class Channel(
     val streamUrl: String,
     val logoUrl: String? = null,
     val isFavorite: Boolean = false,
+    /** Optional `tvg-name` from the playlist — often matches XMLTV display names. */
+    val tvgName: String? = null,
+    /** Optional `tvg-chno` from the playlist — some guides key on channel number. */
+    val tvgChno: String? = null,
 )
 
 /** EPG program entry. */

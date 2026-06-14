@@ -1,14 +1,12 @@
 package com.livingroomhq
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
+import android.graphics.Color as AndroidColor
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,21 +19,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.livingroomhq.components.Sidebar
-import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
-import com.livingroomhq.navigation.SpatialNavController
-import com.livingroomhq.navigation.SpatialNavHost
+import com.livingroomhq.navigation.LauncherNavController
+import com.livingroomhq.navigation.LauncherNavHost
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.screens.AmbientScreen
 import com.livingroomhq.screens.CommandCenterScreen
 import com.livingroomhq.screens.HomeScreen
 import com.livingroomhq.screens.LiveScreen
-import com.livingroomhq.screens.MediaScreen
 import com.livingroomhq.screens.SettingsScreen
 import com.livingroomhq.screens.ToolsScreen
 import com.livingroomhq.ui.MessageOverlay
@@ -43,22 +38,15 @@ import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var nav: SpatialNavController
-    private val mediaPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { grants ->
-        if (grants.values.any { it }) {
-            ((application as HqApplication).media as? LocalMediaRepository)?.refresh()
-        }
-    }
+    private lateinit var nav: LauncherNavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        requestMediaPermissions()
+        applyLauncherWindowPolicy()
 
         val app = application as HqApplication
-        nav = SpatialNavController()
+        nav = LauncherNavController()
 
         setContent {
             val controller = remember { nav }
@@ -75,7 +63,7 @@ class MainActivity : ComponentActivity() {
                 while (true) {
                     delay(5_000)
                     if (controller.zone != Zone.AMBIENT && System.currentTimeMillis() - controller.lastInteractionAt >= timeoutMillis) {
-                        controller.goTo(Zone.AMBIENT)
+                        controller.enterAmbientFromIdle()
                     }
                 }
             }
@@ -90,15 +78,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     Box(Modifier.weight(1f).fillMaxHeight()) {
-                        SpatialNavHost(zone = controller.zone, modifier = Modifier.fillMaxSize()) { zone ->
+                        LauncherNavHost(zone = controller.zone, modifier = Modifier.fillMaxSize()) { zone ->
                             when (zone) {
-                                Zone.HOME -> HomeScreen(app, controller, onSettingsChanged = { settings = it })
-                                Zone.LIVE -> LiveScreen(app, controller)
-                                Zone.MEDIA -> MediaScreen(app, controller)
-                                Zone.TOOLS -> ToolsScreen(app, controller)
-                                Zone.AMBIENT -> AmbientScreen(app, controller)
-                                Zone.COMMAND_CENTER -> CommandCenterScreen(app, controller)
-                                Zone.SETTINGS -> SettingsScreen(app, controller, settings, onSettingsChanged = { settings = it })
+                                Zone.HOME -> HomeScreen(app, controller)
+                                Zone.LIVE -> LiveScreen(app)
+                                Zone.TOOLS -> ToolsScreen(app)
+                                Zone.AMBIENT -> AmbientScreen(app)
+                                Zone.COMMAND_CENTER -> CommandCenterScreen(app)
+                                Zone.SETTINGS -> SettingsScreen(app, settings, onSettingsChanged = { settings = it })
                             }
                         }
                         MessageOverlay()
@@ -108,14 +95,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        applyLauncherWindowPolicy()
+    }
+
+    override fun onPause() {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        super.onPause()
+    }
+
+    /** Suppress Google TV Ambient Mode (Backdrop) while LRHQ is foreground. */
+    private fun applyLauncherWindowPolicy() {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        window.setBackgroundDrawableResource(android.R.color.black)
+        @Suppress("DEPRECATION")
+        run {
+            window.statusBarColor = AndroidColor.BLACK
+            window.navigationBarColor = AndroidColor.BLACK
+        }
+    }
+
     /**
      * Navigation is driven by the persistent sidebar (focus it with D-pad LEFT,
-     * press OK to switch zone) plus the Compose focus system within each screen —
-     * the activity no longer hijacks directional presses to slide zones, which
-     * previously stole focus that should have moved to the sidebar. We only
-     * handle the two global shortcuts: MENU opens the Command Center, BACK
-     * returns to Home (and is a no-op at Home, since a launcher has nowhere to
-     * back out to).
+     * press OK to switch tabs) plus the Compose focus system within each screen.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         nav.touch()
@@ -135,8 +138,7 @@ class MainActivity : ComponentActivity() {
     /**
      * As the default home app the activity is `singleTask`, so pressing the
      * hardware HOME button while another app is foregrounded re-delivers the
-     * MAIN/HOME intent here instead of starting a new instance. Reset to the
-     * center zone so HOME always returns to Home, per the navigation model.
+     * MAIN/HOME intent here instead of starting a new instance. Reset to Home.
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -146,19 +148,5 @@ class MainActivity : ComponentActivity() {
     override fun onUserInteraction() {
         super.onUserInteraction()
         if (::nav.isInitialized) nav.touch()
-    }
-
-    private fun requestMediaPermissions() {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_VIDEO)
-        } else {
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        val missing = permissions.filter {
-            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isNotEmpty()) {
-            mediaPermissionLauncher.launch(missing.toTypedArray())
-        }
     }
 }

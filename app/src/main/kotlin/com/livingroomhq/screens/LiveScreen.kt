@@ -5,7 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -49,28 +51,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import coil.compose.AsyncImage
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
-import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.navigation.SpatialNavController
 import com.livingroomhq.player.LivePreview
 
 @Composable
-fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
+fun LiveScreen(app: HqApplication) {
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
+    val epgRevision by app.channels.epgRevision.collectAsState()
     var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
     var previewId by remember { mutableStateOf<String?>(null) }
 
-    // Set preview channel on load
-    LaunchedEffect(channels) {
-        if (previewId == null && channels.isNotEmpty()) {
-            previewId = channels.first().id
+    // Restore the last real selection without auto-playing the first playlist entry.
+    LaunchedEffect(channels, recents) {
+        if (previewId == null) {
+            previewId = recents.firstOrNull()?.id
         }
     }
 
@@ -127,8 +129,8 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
         }
     }
 
-    val previewChannel = channels.firstOrNull { it.id == previewId } ?: visibleChannels.firstOrNull() ?: channels.first()
-    val (now, next) = previewChannel.let { app.channels.epgNowNext(it.id) }
+    val previewChannel = channels.firstOrNull { it.id == previewId }
+    val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
 
     Row(
         modifier = Modifier
@@ -180,13 +182,16 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(bottom = 72.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(visibleChannels, key = { it.id }) { channel ->
+                    items(visibleChannels, key = { "${it.id}_${it.number}" }) { channel ->
+                        val nowPlayingTitle = remember(channel.id, epgRevision) {
+                            app.channels.epgNowNext(channel.id).first?.title ?: "No Program Info"
+                        }
                         ChannelGridCard(
                             channel = channel,
-                            nowPlayingTitle = app.channels.epgNowNext(channel.id).first?.title ?: "No Program Info",
+                            nowPlayingTitle = nowPlayingTitle,
                             onFocused = { previewId = channel.id },
                             onClick = {
                                 app.channels.markWatched(channel.id)
@@ -207,11 +212,23 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black)
             ) {
-                LivePreview(channel = previewChannel, modifier = Modifier.fillMaxSize())
+                if (previewChannel == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Select a channel", style = HqType.Body.copy(color = HqColors.TextSecondary))
+                    }
+                } else {
+                    LivePreview(
+                        channel = previewChannel,
+                        modifier = Modifier.fillMaxSize(),
+                        ownerTag = "live-pane",
+                        maxVideoWidth = 854,
+                        maxVideoHeight = 480,
+                    )
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -229,7 +246,7 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = previewChannel.name,
+                        text = previewChannel?.name ?: "No channel selected",
                         style = HqType.Headline.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     )
                     Spacer(Modifier.height(4.dp))
@@ -263,20 +280,7 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
                             maxLines = 1
                         )
                     }
-                    
                     Spacer(Modifier.weight(1f))
-                    
-                    // Full Guide Card Button
-                    FocusableGlassCard(
-                        onClick = { /* Full Guide modal trigger */ },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        cornerRadius = 8.dp,
-                        contentPadding = PaddingValues(0.dp)
-                    ) { _ ->
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Full Guide", style = HqType.Label.copy(color = HqColors.TextPrimary))
-                        }
-                    }
                 }
             }
         }
@@ -356,6 +360,7 @@ private fun ChannelGridCard(
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(12.dp)
+    val logoShape = RoundedCornerShape(8.dp)
     
     val bg = if (focused) HqColors.Accent.copy(alpha = 0.2f) else HqColors.GlassFill
     val strokeColor = if (focused) HqColors.Accent else HqColors.GlassStroke
@@ -371,53 +376,69 @@ private fun ChannelGridCard(
             .border(1.dp, strokeColor, shape)
             .clickable { onClick() }
             .focusable()
+            .height(58.dp)
             .padding(12.dp)
             .fillMaxWidth()
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color(0x1AFFFFFF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = channel.number.toString(),
-                    style = HqType.Label.copy(
-                        color = if (focused) HqColors.Accent else HqColors.TextPrimary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val showProgramInfo = maxWidth >= 150.dp
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(logoShape)
+                        .background(Color(0x1AFFFFFF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (channel.logoUrl != null) {
+                        AsyncImage(
+                            model = channel.logoUrl,
+                            contentDescription = "${channel.name} logo",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(3.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Tv,
+                            contentDescription = "${channel.name} logo unavailable",
+                            tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = channel.name,
+                        style = HqType.Body.copy(
+                            color = HqColors.TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        ),
+                        maxLines = 1
                     )
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = channel.name,
-                    style = HqType.Body.copy(
-                        color = HqColors.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    ),
-                    maxLines = 1
-                )
-                Text(
-                    text = nowPlayingTitle,
-                    style = HqType.Label.copy(
-                        color = HqColors.TextSecondary,
-                        fontSize = 11.sp
-                    ),
-                    maxLines = 1
-                )
-            }
-            if (channel.isFavorite) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    tint = HqColors.AccentWarm,
-                    modifier = Modifier.size(14.dp)
-                )
+                    if (showProgramInfo) {
+                        Text(
+                            text = nowPlayingTitle,
+                            style = HqType.Label.copy(
+                                color = HqColors.TextSecondary,
+                                fontSize = 11.sp
+                            ),
+                            maxLines = 1
+                        )
+                    }
+                }
+                if (channel.isFavorite) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = null,
+                        tint = HqColors.AccentWarm,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
         }
     }

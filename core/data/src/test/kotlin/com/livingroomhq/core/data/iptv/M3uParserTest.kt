@@ -1,5 +1,6 @@
 package com.livingroomhq.core.data.iptv
 
+import com.livingroomhq.core.data.model.Channel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,9 +15,13 @@ class M3uParserTest {
         http://stream.example/2.m3u8
     """.trimIndent()
 
+    private fun parseM3u(text: String): List<Channel> {
+        return M3uParser.parse(text.byteInputStream())
+    }
+
     @Test
     fun `parses attributes, name and url`() {
-        val channels = M3uParser.parse(playlist)
+        val channels = parseM3u(playlist)
         assertEquals(2, channels.size)
         val first = channels[0]
         assertEquals("atlas.news", first.id)
@@ -29,7 +34,7 @@ class M3uParserTest {
 
     @Test
     fun `missing attributes fall back to url id and Other group`() {
-        val second = M3uParser.parse(playlist)[1]
+        val second = parseM3u(playlist)[1]
         assertEquals("http://stream.example/2.m3u8", second.id)
         assertEquals("Bare Channel", second.name)
         assertEquals("Other", second.group)
@@ -40,32 +45,32 @@ class M3uParserTest {
     @Test
     fun `skips EXTINF without a following url and ignores junk lines`() {
         val broken = "#EXTM3U\n#EXTINF:-1,Orphan\n#EXTINF:-1,Real\nhttp://s/1.m3u8\n# comment"
-        val channels = M3uParser.parse(broken)
+        val channels = parseM3u(broken)
         assertEquals(1, channels.size)
         assertEquals("Real", channels[0].name)
     }
 
     @Test
     fun `empty input parses to empty list`() {
-        assertTrue(M3uParser.parse("").isEmpty())
+        assertTrue(parseM3u("").isEmpty())
     }
 
     @Test
     fun `channel name keeps embedded commas`() {
         val text = "#EXTM3U\n#EXTINF:-1 group-title=\"News\",Breaking News, Live\nhttp://s/1.m3u8"
-        assertEquals("Breaking News, Live", M3uParser.parse(text)[0].name)
+        assertEquals("Breaking News, Live", parseM3u(text)[0].name)
     }
 
     @Test
     fun `channel name starts after comma outside quoted attributes`() {
         val text = "#EXTM3U\n#EXTINF:-1 tvg-name=\"News, Live\" group-title=\"News\",CNN\nhttp://s/1.m3u8"
-        assertEquals("CNN", M3uParser.parse(text)[0].name)
+        assertEquals("CNN", parseM3u(text)[0].name)
     }
 
     @Test
     fun `parses single-quoted attribute values`() {
         val text = "#EXTM3U\n#EXTINF:-1 tvg-id='one' tvg-logo='http://x/l.png',One\nhttp://s/1.m3u8"
-        val ch = M3uParser.parse(text)[0]
+        val ch = parseM3u(text)[0]
         assertEquals("one", ch.id)
         assertEquals("http://x/l.png", ch.logoUrl)
     }

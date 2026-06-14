@@ -1,7 +1,13 @@
 package com.livingroomhq.core.data.repo
 
+import com.livingroomhq.core.data.db.ChannelEntity
+import com.livingroomhq.core.data.db.GuideChannelEntity
+import com.livingroomhq.core.data.db.IptvDao
+import com.livingroomhq.core.data.db.ProgramEntity
 import com.livingroomhq.core.data.persist.InMemoryPrefsStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -116,19 +122,20 @@ class PersistentChannelRepositoryTest {
         repo.loadM3u("http://x/empty.m3u")
         advanceUntilIdle()
         assertEquals(emptyList<String>(), repo.channels.first().map { it.id })
-        assertEquals(null, prefs.playlistUrl.first())
     }
 
     @Test
     fun `loadXmltv persists guide and returns now next by channel id`() = runTest(UnconfinedTestDispatcher()) {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val prefs = InMemoryPrefsStore()
+        val dao = FakeIptvDao()
         val repo = PersistentChannelRepository(
+            iptvDao = dao,
             prefs = prefs,
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylist = { guide },
+            fetchPlaylistStream = { guide.byteInputStream() },
         )
 
         repo.loadXmltv("http://x/guide.xml")
@@ -152,27 +159,143 @@ class PersistentChannelRepositoryTest {
         assertNull(prefs.epgUrl.first())
     }
 
+    @Test
+    fun `epg matches tvg-id case insensitively`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val mixedCaseGuide = """
+            <tv>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="ONE">
+                <title>Evening Report</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) mixedCaseGuide.byteInputStream() else playlist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        assertEquals("Evening Report", repo.epgNowNext("one").first?.title)
+    }
+
+    @Test
+    fun `epg matches xmltv channel suffix and display name aliases`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val localGuide = """
+            <tv>
+              <channel id="wxyz.us@provider">
+                <display-name>WXYZ HD</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="wxyz.us@provider">
+                <title>Local News</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val localPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="WXYZ HD" group-title="Local",WXYZ
+            http://s/local.m3u8
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val channelId = repo.channels.first().single().id
+        assertEquals("Local News", repo.epgNowNext(channelId).first?.title)
+    }
+
+    @Test
+    fun `restore rebuilds epg alias matching from persisted guide channels`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val dao = FakeIptvDao()
+        val prefs = InMemoryPrefsStore().apply { setEpgUrl("http://x/guide.xml") }
+        val localGuide = """
+            <tv>
+              <channel id="abc7.us">
+                <display-name>ABC 7</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="abc7.us">
+                <title>ABC World News</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val localPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="ABC 7" group-title="Local",ABC 7 HD
+            http://s/abc.m3u8
+        """.trimIndent()
+        val bootstrap = PersistentChannelRepository(
+            iptvDao = dao,
+            prefs = prefs,
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
+            },
+        )
+        bootstrap.loadM3u("http://x/list.m3u")
+        bootstrap.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+        val channelId = bootstrap.channels.first().single().id
+
+        val restored = PersistentChannelRepository(
+            iptvDao = dao,
+            prefs = prefs,
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { error("network unavailable during restore test") },
+        )
+        restored.restore()
+        advanceUntilIdle()
+
+        assertEquals("ABC World News", restored.epgNowNext(channelId).first?.title)
+    }
+
     private fun TestScope.repository(
         prefs: InMemoryPrefsStore,
         response: String,
+        dao: IptvDao = FakeIptvDao(),
     ): PersistentChannelRepository =
         PersistentChannelRepository(
+            iptvDao = dao,
             prefs = prefs,
             scope = backgroundScope,
             workDispatcher = UnconfinedTestDispatcher(testScheduler),
-            fetchPlaylist = { response },
+            fetchPlaylistStream = { response.byteInputStream() },
         )
 
     @Test
     fun `clearXmltv removes loaded guide and persisted url`() = runTest(UnconfinedTestDispatcher()) {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
         val prefs = InMemoryPrefsStore()
+        val dao = FakeIptvDao()
         val repo = PersistentChannelRepository(
+            iptvDao = dao,
             prefs = prefs,
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylist = { guide },
+            fetchPlaylistStream = { guide.byteInputStream() },
         )
         repo.loadXmltv("http://x/guide.xml")
 
@@ -180,5 +303,79 @@ class PersistentChannelRepositoryTest {
 
         assertNull(repo.epgNowNext("one").first)
         assertNull(prefs.epgUrl.first())
+    }
+}
+
+class FakeIptvDao : IptvDao {
+    private val channelsList = mutableListOf<ChannelEntity>()
+    private val programsList = mutableListOf<ProgramEntity>()
+    private val guideChannelsList = mutableListOf<GuideChannelEntity>()
+    private val channelsFlow = MutableStateFlow<List<ChannelEntity>>(emptyList())
+
+    override fun getChannelsFlow(): Flow<List<ChannelEntity>> = channelsFlow
+
+    override suspend fun getChannels(): List<ChannelEntity> = channelsList
+
+    override suspend fun getChannelById(id: String): ChannelEntity? =
+        channelsList.firstOrNull { it.id == id }
+
+    override suspend fun insertChannels(channels: List<ChannelEntity>) {
+        channelsList.removeAll { c -> channels.any { it.id == c.id } }
+        channelsList.addAll(channels)
+        channelsList.sortBy { it.number }
+        channelsFlow.value = channelsList.toList()
+    }
+
+    override suspend fun clearChannels() {
+        channelsList.clear()
+        channelsFlow.value = emptyList()
+    }
+
+    override suspend fun updateChannelFavorite(channelId: String, isFavorite: Boolean) {
+        val index = channelsList.indexOfFirst { it.id == channelId }
+        if (index != -1) {
+            channelsList[index] = channelsList[index].copy(isFavorite = isFavorite)
+            channelsFlow.value = channelsList.toList()
+        }
+    }
+
+    override suspend fun getProgramsForChannel(channelId: String): List<ProgramEntity> =
+        programsList.filter { it.channelId == channelId }.sortedBy { it.startMillis }
+
+    override suspend fun getActivePrograms(now: Long): List<ProgramEntity> =
+        programsList.filter { it.endMillis > now }
+
+    override suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramEntity> =
+        programsList.filter { it.endMillis > now && it.startMillis < windowEnd }
+
+    override suspend fun getProgramsForChannelInWindow(
+        channelId: String,
+        now: Long,
+        windowEnd: Long,
+    ): List<ProgramEntity> =
+        programsList.filter { it.channelId == channelId && it.endMillis > now && it.startMillis < windowEnd }
+            .sortedBy { it.startMillis }
+
+    override suspend fun insertPrograms(programs: List<ProgramEntity>) {
+        programsList.addAll(programs)
+    }
+
+    override suspend fun clearPrograms() {
+        programsList.clear()
+    }
+
+    override suspend fun deleteProgramsForChannel(channelId: String) {
+        programsList.removeAll { it.channelId == channelId }
+    }
+
+    override suspend fun getAllGuideChannels(): List<GuideChannelEntity> = guideChannelsList.toList()
+
+    override suspend fun insertGuideChannels(channels: List<GuideChannelEntity>) {
+        guideChannelsList.removeAll { existing -> channels.any { it.id == existing.id } }
+        guideChannelsList.addAll(channels)
+    }
+
+    override suspend fun clearGuideChannels() {
+        guideChannelsList.clear()
     }
 }

@@ -12,6 +12,14 @@ val unsplashAccessKey: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("unsplash.accessKey", "")
+val googlePhotosClientId: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("googlePhotos.clientId", "")
+val googlePhotosClientSecret: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("googlePhotos.clientSecret", "")
 
 android {
     namespace = "com.livingroomhq"
@@ -25,6 +33,8 @@ android {
         versionName = "0.1.0"
 
         buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"$unsplashAccessKey\"")
+        buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
+        buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_SECRET", "\"$googlePhotosClientSecret\"")
     }
 
     buildTypes {
@@ -32,6 +42,13 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        create("profile") {
+            initWith(getByName("release"))
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks.add("release")
         }
     }
 
@@ -55,6 +72,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:widget"))
 
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

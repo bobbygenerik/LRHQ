@@ -1,71 +1,100 @@
 package com.livingroomhq.core.data.iptv
 
 import com.livingroomhq.core.data.model.Program
-import org.w3c.dom.Element
-import org.xml.sax.InputSource
-import java.io.StringReader
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Minimal XMLTV electronic-programme-guide parser. Maps `<programme>` elements
- * to [Program]s keyed by their `channel` attribute — which is the channel's
- * `tvg-id`, the same id [M3uParser] assigns — so a loaded guide lines up with
- * loaded channels. Pure (String in, Map out) and JVM-unit-testable via DOM.
- *
- * Plain XML only; gzipped `.xml.gz` guides must be decompressed before calling.
- * External DTD/entity loading is disabled (XMLTV's `<!DOCTYPE>` would otherwise
- * try to fetch xmltv.dtd, and to guard against XXE).
+ * to [Program]s. Uses a memory-efficient streaming [XmlPullParser] to support
+ * large guides without consuming excessive memory (O(1) memory complexity).
  */
 object XmltvParser {
 
-    fun parse(xml: String): Map<String, List<Program>> {
-        if (xml.isBlank()) return emptyMap()
-
-        val doc = runCatching {
-            val factory = DocumentBuilderFactory.newInstance().apply {
-                isValidating = false
-                runCatching { setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false) }
-                runCatching { setFeature("http://xml.org/sax/features/external-general-entities", false) }
-                runCatching { setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+    fun parse(
+        inputStream: InputStream,
+        onChannelParsed: (id: String, displayNames: List<String>) -> Unit = { _, _ -> },
+        onProgramParsed: (Program) -> Unit,
+    ) {
+        try {
+            val factory = XmlPullParserFactory.newInstance().apply {
+                isNamespaceAware = false
             }
-            factory.newDocumentBuilder().parse(InputSource(StringReader(xml)))
-        }.getOrNull() ?: return emptyMap()
+            val parser = factory.newPullParser()
+            inputStream.use { stream ->
+                parser.setInput(stream, "UTF-8")
+                var eventType = parser.eventType
+                var xmltvChannelId: String? = null
+                var xmltvChannelNames = mutableListOf<String>()
+                var programmeChannelId: String? = null
+                var startMillis: Long? = null
+                var endMillis: Long? = null
+                var title: String? = null
+                var description: String? = null
+                var artworkUrl: String? = null
 
-        val result = LinkedHashMap<String, MutableList<Program>>()
-        val nodes = doc.getElementsByTagName("programme")
-        for (i in 0 until nodes.length) {
-            val el = nodes.item(i) as? Element ?: continue
-            val channel = el.getAttribute("channel").takeIf { it.isNotBlank() } ?: continue
-            val start = parseTime(el.getAttribute("start")) ?: continue
-            val stop = parseTime(el.getAttribute("stop")) ?: continue
-            val title = childText(el, "title") ?: continue
-            val desc = childText(el, "desc").orEmpty()
-            val artworkUrl = childIconUrl(el)
-            result.getOrPut(channel) { mutableListOf() }
-                .add(Program(channel, title, desc, start, stop, artworkUrl))
-        }
-        return result.mapValues { (_, programmes) -> programmes.sortedBy { it.startMillis } }
-    }
-
-    private fun childText(el: Element, tag: String): String? {
-        val children = el.getElementsByTagName(tag)
-        if (children.length == 0) return null
-        return children.item(0).textContent?.trim()?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun childIconUrl(el: Element): String? {
-        val children = el.getElementsByTagName("icon")
-        for (i in 0 until children.length) {
-            val icon = children.item(i) as? Element ?: continue
-            val src = icon.getAttribute("src").trim()
-            if (src.startsWith("https://", ignoreCase = true) || src.startsWith("http://", ignoreCase = true)) {
-                return src
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    when (eventType) {
+                        XmlPullParser.START_TAG -> {
+                            val name = parser.name
+                            if (name.equals("channel", ignoreCase = true)) {
+                                xmltvChannelId = parser.getAttributeValue(null, "id")?.trim()
+                                xmltvChannelNames = mutableListOf()
+                            } else if (name.equals("programme", ignoreCase = true)) {
+                                programmeChannelId = parser.getAttributeValue(null, "channel")?.trim()
+                                startMillis = parseTime(parser.getAttributeValue(null, "start").orEmpty())
+                                endMillis = parseTime(parser.getAttributeValue(null, "stop").orEmpty())
+                                title = null
+                                description = null
+                                artworkUrl = null
+                            } else if (programmeChannelId != null) {
+                                when (name.lowercase()) {
+                                    "title" -> title = parser.nextText()?.trim()
+                                    "desc" -> description = parser.nextText()?.trim()
+                                    "icon" -> {
+                                        val src = parser.getAttributeValue(null, "src")?.trim()
+                                        if (src != null && (src.startsWith("https://", ignoreCase = true) || src.startsWith("http://", ignoreCase = true))) {
+                                            artworkUrl = src
+                                        }
+                                    }
+                                }
+                            } else if (xmltvChannelId != null && name.equals("display-name", ignoreCase = true)) {
+                                parser.nextText()?.trim()?.takeIf { it.isNotEmpty() }?.let { xmltvChannelNames += it }
+                            }
+                        }
+                        XmlPullParser.END_TAG -> {
+                            val name = parser.name
+                            if (name.equals("channel", ignoreCase = true)) {
+                                xmltvChannelId?.let { id -> onChannelParsed(id, xmltvChannelNames) }
+                                xmltvChannelId = null
+                                xmltvChannelNames = mutableListOf()
+                            } else if (name.equals("programme", ignoreCase = true)) {
+                                if (programmeChannelId != null && startMillis != null && endMillis != null && title != null) {
+                                    val program = Program(
+                                        channelId = programmeChannelId,
+                                        title = title,
+                                        description = description.orEmpty(),
+                                        startMillis = startMillis,
+                                        endMillis = endMillis,
+                                        artworkUrl = artworkUrl,
+                                    )
+                                    onProgramParsed(program)
+                                }
+                                programmeChannelId = null
+                            }
+                        }
+                    }
+                    eventType = parser.next()
+                }
             }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            throw e
         }
-        return null
     }
 
     /** XMLTV time: `YYYYMMDDHHMMSS` optionally followed by a ` +ZZZZ` offset (UTC if absent). */

@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +56,8 @@ internal fun HomeHeroContent(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        0f to Color.Transparent,
+                        0f to Color(0x99000000),
+                        0.28f to Color(0x33000000),
                         0.55f to Color.Transparent,
                         1f to Color(0xE605070D),
                     ),
@@ -68,7 +71,7 @@ internal fun HomeHeroContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
-            LiveChannelBadge(channel)
+            LiveBadge()
             if (showWeather) {
                 ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF)
             }
@@ -98,28 +101,22 @@ internal fun HomeHeroContent(
 }
 
 @Composable
-private fun LiveChannelBadge(channel: Channel?) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE53E3E))
-                .padding(horizontal = 7.dp, vertical = 3.dp),
-        ) {
-            Text(
-                "LIVE",
-                style = HqType.Label.copy(
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                ),
-            )
-        }
-        Spacer(Modifier.width(10.dp))
+private fun LiveBadge() {
+    Box(
+        Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color(0xFFE53E3E))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
         Text(
-            channel?.name ?: "No channel",
-            style = HqType.Body.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+            "LIVE",
+            style = HqType.Label.copy(
+                color = Color.White,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                shadow = heroTextShadow(),
+            ),
         )
     }
 }
@@ -132,15 +129,15 @@ private fun ClockWeather(
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(horizontalAlignment = Alignment.End) {
-            Text(clockTime, style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold))
-            Text(clockDate, style = HqType.Label.copy(color = Color.White.copy(alpha = 0.7f)))
+            Text(clockTime, style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold, shadow = heroTextShadow()))
+            Text(clockDate, style = HqType.Label.copy(color = Color.White.copy(alpha = 0.8f), shadow = heroTextShadow()))
         }
         Spacer(Modifier.width(14.dp))
         Icon(Icons.Default.Cloud, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(6.dp))
         Text(
             temperatureF?.let { "$it°F" } ?: "—",
-            style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold),
+            style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold, shadow = heroTextShadow()),
         )
     }
 }
@@ -156,19 +153,26 @@ private fun NowPlayingSummary(
     Column(modifier) {
         Text(
             "NOW PLAYING",
-            style = HqType.Label.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold, fontSize = 10.sp),
+            style = HqType.Label.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold, fontSize = 10.sp, shadow = heroTextShadow()),
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            nowTitle ?: (channel?.name ?: "No live TV loaded"),
-            style = HqType.Title.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+            channel?.name ?: "No live TV loaded",
+            style = HqType.Title.copy(color = Color.White, fontWeight = FontWeight.SemiBold, shadow = heroTextShadow()),
             maxLines = 1,
         )
         Text(
-            nowDescription ?: "Add an M3U playlist in Settings to stream live channels.",
-            style = HqType.Body.copy(color = Color.White.copy(alpha = 0.72f)),
+            nowTitle ?: "No Program Info",
+            style = HqType.Body.copy(color = Color.White.copy(alpha = 0.82f), fontWeight = FontWeight.Medium, shadow = heroTextShadow()),
             maxLines = 1,
         )
+        nowDescription?.let { description ->
+            Text(
+                description,
+                style = HqType.Body.copy(color = Color.White.copy(alpha = 0.68f), shadow = heroTextShadow()),
+                maxLines = 1,
+            )
+        }
         Spacer(Modifier.height(10.dp))
         Box(
             Modifier
@@ -187,6 +191,9 @@ private fun NowPlayingSummary(
         }
     }
 }
+
+private fun heroTextShadow(): Shadow =
+    Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 2f), blurRadius = 8f)
 
 @Composable
 private fun UpNextPanel(nextTitle: String) {

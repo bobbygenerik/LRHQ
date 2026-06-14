@@ -1,5 +1,6 @@
 package com.livingroomhq.core.data.iptv
 
+import com.livingroomhq.core.data.model.Program
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,9 +22,15 @@ class XmltvParserTest {
         </tv>
     """.trimIndent()
 
+    private fun parseXml(xmlString: String): Map<String, List<Program>> {
+        val list = mutableListOf<Program>()
+        XmltvParser.parse(xmlString.byteInputStream()) { list.add(it) }
+        return list.groupBy { it.channelId }.mapValues { (_, progs) -> progs.sortedBy { it.startMillis } }
+    }
+
     @Test
     fun `parses programmes grouped by channel, ordered`() {
-        val epg = XmltvParser.parse(xml)
+        val epg = parseXml(xml)
         assertEquals(setOf("one"), epg.keys)
         val progs = epg.getValue("one")
         assertEquals(2, progs.size)
@@ -38,20 +45,20 @@ class XmltvParserTest {
     @Test
     fun `programme without a title is skipped`() {
         val x = "<tv><programme start=\"20240518200000\" stop=\"20240518210000\" channel=\"c\"></programme></tv>"
-        assertTrue(XmltvParser.parse(x).isEmpty())
+        assertTrue(parseXml(x).isEmpty())
     }
 
     @Test
     fun `timezone offset shifts the instant`() {
-        val utcStart = XmltvParser.parse(xml).getValue("one")[0].startMillis
-        val plus2Start = XmltvParser.parse(xml.replace("+0000", "+0200")).getValue("one")[0].startMillis
+        val utcStart = parseXml(xml).getValue("one")[0].startMillis
+        val plus2Start = parseXml(xml.replace("+0000", "+0200")).getValue("one")[0].startMillis
         // 20:00 at +0200 is 18:00 UTC — two hours earlier than 20:00 at +0000.
         assertEquals(2 * 60 * 60 * 1000L, utcStart - plus2Start)
     }
 
     @Test
     fun `empty input is an empty map`() {
-        assertTrue(XmltvParser.parse("").isEmpty())
+        assertTrue(parseXml("").isEmpty())
     }
 
     @Test
@@ -64,6 +71,6 @@ class XmltvParserTest {
               </programme>
             </tv>
         """.trimIndent()
-        assertEquals(null, XmltvParser.parse(x).getValue("c")[0].artworkUrl)
+        assertEquals(null, parseXml(x).getValue("c")[0].artworkUrl)
     }
 }

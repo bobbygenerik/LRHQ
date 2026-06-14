@@ -14,10 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import com.livingroomhq.backdrop.AmbientPhotoCacheStats
+import com.livingroomhq.backdrop.GooglePhotosPickerState
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.initialFocus
@@ -144,6 +150,113 @@ internal fun EpgSettingsPanel(
 }
 
 @Composable
+internal fun AmbientPhotosSettingsPanel(
+    importText: String,
+    cacheStats: AmbientPhotoCacheStats,
+    pickerState: GooglePhotosPickerState,
+    onImportTextChange: (String) -> Unit,
+    onStartGooglePhotosPicker: () -> Unit,
+    onRefreshGooglePhotosAlbum: () -> Unit,
+    onImportPhotos: () -> Unit,
+    onClearCache: () -> Unit,
+) {
+    Text("AMBIENT PHOTO CACHE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    GlassPanel(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Connect Google Photos, select your LRHQ album/photos, and LRHQ will cache resized display copies locally so Ambient can rotate them indefinitely.",
+                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                SettingsActionButton(
+                    label = if (pickerState.isBusy) "Working..." else "Start Picker",
+                    color = HqColors.Accent,
+                    onClick = {
+                        if (!pickerState.isBusy) onStartGooglePhotosPicker()
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = HqColors.Accent, modifier = Modifier.size(16.dp))
+                    },
+                )
+                SettingsActionButton(
+                    label = if (pickerState.isBusy) "Working..." else "Refresh Album",
+                    color = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent else HqColors.TextTertiary,
+                    onClick = {
+                        if (cacheStats.photoCount > 0 && !pickerState.isBusy) onRefreshGooglePhotosAlbum()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = null,
+                            tint = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent else HqColors.TextTertiary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    },
+                )
+            }
+            Text(
+                text = pickerState.status,
+                style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary),
+            )
+            if (pickerState.userCode.isNotBlank()) {
+                Text(
+                    text = "Code: ${pickerState.userCode}",
+                    style = HqType.Headline.copy(fontSize = 20.sp, color = HqColors.Accent, fontWeight = FontWeight.Bold),
+                )
+                Text(
+                    text = "Device URL: ${pickerState.verificationUrl}",
+                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
+                )
+            }
+            if (pickerState.pickerUri.isNotBlank()) {
+                Text(
+                    text = "Picker URL: ${pickerState.pickerUri}",
+                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
+                )
+            }
+            pickerState.error?.let { error ->
+                Text(error, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Critical))
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Fallback/test import: paste direct image URLs below.",
+                style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+            )
+            GlassTextField(
+                value = importText,
+                onValueChange = onImportTextChange,
+                placeholder = "Paste direct photo URLs...",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(86.dp),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                SettingsActionButton(
+                    label = if (cacheStats.isImporting) "Caching..." else "Cache URLs",
+                    color = HqColors.Accent,
+                    onClick = onImportPhotos,
+                )
+                SettingsActionButton(
+                    label = "Clear Cache",
+                    color = HqColors.Critical,
+                    onClick = onClearCache,
+                    leadingIcon = {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp))
+                    },
+                )
+            }
+            Text(
+                text = "Cached: ${cacheStats.photoCount} photos · ${cacheStats.sizeMegabytes} MB",
+                style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary),
+            )
+            if (cacheStats.lastMessage.isNotEmpty()) {
+                Text(cacheStats.lastMessage, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary))
+            }
+        }
+    }
+}
+
+@Composable
 internal fun AppearanceSettingsPanel(
     settings: CustomSettings,
     onSettingsChanged: (CustomSettings) -> Unit,
@@ -151,25 +264,11 @@ internal fun AppearanceSettingsPanel(
     Text("LAUNCHER APPEARANCE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            AppearanceRow("Theme") {
-                CustomButtonToggle(
-                    options = listOf("Dark", "Light"),
-                    selected = settings.theme,
-                    onSelected = { onSettingsChanged(settings.copy(theme = it)) },
-                )
-            }
             AppearanceRow("Accent Color") {
                 CustomButtonToggle(
                     options = listOf("Green", "Blue"),
                     selected = settings.accentColor,
                     onSelected = { onSettingsChanged(settings.copy(accentColor = it)) },
-                )
-            }
-            AppearanceRow("Ambient Backdrop") {
-                CustomButtonToggle(
-                    options = listOf("Lake", "Skyline"),
-                    selected = if (settings.background == "Mountain Lake") "Lake" else "Skyline",
-                    onSelected = { onSettingsChanged(settings.copy(background = if (it == "Lake") "Mountain Lake" else "City Skyline")) },
                 )
             }
             AppearanceRow("Show Live Preview") {
@@ -266,5 +365,50 @@ private fun AppearanceRow(
     ) {
         Text(label, style = HqType.Label)
         control()
+    }
+}
+
+@Composable
+internal fun SystemSettingsPanel(
+    onLaunchDeviceSettings: () -> Unit,
+    onLaunchAppManager: () -> Unit,
+) {
+    Spacer(Modifier.height(4.dp))
+    Text("SYSTEM SETTINGS", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    GlassPanel(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Access Android system settings, Wi-Fi, bluetooth controllers, display, and application settings.",
+                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                SettingsActionButton(
+                    label = "Device Settings",
+                    color = HqColors.TextPrimary,
+                    onClick = onLaunchDeviceSettings,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                            tint = HqColors.TextPrimary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    },
+                )
+                SettingsActionButton(
+                    label = "App Manager",
+                    color = HqColors.TextPrimary,
+                    onClick = onLaunchAppManager,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Android,
+                            contentDescription = null,
+                            tint = HqColors.TextPrimary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    },
+                )
+            }
+        }
     }
 }

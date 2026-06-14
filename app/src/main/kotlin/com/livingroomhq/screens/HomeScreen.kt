@@ -26,10 +26,9 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.ui.components.initialFocus
-import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
-import com.livingroomhq.navigation.SpatialNavController
+import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -39,15 +38,11 @@ import java.util.Locale
 /**
  * Home is the IPTV-first landing zone: a full-bleed live hero with EPG context
  * and a compact recent-channel rail beneath it.
- *
- * [onSettingsChanged] is retained for host signature compatibility; Home no
- * longer edits settings inline.
  */
 @Composable
 fun HomeScreen(
     app: HqApplication,
-    nav: SpatialNavController,
-    @Suppress("UNUSED_PARAMETER") onSettingsChanged: (CustomSettings) -> Unit,
+    nav: LauncherNavController,
 ) {
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()

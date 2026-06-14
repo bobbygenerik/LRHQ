@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 interface ChannelRepository {
     val channels: StateFlow<List<Channel>>
     val recents: StateFlow<List<Channel>>
+    /** Bumps when the in-memory EPG cache is rebuilt (for lazy UI refresh). */
+    val epgRevision: StateFlow<Long>
     fun groups(): List<String>
     fun epgNowNext(channelId: String): Pair<Program?, Program?>
     fun markWatched(channelId: String)

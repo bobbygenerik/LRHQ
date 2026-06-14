@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,7 +48,7 @@ internal fun RecentChannelsRow(
         Text("No channels yet - add an M3U playlist in Settings to begin.", style = HqType.Body)
     } else {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            itemsIndexed(recentList, key = { _, channel -> channel.id }) { _, channel ->
+            itemsIndexed(recentList, key = { _, channel -> "${channel.id}_${channel.number}" }) { _, channel ->
                 RecentChannelChip(
                     channel = channel,
                     onClick = { onChannelSelected(channel) },
@@ -83,10 +83,11 @@ private fun RecentChannelChip(
             .padding(start = 6.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val logoShape = RoundedCornerShape(8.dp)
         Box(
             Modifier
-                .size(28.dp)
-                .clip(CircleShape)
+                .size(32.dp)
+                .clip(logoShape)
                 .background(if (active) HqColors.Accent.copy(alpha = 0.22f) else androidx.compose.ui.graphics.Color(0x14FFFFFF)),
             contentAlignment = Alignment.Center,
         ) {
@@ -94,9 +95,10 @@ private fun RecentChannelChip(
                 AsyncImage(
                     model = channel.logoUrl,
                     contentDescription = "${channel.name} logo",
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(4.dp),
+                        .padding(3.dp),
                 )
             } else {
                 Text(

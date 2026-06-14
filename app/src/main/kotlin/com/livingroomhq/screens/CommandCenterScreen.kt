@@ -48,12 +48,11 @@ import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.navigation.SpatialNavController
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
 @Composable
-fun CommandCenterScreen(app: HqApplication, nav: SpatialNavController) {
+fun CommandCenterScreen(app: HqApplication) {
     val stats by remember { app.systemMonitor.stats() }
         .collectAsState(initial = null)
     

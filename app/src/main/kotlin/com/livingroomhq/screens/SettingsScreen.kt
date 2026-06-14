@@ -21,22 +21,28 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.navigation.SpatialNavController
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
+import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
     app: HqApplication,
-    @Suppress("UNUSED_PARAMETER") nav: SpatialNavController,
     settings: CustomSettings,
     onSettingsChanged: (CustomSettings) -> Unit,
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val playlistUrlFlow by app.prefs.playlistUrl.collectAsState(initial = null)
     val epgUrlFlow by app.prefs.epgUrl.collectAsState(initial = null)
+    val ambientPhotoCacheStats by app.ambientPhotoCache.stats.collectAsState()
+    val googlePhotosPickerState by app.googlePhotosPicker.state.collectAsState()
 
     var m3uUrl by remember(playlistUrlFlow) { mutableStateOf(playlistUrlFlow ?: "") }
     var epgUrl by remember(epgUrlFlow) { mutableStateOf(epgUrlFlow ?: "") }
+    var ambientPhotoImportText by remember { mutableStateOf("") }
     var epgStatus by remember { mutableStateOf("") }
     var statusText by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -148,7 +154,56 @@ fun SettingsScreen(
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
+                AmbientPhotosSettingsPanel(
+                    importText = ambientPhotoImportText,
+                    cacheStats = ambientPhotoCacheStats,
+                    pickerState = googlePhotosPickerState,
+                    onImportTextChange = { ambientPhotoImportText = it },
+                    onStartGooglePhotosPicker = {
+                        coroutineScope.launch {
+                            app.googlePhotosPicker.startPickerImport()
+                        }
+                    },
+                    onRefreshGooglePhotosAlbum = {
+                        coroutineScope.launch {
+                            app.googlePhotosPicker.refreshPickerImport()
+                        }
+                    },
+                    onImportPhotos = {
+                        coroutineScope.launch {
+                            val result = app.ambientPhotoCache.importFromText(ambientPhotoImportText)
+                            if (result.photoCount > 0) ambientPhotoImportText = ""
+                        }
+                    },
+                    onClearCache = {
+                        coroutineScope.launch {
+                            app.ambientPhotoCache.clear()
+                        }
+                    },
+                )
+                SystemSettingsPanel(
+                    onLaunchDeviceSettings = {
+                        context.launchSettingsIntent(
+                            Intent(Settings.ACTION_SETTINGS),
+                            "Couldn't open device settings"
+                        )
+                    },
+                    onLaunchAppManager = {
+                        context.launchSettingsIntent(
+                            Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
+                            "Couldn't open app manager"
+                        )
+                    }
+                )
             }
         }
+    }
+}
+
+private fun android.content.Context.launchSettingsIntent(intent: Intent, errorMessage: String) {
+    runCatching {
+        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }.onFailure {
+        UiMessages.post(errorMessage)
     }
 }

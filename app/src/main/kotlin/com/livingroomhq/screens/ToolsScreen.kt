@@ -1,7 +1,8 @@
 package com.livingroomhq.screens
 
 import android.content.Intent
-import android.provider.Settings
+import android.graphics.drawable.Drawable
+import coil.compose.AsyncImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +24,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Folder
@@ -56,10 +56,10 @@ import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.navigation.SpatialNavController
+import com.livingroomhq.ui.UiMessages
 
 @Composable
-fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
+fun ToolsScreen(app: HqApplication) {
     val context = LocalContext.current
     var apps by remember { mutableStateOf<List<LaunchableApp>>(emptyList()) }
 
@@ -80,17 +80,6 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
                 desc = "Browse the web",
                 icon = Icons.Default.Language,
                 onClick = { app.installedApps.launch("com.android.chrome") }
-            ),
-            UtilItem(
-                label = "App Manager",
-                desc = "Manage Apps",
-                icon = Icons.Default.Android,
-                onClick = {
-                    val intent = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    context.startActivity(intent)
-                }
             ),
             UtilItem(
                 label = "Emulator",
@@ -224,19 +213,37 @@ fun ToolsScreen(app: HqApplication, nav: SpatialNavController) {
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            Box(
+                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(Color(0x11FFFFFF)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Apps,
-                                    contentDescription = null,
-                                    tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                var appIcon by remember(entry.packageName) { mutableStateOf<Drawable?>(null) }
+                                LaunchedEffect(entry.packageName) {
+                                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                        val drawable = runCatching {
+                                            context.packageManager.getApplicationIcon(entry.packageName)
+                                        }.getOrNull()
+                                        appIcon = drawable
+                                    }
+                                }
+
+                                if (appIcon != null) {
+                                    AsyncImage(
+                                        model = appIcon,
+                                        contentDescription = entry.label,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Apps,
+                                        contentDescription = null,
+                                        tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                             Spacer(Modifier.width(12.dp))
                             Column {
@@ -273,3 +280,11 @@ data class UtilItem(
     val icon: ImageVector,
     val onClick: () -> Unit
 )
+
+private fun android.content.Context.launchSettingsIntent(intent: Intent, errorMessage: String) {
+    runCatching {
+        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }.onFailure {
+        UiMessages.post(errorMessage)
+    }
+}
