@@ -49,17 +49,11 @@ fun HomeScreen(
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val weather by app.ambientInfo.weather.collectAsState()
-    val library by app.media.library.collectAsState()
-    val ambientPhotos by app.ambientBackdropPhotos.collectAsState()
     val customSettings = LocalCustomSettings.current
 
     val current = recents.firstOrNull() ?: channels.firstOrNull()
     val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
-    val mediaBackdrops = remember(library) { library.mapNotNull { it.backdropUrl }.distinct() }
-    val backdropSources = remember(current, nowProgram?.artworkUrl, customSettings.showLivePreview, mediaBackdrops, ambientPhotos) {
-        BackdropProvider.forHome(current, customSettings.showLivePreview, nowProgram?.artworkUrl, mediaBackdrops, ambientPhotos)
-    }
-    val isLive = current != null && customSettings.showLivePreview
+    val recentList = recents.ifEmpty { channels.take(6) }
 
     var clockTime by remember { mutableStateOf(timeNow()) }
     var clockDate by remember { mutableStateOf(dateNow()) }
@@ -79,6 +73,7 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState()),
     ) {
         HomeHero(
+            requestInitialFocus = recentList.isEmpty(),
             focusedAction = {
                 if (current != null) {
                     ChannelPlayer.launch(context, current)
@@ -87,6 +82,18 @@ fun HomeScreen(
                 }
             },
         ) { heroFocused ->
+            val heroLivePreview = heroFocused && customSettings.showLivePreview && current != null
+            val backdropSources = remember(
+                current?.id,
+                nowProgram?.artworkUrl,
+                heroLivePreview,
+            ) {
+                BackdropProvider.forHome(
+                    channel = current,
+                    heroLivePreview = heroLivePreview,
+                    programmeArtworkUrl = nowProgram?.artworkUrl,
+                )
+            }
             HomeHeroContent(
                 channel = current,
                 clockTime = clockTime,
@@ -97,13 +104,13 @@ fun HomeScreen(
                 nowDescription = nowProgram?.description,
                 progress = nowProgram?.progressAt(System.currentTimeMillis()),
                 nextTitle = nextProgram?.title,
-                isLivePreview = isLive,
+                isLivePreview = heroLivePreview,
                 heroFocused = heroFocused,
                 backdrop = {
                     HeroBackdrop(
                         sources = backdropSources,
                         modifier = Modifier.fillMaxSize(),
-                        cycle = !isLive,
+                        cycle = false,
                     )
                 },
             )
@@ -113,6 +120,7 @@ fun HomeScreen(
             RecentChannelsRow(
                 channels = channels,
                 recents = recents,
+                requestInitialFocus = recentList.isNotEmpty(),
                 onChannelSelected = { channel ->
                     app.channels.markWatched(channel.id)
                     ChannelPlayer.launch(context, channel)
@@ -124,6 +132,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHero(
+    requestInitialFocus: Boolean,
     focusedAction: () -> Unit,
     content: @Composable (heroFocused: Boolean) -> Unit,
 ) {
@@ -135,7 +144,7 @@ private fun HomeHero(
             .onFocusChanged { heroFocused = it.isFocused }
             .clickable { focusedAction() }
             .focusable()
-            .initialFocus(),
+            .then(if (requestInitialFocus) Modifier.initialFocus() else Modifier),
     ) {
         content(heroFocused)
         if (heroFocused) {

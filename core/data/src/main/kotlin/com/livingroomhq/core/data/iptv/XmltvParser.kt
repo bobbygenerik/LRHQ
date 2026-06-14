@@ -55,11 +55,10 @@ object XmltvParser {
                                 when (name.lowercase()) {
                                     "title" -> title = parser.nextText()?.trim()
                                     "desc" -> description = parser.nextText()?.trim()
-                                    "icon" -> {
+                                    "icon", "image", "thumb", "poster" -> {
                                         val src = parser.getAttributeValue(null, "src")?.trim()
-                                        if (src != null && (src.startsWith("https://", ignoreCase = true) || src.startsWith("http://", ignoreCase = true))) {
-                                            artworkUrl = src
-                                        }
+                                            ?: parser.nextText()?.trim()
+                                        normalizeArtworkUrl(src)?.let { artworkUrl = it }
                                     }
                                 }
                             } else if (xmltvChannelId != null && name.equals("display-name", ignoreCase = true)) {
@@ -112,5 +111,16 @@ object XmltvParser {
                     .parse(datePart)?.time
             }
         }.getOrNull()
+    }
+
+    fun normalizeArtworkUrl(raw: String?): String? {
+        val trimmed = raw?.trim().orEmpty()
+        if (trimmed.isEmpty()) return null
+        return when {
+            trimmed.startsWith("https://", ignoreCase = true) -> trimmed
+            trimmed.startsWith("http://", ignoreCase = true) -> trimmed
+            trimmed.startsWith("//") -> "https:$trimmed"
+            else -> null
+        }
     }
 }

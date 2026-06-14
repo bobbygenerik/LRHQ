@@ -2,47 +2,38 @@ package com.livingroomhq.player
 
 import android.content.Context
 import android.view.TextureView
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.PlayerView
 import com.livingroomhq.core.data.model.Channel
 
 /**
  * Single shared preview player for the launcher. Home and Live TV must not each
  * spin up their own [ExoPlayer] — two decoders on the same stream causes audio
  * glitches, memory pressure, and transition freezes.
+ *
+ * Fullscreen reuses this same player (surface handoff) so IPTV does not re-buffer
+ * when opening a channel that is already playing in preview.
  */
 class LivePreviewEngine(context: Context) {
     private val appContext = context.applicationContext
     private var boundOwner: String? = null
     private var boundView: TextureView? = null
+    private var previewTextureView: TextureView? = null
+    private var fullscreenPlayerView: PlayerView? = null
     private var boundUrl: String? = null
+    private var previewMaxVideoWidth: Int = 1280
+    private var previewMaxVideoHeight: Int = 720
+    private var fullscreenActive = false
 
-    val player: ExoPlayer = ExoPlayer.Builder(appContext)
-        .setMediaSourceFactory(
-            DefaultMediaSourceFactory(
-                DefaultDataSource.Factory(
-                    appContext,
-                    DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true),
-                ),
-            ),
-        )
-        .build()
-        .apply {
-            playWhenReady = true
-            volume = 0f
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
-                .build()
-            addListener(object : Player.Listener {
-                override fun onPlayerError(error: PlaybackException) = Unit
-            })
-        }
+    val player: ExoPlayer = IptvExoPlayer.create(appContext).apply {
+        playWhenReady = true
+        addListener(object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) = Unit
+        })
+    }
 
     fun bind(
         owner: String,
@@ -51,22 +42,28 @@ class LivePreviewEngine(context: Context) {
         maxVideoWidth: Int,
         maxVideoHeight: Int,
     ) {
+        previewMaxVideoWidth = maxVideoWidth
+        previewMaxVideoHeight = maxVideoHeight
+        previewTextureView = textureView
+        boundOwner = owner
+
+        if (fullscreenActive) return
+
         if (boundView != null && boundView !== textureView) {
             player.clearVideoTextureView(boundView)
         }
-        boundOwner = owner
         boundView = textureView
         player.setVideoTextureView(textureView)
-        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-            .setMaxVideoSize(maxVideoWidth, maxVideoHeight)
-            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
-            .build()
-        player.volume = 0f
+        IptvExoPlayer.configureForPreview(player, maxVideoWidth, maxVideoHeight)
         prepareChannel(channel?.streamUrl?.takeIf { it.isNotBlank() })
     }
 
     fun unbind(owner: String, textureView: TextureView) {
         if (boundOwner != owner) return
+        if (fullscreenActive) {
+            previewTextureView = textureView
+            return
+        }
         if (boundView !== textureView) return
         player.clearVideoTextureView(textureView)
         player.stop()
@@ -76,18 +73,56 @@ class LivePreviewEngine(context: Context) {
         boundUrl = null
     }
 
-    fun pause() {
-        player.pause()
+    /** Move the live decoder to a fullscreen [PlayerView] without restarting the stream. */
+    fun promoteToFullscreen(playerView: PlayerView, channel: Channel) {
+        val url = channel.streamUrl.takeIf { it.isNotBlank() } ?: return
+        if (fullscreenActive && fullscreenPlayerView === playerView && boundUrl == url) {
+            if (playerView.player != player) playerView.player = player
+            return
+        }
+
+        fullscreenActive = true
+        boundView?.let { player.clearVideoTextureView(it) }
+        boundView = null
+
+        fullscreenPlayerView = playerView
+        playerView.player = player
+
+        IptvExoPlayer.configureForFullscreen(player)
+        prepareChannel(url)
+        player.playWhenReady = true
+        player.play()
     }
 
-    /** Stop decoding while a fullscreen player owns the stream; keeps [boundUrl] for resume. */
-    fun standDownForFullscreenPlayback() {
+    fun demoteFromFullscreen() {
+        if (!fullscreenActive) return
+        fullscreenActive = false
+
+        fullscreenPlayerView?.player = null
+        fullscreenPlayerView = null
+
+        val textureView = previewTextureView ?: boundView
+        if (textureView != null) {
+            boundView = textureView
+            player.setVideoTextureView(textureView)
+            IptvExoPlayer.configureForPreview(player, previewMaxVideoWidth, previewMaxVideoHeight)
+            player.playWhenReady = true
+            player.play()
+        }
+    }
+
+    fun ensureFullscreenAudio(tracks: Tracks) {
+        if (!fullscreenActive) return
+        IptvExoPlayer.ensureFullscreenAudio(player, tracks)
+    }
+
+    fun pause() {
+        if (fullscreenActive) return
         player.pause()
-        player.stop()
-        player.clearMediaItems()
     }
 
     fun resume() {
+        if (fullscreenActive) return
         if (boundView == null) return
         if (player.mediaItemCount == 0) {
             val url = boundUrl
@@ -100,10 +135,12 @@ class LivePreviewEngine(context: Context) {
     }
 
     fun release() {
+        demoteFromFullscreen()
         boundView?.let { player.clearVideoTextureView(it) }
         player.release()
         boundOwner = null
         boundView = null
+        previewTextureView = null
         boundUrl = null
     }
 
@@ -116,7 +153,7 @@ class LivePreviewEngine(context: Context) {
         }
         if (url == boundUrl) return
         runCatching {
-            player.setMediaItem(MediaItem.fromUri(url))
+            player.setMediaItem(IptvExoPlayer.mediaItemForUrl(url))
             player.prepare()
             boundUrl = url
         }

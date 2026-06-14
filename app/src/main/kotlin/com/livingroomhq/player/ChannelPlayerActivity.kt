@@ -1,6 +1,7 @@
 package com.livingroomhq.player
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -11,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,9 +25,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.Tracks
 import androidx.media3.ui.PlayerView
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
@@ -45,15 +49,28 @@ class ChannelPlayerActivity : ComponentActivity() {
 
         val app = application as HqApplication
         val channelId = intent.getStringExtra(ChannelPlayer.EXTRA_CHANNEL_ID)
+        val streamUrl = intent.getStringExtra(ChannelPlayer.EXTRA_STREAM_URL).orEmpty()
+        val channelName = intent.getStringExtra(ChannelPlayer.EXTRA_CHANNEL_NAME).orEmpty()
         val channel = channelId?.let { id ->
             app.channels.channels.value.firstOrNull { it.id == id }
+        } ?: if (streamUrl.isNotBlank() && channelId != null) {
+            Channel(
+                id = channelId,
+                number = 0,
+                name = channelName.ifBlank { "Live TV" },
+                group = "",
+                streamUrl = streamUrl,
+            )
+        } else {
+            null
         }
         if (channel == null || channel.streamUrl.isBlank()) {
             finish()
             return
         }
 
-        app.livePreviewEngine.standDownForFullscreenPlayback()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         val (nowProgram, _) = app.channels.epgNowNext(channel.id)
 
         setContent {
@@ -72,16 +89,24 @@ private fun ChannelPlayerScreen(
     nowTitle: String?,
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember(channel.id) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(channel.streamUrl))
-            playWhenReady = true
-            prepare()
-        }
-    }
+    val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
+    var playbackError by remember { mutableStateOf<String?>(null) }
 
-    DisposableEffect(exoPlayer) {
-        onDispose { exoPlayer.release() }
+    DisposableEffect(channel.id, engine) {
+        val listener = object : Player.Listener {
+            override fun onTracksChanged(tracks: Tracks) {
+                engine.ensureFullscreenAudio(tracks)
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                playbackError = error.localizedMessage ?: "Playback failed."
+            }
+        }
+        engine.player.addListener(listener)
+        onDispose {
+            engine.player.removeListener(listener)
+            engine.demoteFromFullscreen()
+        }
     }
 
     BackHandler { (context as? ComponentActivity)?.finish() }
@@ -91,34 +116,57 @@ private fun ChannelPlayerScreen(
             .fillMaxSize()
             .background(Color.Black),
     ) {
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    player = exoPlayer
-                    useController = true
-                    controllerShowTimeoutMs = 4_000
-                    setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-            update = { view -> view.player = exoPlayer },
-        )
-
-        Column(
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(24.dp),
-        ) {
-            Text(
-                "CH ${channel.number} · ${channel.name}",
-                style = HqType.Headline.copy(color = HqColors.TextPrimary),
+        if (playbackError == null) {
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        useController = true
+                        controllerShowTimeoutMs = 4_000
+                        setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+                        engine.promoteToFullscreen(this, channel)
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+                update = { view ->
+                    if (view.player != engine.player) {
+                        engine.promoteToFullscreen(view, channel)
+                    }
+                },
             )
-            nowTitle?.let {
+        } else {
+            Column(
+                Modifier
+                    .align(Alignment.Center)
+                    .padding(32.dp),
+            ) {
                 Text(
-                    it,
-                    style = HqType.Body.copy(color = HqColors.TextSecondary),
-                    maxLines = 1,
+                    channel.name,
+                    style = HqType.Headline.copy(color = HqColors.TextPrimary),
                 )
+                Text(
+                    playbackError.orEmpty(),
+                    style = HqType.Body.copy(color = HqColors.Critical),
+                )
+            }
+        }
+
+        if (playbackError == null) {
+            Column(
+                Modifier
+                    .align(Alignment.TopStart)
+                    .padding(24.dp),
+            ) {
+                Text(
+                    channel.name,
+                    style = HqType.Headline.copy(color = HqColors.TextPrimary),
+                )
+                nowTitle?.let {
+                    Text(
+                        it,
+                        style = HqType.Body.copy(color = HqColors.TextSecondary),
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }

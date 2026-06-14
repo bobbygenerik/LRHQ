@@ -19,12 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
@@ -57,14 +57,17 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.GlassPanel
-import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.LivePreview
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+/** Wait for focus to settle before swapping the live preview stream. */
+private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
 
 @Composable
 fun LiveScreen(app: HqApplication) {
@@ -73,12 +76,23 @@ fun LiveScreen(app: HqApplication) {
     val recents by app.channels.recents.collectAsState()
     val epgRevision by app.channels.epgRevision.collectAsState()
     var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
-    var previewId by remember { mutableStateOf<String?>(null) }
+    var focusedChannelId by remember { mutableStateOf<String?>(null) }
+    var previewChannelId by remember { mutableStateOf<String?>(null) }
 
     // Restore the last real selection without auto-playing the first playlist entry.
     LaunchedEffect(channels, recents) {
-        if (previewId == null) {
-            previewId = recents.firstOrNull()?.id
+        if (previewChannelId == null) {
+            val initial = recents.firstOrNull()?.id
+            previewChannelId = initial
+            focusedChannelId = initial
+        }
+    }
+
+    LaunchedEffect(focusedChannelId) {
+        val id = focusedChannelId ?: return@LaunchedEffect
+        delay(PREVIEW_FOCUS_DEBOUNCE_MS)
+        if (focusedChannelId == id) {
+            previewChannelId = id
         }
     }
 
@@ -135,8 +149,7 @@ fun LiveScreen(app: HqApplication) {
         }
     }
 
-    val previewChannel = channels.firstOrNull { it.id == previewId }
-    val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
+    val previewChannel = channels.firstOrNull { it.id == previewChannelId }
 
     Row(
         modifier = Modifier
@@ -152,69 +165,116 @@ fun LiveScreen(app: HqApplication) {
         ) {
             Text("LIVE TV", style = HqType.Title)
             Spacer(Modifier.height(16.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
             ) {
-                categories.forEachIndexed { index, cat ->
+                items(categories, key = { it.id ?: "all" }) { cat ->
                     CategoryRailItem(
                         label = cat.name,
                         icon = cat.icon,
                         active = selectedCategoryId == cat.id,
                         onClick = { selectedCategoryId = cat.id },
-                        modifier = if (index == 0) Modifier.initialFocus() else Modifier
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
         }
 
-        // Middle column: Two-column grid of channel cards
-        Column(
+        LiveChannelGridColumn(
+            categories = categories,
+            selectedCategoryId = selectedCategoryId,
+            visibleChannels = visibleChannels,
+            epgRevision = epgRevision,
+            onChannelFocused = { focusedChannelId = it },
+            onChannelClick = { channel ->
+                focusedChannelId = channel.id
+                previewChannelId = channel.id
+                app.channels.markWatched(channel.id)
+                ChannelPlayer.launch(context, channel)
+            },
+            channelEpgTitle = { channelId ->
+                app.channels.epgNowNext(channelId).first?.title ?: "No Program Info"
+            },
             modifier = Modifier
                 .weight(0.48f)
-                .fillMaxHeight()
-        ) {
-            val activeCategoryName = categories.firstOrNull { it.id == selectedCategoryId }?.name ?: "All Channels"
-            Text(activeCategoryName, style = HqType.Headline.copy(fontWeight = FontWeight.Bold))
-            Spacer(Modifier.height(16.dp))
-            if (visibleChannels.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No channels found in this category", style = HqType.Body)
-                }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 72.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(visibleChannels, key = { "${it.id}_${it.number}" }) { channel ->
-                        val nowPlayingTitle = remember(channel.id, epgRevision) {
-                            app.channels.epgNowNext(channel.id).first?.title ?: "No Program Info"
-                        }
-                        ChannelGridCard(
-                            channel = channel,
-                            nowPlayingTitle = nowPlayingTitle,
-                            onFocused = { previewId = channel.id },
-                            onClick = {
-                                app.channels.markWatched(channel.id)
-                                ChannelPlayer.launch(context, channel)
-                            }
-                        )
+                .fillMaxHeight(),
+        )
+
+        LivePreviewColumn(
+            previewChannel = previewChannel,
+            app = app,
+            onLaunchPreview = previewChannel?.let { channel ->
+                { ChannelPlayer.launch(context, channel) }
+            },
+            modifier = Modifier
+                .weight(0.32f)
+                .fillMaxHeight(),
+        )
+    }
+}
+
+@Composable
+private fun LiveChannelGridColumn(
+    categories: List<CategoryItem>,
+    selectedCategoryId: String?,
+    visibleChannels: List<Channel>,
+    epgRevision: Long,
+    onChannelFocused: (String) -> Unit,
+    onChannelClick: (Channel) -> Unit,
+    channelEpgTitle: (String) -> String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        val activeCategoryName = categories.firstOrNull { it.id == selectedCategoryId }?.name ?: "All Channels"
+        Text(activeCategoryName, style = HqType.Headline.copy(fontWeight = FontWeight.Bold))
+        Spacer(Modifier.height(16.dp))
+        if (visibleChannels.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No channels found in this category", style = HqType.Body)
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = 72.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(visibleChannels, key = { "${it.id}_${it.number}" }) { channel ->
+                    val nowPlayingTitle = remember(channel.id, epgRevision) {
+                        channelEpgTitle(channel.id)
                     }
+                    ChannelGridCard(
+                        channel = channel,
+                        nowPlayingTitle = nowPlayingTitle,
+                        onFocused = { onChannelFocused(channel.id) },
+                        onClick = { onChannelClick(channel) },
+                    )
                 }
             }
         }
+    }
+}
 
-        // Right column: Preview pane
-        Column(
-            modifier = Modifier
-                .weight(0.32f)
-                .fillMaxHeight()
-        ) {
+@Composable
+private fun LivePreviewColumn(
+    previewChannel: Channel?,
+    app: HqApplication,
+    onLaunchPreview: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
+    var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(previewChannel?.id) {
+        while (true) {
+            progressTick = System.currentTimeMillis()
+            delay(30_000)
+        }
+    }
+
+    Column(modifier = modifier) {
             // Live player preview
             Box(
                 modifier = Modifier
@@ -223,8 +283,8 @@ fun LiveScreen(app: HqApplication) {
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black)
                     .then(
-                        previewChannel?.let { channel ->
-                            Modifier.clickable { ChannelPlayer.launch(context, channel) }
+                        onLaunchPreview?.let { launch ->
+                            Modifier.clickable(onClick = launch)
                         } ?: Modifier,
                     )
                     .focusable(previewChannel != null),
@@ -238,6 +298,7 @@ fun LiveScreen(app: HqApplication) {
                         channel = previewChannel,
                         modifier = Modifier.fillMaxSize(),
                         ownerTag = "live-pane",
+                        showLabel = false,
                         maxVideoWidth = 854,
                         maxVideoHeight = 480,
                     )
@@ -276,7 +337,7 @@ fun LiveScreen(app: HqApplication) {
                     
                     if (now != null) {
                         Spacer(Modifier.height(12.dp))
-                        val nowMillis = System.currentTimeMillis()
+                        val nowMillis = progressTick
                         val progress = now.progressAt(nowMillis)
                         val minutesLeft = ((now.endMillis - nowMillis) / 60_000L).coerceAtLeast(0)
                         Row(Modifier.fillMaxWidth()) {
@@ -319,7 +380,6 @@ fun LiveScreen(app: HqApplication) {
                     Spacer(Modifier.weight(1f))
                 }
             }
-        }
     }
 }
 

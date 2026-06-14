@@ -73,4 +73,30 @@ class XmltvParserTest {
         """.trimIndent()
         assertEquals(null, parseXml(x).getValue("c")[0].artworkUrl)
     }
+
+    @Test
+    fun `protocol relative programme icon is normalized`() {
+        val x = """
+            <tv>
+              <programme start="20240518200000" stop="20240518210000" channel="c">
+                <title>Poster Show</title>
+                <icon src="//cdn.example/poster.jpg" />
+              </programme>
+            </tv>
+        """.trimIndent()
+        assertEquals("https://cdn.example/poster.jpg", parseXml(x).getValue("c")[0].artworkUrl)
+    }
+
+    @Test
+    fun `poster tag src is captured`() {
+        val x = """
+            <tv>
+              <programme start="20240518200000" stop="20240518210000" channel="c">
+                <title>Poster Show</title>
+                <poster src="https://cdn.example/poster.jpg" />
+              </programme>
+            </tv>
+        """.trimIndent()
+        assertEquals("https://cdn.example/poster.jpg", parseXml(x).getValue("c")[0].artworkUrl)
+    }
 }

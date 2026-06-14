@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.livingroomhq.core.ui.theme.HqColors
-import com.livingroomhq.screens.SunsetCitySkyline
 
 /**
  * Optional TV screensaver entry point. While [MainActivity] suppresses Google
@@ -33,9 +32,7 @@ class LrhqDreamService : DreamService() {
                         Modifier
                             .fillMaxSize()
                             .background(HqColors.Void),
-                    ) {
-                        SunsetCitySkyline(Modifier.fillMaxSize())
-                    }
+                    )
                 }
             },
         )

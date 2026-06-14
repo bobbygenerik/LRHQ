@@ -1,11 +1,5 @@
 package com.livingroomhq.screens
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.runtime.Composable
@@ -34,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -99,28 +93,7 @@ fun AmbientScreen(app: HqApplication) {
         }
     }
 
-    // Slow breathing glow + anti-burn-in drift.
-    val transition = rememberInfiniteTransition(label = "ambient")
-    val glow by transition.animateFloat(
-        initialValue = 0.2f, targetValue = 0.45f,
-        animationSpec = infiniteRepeatable(tween(8_000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "glow",
-    )
-    val protectiveDim by transition.animateFloat(
-        initialValue = 0.16f,
-        targetValue = 0.24f,
-        animationSpec = infiniteRepeatable(tween(75_000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "protectiveDim",
-    )
-    val drift by transition.animateFloat(
-        initialValue = -15f, targetValue = 15f,
-        animationSpec = infiniteRepeatable(tween(180_000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "drift",
-    )
-
-    Box(
-        Modifier.fillMaxSize()
-    ) {
+    Box(Modifier.fillMaxSize()) {
         HeroBackdrop(
             sources = backdropSources,
             modifier = Modifier.fillMaxSize(),
@@ -128,27 +101,13 @@ fun AmbientScreen(app: HqApplication) {
             intervalMillis = 24_000L,
         )
 
-        // Slight animated dimming keeps bright photos calmer and reduces static overlay contrast.
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = protectiveDim))
+                .background(Color.Black.copy(alpha = 0.20f)),
         )
 
-        // Overlay light glow
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        0f to HqColors.Accent.copy(alpha = glow * 0.15f),
-                        1f to Color.Transparent,
-                        radius = 1600f,
-                    )
-                )
-        )
-
-        // Cinematic edge scrims — legibility without boxed panels (YouTube / Android TV style).
+        // Cinematic edge scrims — legibility without boxed panels.
         Box(
             Modifier
                 .fillMaxSize()
@@ -174,37 +133,28 @@ fun AmbientScreen(app: HqApplication) {
                 ),
         )
 
-        // Bottom-left: now playing + clock (safe area, slow drift).
-        Box(
+        // Bottom-left: now playing above clock (clock sits tight above date).
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 56.dp, bottom = 48.dp, end = 24.dp)
-                .graphicsLayer {
-                    translationX = drift
-                    translationY = -drift / 4
-                },
+                .padding(start = 56.dp, bottom = 48.dp, end = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                current?.let { channel ->
-                    AmbientNowPlaying(
-                        channelNumber = channel.number,
-                        channelName = channel.name,
-                        programTitle = nowProgram?.title,
-                    )
-                }
-                AmbientClock(clockTime = clockTime, clockMeridiem = clockMeridiem, clockDate = clockDate)
+            current?.let { channel ->
+                AmbientNowPlaying(
+                    channelNumber = channel.number,
+                    channelName = channel.name,
+                    programTitle = nowProgram?.title,
+                )
             }
+            AmbientClock(clockTime = clockTime, clockMeridiem = clockMeridiem, clockDate = clockDate)
         }
 
         // Bottom-right: compact weather + optional widget tray.
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 56.dp, bottom = 48.dp, start = 24.dp)
-                .graphicsLayer {
-                    translationX = -drift
-                    translationY = -drift / 4
-                },
+                .padding(end = 56.dp, bottom = 48.dp, start = 24.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -231,40 +181,46 @@ private fun AmbientClock(
     clockMeridiem: String,
     clockDate: String,
 ) {
-    Row(verticalAlignment = Alignment.Bottom) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                clockTime,
+                style = HqType.Display.copy(
+                    fontSize = 38.sp,
+                    lineHeight = 38.sp,
+                    lineHeightStyle = LineHeightStyle(
+                        alignment = LineHeightStyle.Alignment.Center,
+                        trim = LineHeightStyle.Trim.Both,
+                    ),
+                    fontWeight = FontWeight.Light,
+                    letterSpacing = (-0.5).sp,
+                    color = Color.White,
+                    shadow = ambientPrimaryShadow,
+                ),
+            )
+            if (clockMeridiem.isNotBlank()) {
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    clockMeridiem.uppercase(Locale.getDefault()),
+                    style = HqType.Label.copy(
+                        fontSize = 13.sp,
+                        color = Color.White.copy(alpha = 0.82f),
+                        shadow = ambientSecondaryShadow,
+                    ),
+                )
+            }
+        }
         Text(
-            clockTime,
-            style = HqType.Display.copy(
-                fontSize = 38.sp,
-                fontWeight = FontWeight.Light,
-                letterSpacing = (-0.5).sp,
-                color = Color.White,
-                shadow = ambientPrimaryShadow,
+            clockDate,
+            style = HqType.Body.copy(
+                color = Color.White.copy(alpha = 0.78f),
+                fontSize = 15.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Normal,
+                shadow = ambientSecondaryShadow,
             ),
         )
-        if (clockMeridiem.isNotBlank()) {
-            Spacer(Modifier.width(6.dp))
-            Text(
-                clockMeridiem.uppercase(Locale.getDefault()),
-                style = HqType.Label.copy(
-                    fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.82f),
-                    shadow = ambientSecondaryShadow,
-                ),
-                modifier = Modifier.padding(bottom = 6.dp),
-            )
-        }
     }
-    Spacer(Modifier.height(4.dp))
-    Text(
-        clockDate,
-        style = HqType.Body.copy(
-            color = Color.White.copy(alpha = 0.78f),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            shadow = ambientSecondaryShadow,
-        ),
-    )
 }
 
 @Composable
@@ -308,30 +264,6 @@ private fun AmbientNowPlaying(
 }
 
 @Composable
-private fun AmbientOverlayText(
-    text: String,
-    style: androidx.compose.ui.text.TextStyle,
-    modifier: Modifier = Modifier,
-    maxLines: Int = Int.MAX_VALUE,
-) {
-    Box(modifier) {
-        Text(
-            text = text,
-            style = style.copy(
-                color = Color.Black.copy(alpha = 0.35f),
-                shadow = ambientGlowShadow,
-            ),
-            maxLines = maxLines,
-        )
-        Text(
-            text = text,
-            style = style,
-            maxLines = maxLines,
-        )
-    }
-}
-
-@Composable
 private fun AmbientWeatherCardWrapper(
     plugin: WidgetPlugin,
     modifier: Modifier = Modifier,
@@ -366,14 +298,15 @@ private fun AmbientWeatherCard(
             Icon(
                 imageVector = Icons.Default.Cloud,
                 contentDescription = null,
-                tint = HqColors.Accent.copy(alpha = 0.9f),
+                tint = Color.White.copy(alpha = 0.85f),
                 modifier = Modifier.size(16.dp),
             )
             Spacer(Modifier.width(8.dp))
-            AmbientOverlayText(
+            Text(
                 text = state.headline.orEmpty(),
                 style = HqType.Display.copy(
                     fontSize = 28.sp,
+                    lineHeight = 28.sp,
                     fontWeight = FontWeight.Light,
                     color = Color.White,
                     shadow = ambientPrimaryShadow,
@@ -381,7 +314,7 @@ private fun AmbientWeatherCard(
             )
         }
         if (summary.isNotBlank()) {
-            AmbientOverlayText(
+            Text(
                 text = summary,
                 style = HqType.Body.copy(
                     color = Color.White.copy(alpha = 0.82f),
@@ -392,7 +325,7 @@ private fun AmbientWeatherCard(
             )
         }
         range?.let {
-            AmbientOverlayText(
+            Text(
                 text = it,
                 style = HqType.Label.copy(
                     color = Color.White.copy(alpha = 0.68f),
@@ -482,9 +415,4 @@ private val ambientSecondaryShadow = Shadow(
     color = Color.Black.copy(alpha = 0.65f),
     offset = Offset(0f, 1f),
     blurRadius = 10f,
-)
-private val ambientGlowShadow = Shadow(
-    color = Color.Black.copy(alpha = 0.55f),
-    offset = Offset(0f, 0f),
-    blurRadius = 18f,
 )

@@ -200,17 +200,19 @@ internal fun AmbientPhotosSettingsPanel(
             )
             if (pickerState.userCode.isNotBlank()) {
                 Text(
-                    text = "Code: ${pickerState.userCode}",
-                    style = HqType.Headline.copy(fontSize = 20.sp, color = HqColors.Accent, fontWeight = FontWeight.Bold),
+                    text = pickerState.userCode,
+                    style = HqType.Headline.copy(fontSize = 28.sp, color = HqColors.Accent, fontWeight = FontWeight.Bold),
                 )
+            }
+            if (pickerState.verificationUrlComplete.isNotBlank()) {
                 Text(
-                    text = "Device URL: ${pickerState.verificationUrl}",
-                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
+                    text = pickerState.verificationUrlComplete,
+                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
                 )
             }
             if (pickerState.pickerUri.isNotBlank()) {
                 Text(
-                    text = "Picker URL: ${pickerState.pickerUri}",
+                    text = pickerState.pickerUri,
                     style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
                 )
             }

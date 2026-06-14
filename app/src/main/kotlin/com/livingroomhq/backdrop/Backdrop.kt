@@ -1,6 +1,7 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.core.data.iptv.XmltvParser
 
 /**
  * A landscape still with optional attribution. Unsplash requires crediting the
@@ -13,9 +14,8 @@ data class AmbientPhoto(
 )
 
 /**
- * A single thing the hero can show, in priority order: a live stream, a piece
- * of landscape artwork (media backdrop or ambient still, optionally credited),
- * or the painted skyline floor that always works offline.
+ * A single thing the hero can show, in priority order: a live stream or a piece
+ * of landscape artwork (media backdrop or ambient still, optionally credited).
  */
 sealed interface BackdropSource {
     data class Live(val channel: Channel) : BackdropSource
@@ -23,17 +23,15 @@ sealed interface BackdropSource {
         val url: String,
         val credit: String? = null,
         val creditUrl: String? = null,
+        /** Square channel logos — fit on black instead of cinematic full-bleed crop. */
+        val contained: Boolean = false,
     ) : BackdropSource
-    data object Painted : BackdropSource
 }
 
 /**
  * Curated 16:9 landscape stills used as the ambient backbone when there's no
- * live stream and no media backdrop. These are direct Unsplash CDN URLs (stable
- * hotlinks, not the retired source.unsplash.com endpoint), sized to 1920w, and
- * are the *reliable* layer — any that fail to load fall through to the painted
- * skyline. The live Unsplash API replaces these with per-photo credited stills
- * at runtime; for a fully offline build, bundle these as drawables instead.
+ * live stream and no media backdrop. The live Unsplash API replaces these with
+ * per-photo credited stills at runtime.
  */
 /** Google Photos cache first, then Unsplash; deduped by URL. */
 fun mergeAmbientPhotos(cached: List<AmbientPhoto>, remote: List<AmbientPhoto>): List<AmbientPhoto> {
@@ -62,21 +60,24 @@ object AmbientBackdrops {
  */
 object BackdropProvider {
 
+    /**
+     * Home hero backdrop: live preview when focused, otherwise EPG programme art for the
+     * current show on [channel]. Never uses ambient/Unsplash stills here — those belong on Ambient.
+     */
     fun forHome(
         channel: Channel?,
-        showLive: Boolean,
+        heroLivePreview: Boolean,
         programmeArtworkUrl: String?,
-        mediaBackdrops: List<String>,
-        ambient: List<AmbientPhoto> = AmbientBackdrops.photos,
     ): List<BackdropSource> {
-        val programmeArtwork = programmeArtworkUrl
-            ?.takeIf { it.startsWith("https://", ignoreCase = true) || it.startsWith("http://", ignoreCase = true) }
+        val programmeArtwork = XmltvParser.normalizeArtworkUrl(programmeArtworkUrl)
             ?.let { BackdropSource.Artwork(it) }
+        val channelLogo = XmltvParser.normalizeArtworkUrl(channel?.logoUrl)
+            ?.let { BackdropSource.Artwork(it, contained = true) }
         return when {
-            showLive && channel != null && programmeArtwork != null -> listOf(BackdropSource.Live(channel), programmeArtwork)
-            showLive && channel != null -> listOf(BackdropSource.Live(channel))
-            programmeArtwork != null -> listOf(programmeArtwork) + artwork(mediaBackdrops, ambient)
-            else -> artwork(mediaBackdrops, ambient)
+            heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
+            programmeArtwork != null -> listOf(programmeArtwork)
+            channelLogo != null -> listOf(channelLogo)
+            else -> emptyList()
         }
     }
 
@@ -89,6 +90,6 @@ object BackdropProvider {
         val items = mediaBackdrops.map { BackdropSource.Artwork(it) } +
             ambient.map { BackdropSource.Artwork(it.url, it.photographer, it.profileUrl) }
         val deduped = items.distinctBy { it.url }
-        return deduped.ifEmpty { listOf(BackdropSource.Painted) }
+        return deduped
     }
 }

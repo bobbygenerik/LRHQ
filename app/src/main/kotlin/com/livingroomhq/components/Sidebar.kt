@@ -1,9 +1,9 @@
 package com.livingroomhq.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
@@ -14,11 +14,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Dashboard
@@ -26,15 +24,20 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -56,7 +59,7 @@ data class NavigationItem(
 )
 
 private val COLLAPSED_WIDTH = 68.dp
-private val EXPANDED_WIDTH = 252.dp
+private val EXPANDED_WIDTH = 196.dp
 
 /**
  * Collapsible navigation rail. Sits as an icon-only strip by default and
@@ -114,6 +117,15 @@ fun Sidebar(
         }
         Spacer(Modifier.height(10.dp))
 
+        val itemFocusRequesters = remember(navItems) {
+            navItems.associate { it.zone to FocusRequester() }
+        }
+        LaunchedEffect(expanded, currentZone) {
+            if (!expanded) return@LaunchedEffect
+            withFrameNanos { }
+            runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
+        }
+
         navItems.forEach { item ->
             SidebarItem(
                 title = item.title,
@@ -121,7 +133,9 @@ fun Sidebar(
                 active = currentZone == item.zone,
                 expanded = expanded,
                 onClick = { onZoneSelected(item.zone) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(itemFocusRequesters.getValue(item.zone)),
             )
         }
     }
@@ -137,23 +151,20 @@ private fun SidebarItem(
     modifier: Modifier = Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(10.dp)
-    val lift by animateDpAsState(
-        targetValue = if (active) (-3).dp else 0.dp,
-        label = "sidebarItemLift",
+    val scale by animateFloatAsState(
+        targetValue = if (active) 1.08f else 1f,
+        label = "sidebarItemScale",
     )
 
     val contentColor = when {
         active -> HqColors.Accent
         focused -> HqColors.TextPrimary
-        else -> HqColors.TextSecondary
+        else -> HqColors.TextTertiary
     }
 
     Box(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
-            .clip(shape)
-            .border(1.dp, if (focused) HqColors.Accent.copy(alpha = 0.55f) else Color.Transparent, shape)
             .clickable { onClick() }
             .focusable()
             .height(40.dp)
@@ -161,7 +172,15 @@ private fun SidebarItem(
         contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
     ) {
         Row(
-            modifier = Modifier.offset(y = lift),
+            modifier = Modifier.graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = if (expanded) {
+                    TransformOrigin(0f, 0.5f)
+                } else {
+                    TransformOrigin(0.5f, 0.5f)
+                }
+            },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = title, tint = contentColor, modifier = Modifier.size(20.dp))
@@ -171,7 +190,7 @@ private fun SidebarItem(
                     title,
                     style = HqType.Body.copy(
                         color = contentColor,
-                        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                     ),
                     maxLines = 1,
                     softWrap = false,

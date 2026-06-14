@@ -38,6 +38,7 @@ private data class DeviceCodeResponse(
 
 private data class OAuthToken(
     val accessToken: String,
+    val grantedScopes: String = "",
 )
 
 private data class PickerSession(
@@ -96,33 +97,23 @@ class GooglePhotosPickerClient(
             )
 
             val device = requestDeviceCode(requestId)
+            val phoneLink = device.verificationUrlComplete
             _state.value = _state.value.copy(
                 isBusy = true,
                 userCode = device.userCode,
                 verificationUrl = device.verificationUrl,
-                verificationUrlComplete = device.verificationUrlComplete,
-                status = "On your phone, open ${device.verificationUrl} and enter ${device.userCode}. Google Photos should open automatically after sign-in.",
+                verificationUrlComplete = phoneLink,
+                status = "Waiting for phone sign-in.",
             )
 
             val token = pollForToken(device)
-            _state.value = _state.value.copy(
-                status = if (sync) {
-                    "Linking picker session for album refresh..."
-                } else {
-                    "Linking Google Photos picker session..."
-                },
-            )
+            requirePickerScope(token)
+            _state.value = _state.value.copy(status = "Linking Google Photos…")
 
-            val session = createPickerSession(token.accessToken, requestId)
+            val session = createPickerSessionWithRetry(token.accessToken, requestId)
             _state.value = _state.value.copy(
                 pickerUri = session.pickerUri,
-                status = if (session.pickerUri.isNotBlank()) {
-                    "Finish selecting photos on your phone. If Photos did not open, use the Picker URL below."
-                } else if (sync) {
-                    "Re-select your LRHQ album on your phone, then tap Done."
-                } else {
-                    "Select your LRHQ album/photos on your phone, then tap Done."
-                },
+                status = "Select photos on your phone, then tap Done.",
             )
 
             val completed = pollSession(token.accessToken, session)
@@ -155,14 +146,37 @@ class GooglePhotosPickerClient(
                 } else {
                     "Google Photos Picker stopped."
                 },
-                error = error.localizedMessage ?: error.javaClass.simpleName,
+                error = humanizePickerError(error),
             )
         }
     }
 
+    private fun humanizePickerError(error: Throwable): String {
+        val message = error.message.orEmpty()
+        return when {
+            message.contains("Invalid device flow scope", ignoreCase = true) ||
+                message.contains("invalid_scope", ignoreCase = true) ->
+                "This TV OAuth client can only request profile during sign-in. " +
+                    "Photos access is granted on your phone via the full link below — do not add picker scopes in Cloud Console."
+            message.contains("Precondition", ignoreCase = true) ||
+                message.contains("FAILED_PRECONDITION", ignoreCase = true) ->
+                "Couldn't open Google Photos on your phone. Tap the phone link below (not google.com/device alone), " +
+                    "sign in, and stay on the phone until Photos opens."
+            message.contains("photospicker.mediaitems.readonly", ignoreCase = true) ->
+                message
+            else -> message.ifBlank { error.javaClass.simpleName }
+        }
+    }
+
+    private fun requirePickerScope(token: OAuthToken) {
+        if (token.grantedScopes.contains(PICKER_SCOPE)) return
+        if (token.grantedScopes.isBlank()) return
+        error("Photos access wasn't granted. Open the phone link below on your phone and approve access.")
+    }
+
     private fun requestDeviceCode(requestId: String): DeviceCodeResponse {
-        // photospicker.mediaitems.readonly is not allowed on the TV device-code endpoint.
-        // Use profile + state.requestId for the streamlined picker flow (same pattern as Ambient API).
+        // TV device flow only allows openid/profile/email scopes. Picker access is granted on the
+        // phone when the user completes sign-in with the same requestId in state (streamlined flow).
         val state = JSONObject()
             .put("requestId", requestId)
             .put("displayName", "LRHQ")
@@ -171,7 +185,7 @@ class GooglePhotosPickerClient(
             url = "https://oauth2.googleapis.com/device/code",
             params = mapOf(
                 "client_id" to clientId,
-                "scope" to "profile",
+                "scope" to DEVICE_FLOW_SCOPE,
                 "state" to state,
             ),
         )
@@ -179,10 +193,41 @@ class GooglePhotosPickerClient(
             deviceCode = json.getString("device_code"),
             userCode = json.getString("user_code"),
             verificationUrl = json.getString("verification_url"),
-            verificationUrlComplete = json.optString("verification_url_complete"),
+            verificationUrlComplete = completeVerificationUrl(
+                json.getString("verification_url"),
+                json.getString("user_code"),
+                json.optString("verification_url_complete"),
+            ),
             intervalSeconds = json.optLong("interval", 5L),
             expiresInSeconds = json.optLong("expires_in", 900L),
         )
+    }
+
+    private suspend fun createPickerSessionWithRetry(accessToken: String, requestId: String): PickerSession {
+        var lastError: Throwable? = null
+        repeat(6) { attempt ->
+            runCatching {
+                return createPickerSession(accessToken, requestId)
+            }.onFailure { error ->
+                lastError = error
+                val message = error.message.orEmpty()
+                val retriable = message.contains("Precondition", ignoreCase = true) ||
+                    message.contains("FAILED_PRECONDITION", ignoreCase = true)
+                if (!retriable || attempt == 5) throw error
+                delay(2_000L * (attempt + 1))
+            }
+        }
+        throw lastError ?: IllegalStateException("Picker session failed.")
+    }
+
+    private fun completeVerificationUrl(
+        verificationUrl: String,
+        userCode: String,
+        verificationUrlComplete: String,
+    ): String {
+        if (verificationUrlComplete.isNotBlank()) return verificationUrlComplete
+        val base = verificationUrl.trimEnd('/')
+        return "$base?user_code=${userCode.urlEncode()}"
     }
 
     private suspend fun pollForToken(device: DeviceCodeResponse): OAuthToken {
@@ -199,7 +244,12 @@ class GooglePhotosPickerClient(
             val response = postFormResult("https://oauth2.googleapis.com/token", params)
             val error = response.optString("error")
             when {
-                response.has("access_token") -> return OAuthToken(response.getString("access_token"))
+                response.has("access_token") -> {
+                    return OAuthToken(
+                        accessToken = response.getString("access_token"),
+                        grantedScopes = response.optString("scope"),
+                    )
+                }
                 error == "authorization_pending" -> Unit
                 error == "slow_down" -> intervalSeconds += 5L
                 error.isNotBlank() -> error(error)
@@ -355,3 +405,6 @@ private fun String.urlEncode(): String =
 
 private fun String.durationSeconds(): Long =
     removeSuffix("s").toDoubleOrNull()?.toLong() ?: 5L
+
+private const val DEVICE_FLOW_SCOPE = "profile"
+private const val PICKER_SCOPE = "photospicker.mediaitems.readonly"

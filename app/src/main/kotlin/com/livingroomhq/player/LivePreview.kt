@@ -96,25 +96,25 @@ fun LivePreview(
             )
         }
 
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.6f to Color.Transparent,
-                        1f to Color(0xCC000000),
-                    ),
-                ),
-        )
         if (showLabel) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            0.6f to Color.Transparent,
+                            1f to Color(0xCC000000),
+                        ),
+                    ),
+            )
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
                     .padding(24.dp),
             ) {
                 Text(
-                    channel?.let { "CH ${it.number} · ${it.name}" } ?: "No channel",
+                    channel?.name ?: "No channel",
                     style = HqType.Label,
                 )
             }
