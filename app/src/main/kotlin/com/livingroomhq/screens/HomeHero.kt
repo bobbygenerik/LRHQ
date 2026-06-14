@@ -1,5 +1,7 @@
 package com.livingroomhq.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +21,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -34,6 +42,9 @@ import androidx.tv.material3.Text
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import kotlinx.coroutines.delay
+
+private const val HERO_LIVE_OVERLAY_IDLE_MS = 6_000L
 
 @Composable
 internal fun HomeHeroContent(
@@ -46,55 +57,78 @@ internal fun HomeHeroContent(
     nowDescription: String?,
     progress: Float?,
     nextTitle: String?,
+    isLivePreview: Boolean,
+    heroFocused: Boolean,
     backdrop: @Composable () -> Unit,
 ) {
+    var overlaysVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(isLivePreview, channel?.id, heroFocused) {
+        if (!isLivePreview) {
+            overlaysVisible = true
+            return@LaunchedEffect
+        }
+        overlaysVisible = true
+        if (heroFocused) return@LaunchedEffect
+        delay(HERO_LIVE_OVERLAY_IDLE_MS)
+        if (!heroFocused) overlaysVisible = false
+    }
+
+    val overlayAlpha by animateFloatAsState(
+        targetValue = if (!isLivePreview || overlaysVisible) 1f else 0f,
+        animationSpec = tween(500),
+        label = "heroOverlayAlpha",
+    )
+
     Box(Modifier.fillMaxSize()) {
         backdrop()
 
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color(0x99000000),
-                        0.28f to Color(0x33000000),
-                        0.55f to Color.Transparent,
-                        1f to Color(0xE605070D),
+        Box(Modifier.fillMaxSize().alpha(overlayAlpha)) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color(0x99000000),
+                            0.28f to Color(0x33000000),
+                            0.55f to Color.Transparent,
+                            1f to Color(0xE605070D),
+                        ),
                     ),
-                ),
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 40.dp, vertical = 28.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
-        ) {
-            LiveBadge()
-            if (showWeather) {
-                ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF)
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .padding(horizontal = 40.dp, vertical = 28.dp),
-            verticalAlignment = Alignment.Bottom,
-        ) {
-            NowPlayingSummary(
-                channel = channel,
-                nowTitle = nowTitle,
-                nowDescription = nowDescription,
-                progress = progress,
-                modifier = Modifier.weight(1f),
             )
 
-            if (nextTitle != null) {
-                Spacer(Modifier.width(18.dp))
-                UpNextPanel(nextTitle)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                LiveBadge()
+                if (showWeather) {
+                    ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF)
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                NowPlayingSummary(
+                    channel = channel,
+                    nowTitle = nowTitle,
+                    nowDescription = nowDescription,
+                    progress = progress,
+                    modifier = Modifier.weight(1f),
+                )
+
+                if (nextTitle != null) {
+                    Spacer(Modifier.width(18.dp))
+                    UpNextPanel(nextTitle)
+                }
             }
         }
     }

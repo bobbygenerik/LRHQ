@@ -17,11 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import coil.request.ImageRequest
+import com.livingroomhq.backdrop.BackdropBlurTransformation
 import com.livingroomhq.backdrop.BackdropSource
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.player.LivePreview
@@ -85,9 +93,9 @@ fun HeroBackdrop(
 }
 
 /**
- * TV-safe artwork layout: a blurred, cropped fill behind a sharp [ContentScale.Fit]
- * foreground. Portrait posters and movie art keep their full frame while the sides
- * (or top/bottom) are filled with a frosted version of the same image.
+ * TV-safe artwork layout: sharp [ContentScale.Fit] foreground with a scaled,
+ * blurred copy bleeding into pillarbox/letterbox gaps. Portrait Unsplash stills
+ * need extra scale so side bars pick up color from the photo instead of a frosted wash.
  */
 @Composable
 private fun ArtworkBackdrop(
@@ -95,33 +103,53 @@ private fun ArtworkBackdrop(
     credit: String?,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val useComposeBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
     Box(modifier) {
         SunsetCitySkyline(Modifier.fillMaxSize())
 
-        AsyncImage(
-            model = url,
+        SubcomposeAsyncImage(
+            model = if (useComposeBlur) {
+                url
+            } else {
+                ImageRequest.Builder(context)
+                    .data(url)
+                    .crossfade(true)
+                    .transformations(BackdropBlurTransformation(context, radius = 22f, sampling = 2f))
+                    .build()
+            },
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
+            contentScale = ContentScale.Fit,
+            filterQuality = FilterQuality.Low,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            val size = painter.intrinsicSize
+            val bleed = if (size == Size.Unspecified) {
+                1.20f
+            } else {
+                val isPortrait = size.height > size.width
+                when {
+                    isPortrait -> 1.58f
+                    size.width > size.height * 1.2f -> 1.08f
+                    else -> 1.20f
+                }
+            }
+            val layerModifier = Modifier
                 .fillMaxSize()
-                .then(
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        Modifier.blur(56.dp)
-                    } else {
-                        Modifier
-                    },
-                ),
-        )
+                .graphicsLayer {
+                    scaleX = bleed
+                    scaleY = bleed
+                }
+                .then(if (useComposeBlur) Modifier.blur(42.dp) else Modifier)
+
+            SubcomposeAsyncImageContent(modifier = layerModifier)
+        }
 
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.22f)),
-        )
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.White.copy(alpha = 0.06f)),
+                .background(Color.Black.copy(alpha = 0.18f)),
         )
 
         AsyncImage(

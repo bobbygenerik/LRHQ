@@ -21,8 +21,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.livingroomhq.HqApplication
+import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.ui.components.initialFocus
@@ -69,34 +71,43 @@ fun HomeScreen(
         }
     }
 
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
         HomeHero(
-            focusedAction = { nav.goTo(Zone.LIVE) },
-            content = {
-                HomeHeroContent(
-                    channel = current,
-                    clockTime = clockTime,
-                    clockDate = clockDate,
-                    temperatureF = weather?.temperatureF,
-                    showWeather = customSettings.showWeather,
-                    nowTitle = nowProgram?.title,
-                    nowDescription = nowProgram?.description,
-                    progress = nowProgram?.progressAt(System.currentTimeMillis()),
-                    nextTitle = nextProgram?.title,
-                    backdrop = {
-                        HeroBackdrop(
-                            sources = backdropSources,
-                            modifier = Modifier.fillMaxSize(),
-                            cycle = !isLive,
-                        )
-                    },
-                )
+            focusedAction = {
+                if (current != null) {
+                    ChannelPlayer.launch(context, current)
+                } else {
+                    nav.goTo(Zone.LIVE)
+                }
             },
-        )
+        ) { heroFocused ->
+            HomeHeroContent(
+                channel = current,
+                clockTime = clockTime,
+                clockDate = clockDate,
+                temperatureF = weather?.temperatureF,
+                showWeather = customSettings.showWeather,
+                nowTitle = nowProgram?.title,
+                nowDescription = nowProgram?.description,
+                progress = nowProgram?.progressAt(System.currentTimeMillis()),
+                nextTitle = nextProgram?.title,
+                isLivePreview = isLive,
+                heroFocused = heroFocused,
+                backdrop = {
+                    HeroBackdrop(
+                        sources = backdropSources,
+                        modifier = Modifier.fillMaxSize(),
+                        cycle = !isLive,
+                    )
+                },
+            )
+        }
 
         Column(modifier = Modifier.padding(horizontal = 40.dp, vertical = 28.dp)) {
             RecentChannelsRow(
@@ -104,7 +115,7 @@ fun HomeScreen(
                 recents = recents,
                 onChannelSelected = { channel ->
                     app.channels.markWatched(channel.id)
-                    nav.goTo(Zone.LIVE)
+                    ChannelPlayer.launch(context, channel)
                 },
             )
         }
@@ -114,7 +125,7 @@ fun HomeScreen(
 @Composable
 private fun HomeHero(
     focusedAction: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable (heroFocused: Boolean) -> Unit,
 ) {
     var heroFocused by remember { mutableStateOf(false) }
     Box(
@@ -126,7 +137,7 @@ private fun HomeHero(
             .focusable()
             .initialFocus(),
     ) {
-        content()
+        content(heroFocused)
         if (heroFocused) {
             Box(
                 Modifier

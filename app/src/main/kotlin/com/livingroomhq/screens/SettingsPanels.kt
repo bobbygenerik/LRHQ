@@ -164,7 +164,7 @@ internal fun AmbientPhotosSettingsPanel(
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                "Connect Google Photos, select your LRHQ album/photos, and LRHQ will cache resized display copies locally so Ambient can rotate them indefinitely.",
+                "Connect Google Photos, select your LRHQ album/photos, and LRHQ will cache resized display copies locally. Ambient rotates your photos together with Unsplash stills.",
                 style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {

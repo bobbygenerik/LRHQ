@@ -80,8 +80,23 @@ class LivePreviewEngine(context: Context) {
         player.pause()
     }
 
+    /** Stop decoding while a fullscreen player owns the stream; keeps [boundUrl] for resume. */
+    fun standDownForFullscreenPlayback() {
+        player.pause()
+        player.stop()
+        player.clearMediaItems()
+    }
+
     fun resume() {
-        if (boundView != null) player.play()
+        if (boundView == null) return
+        if (player.mediaItemCount == 0) {
+            val url = boundUrl
+            if (url != null) {
+                boundUrl = null
+                prepareChannel(url)
+            }
+        }
+        player.play()
     }
 
     fun release() {

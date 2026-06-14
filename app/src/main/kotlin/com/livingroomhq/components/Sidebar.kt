@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,7 +38,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
@@ -53,7 +56,7 @@ data class NavigationItem(
 )
 
 private val COLLAPSED_WIDTH = 68.dp
-private val EXPANDED_WIDTH = 210.dp
+private val EXPANDED_WIDTH = 252.dp
 
 /**
  * Collapsible navigation rail. Sits as an icon-only strip by default and
@@ -94,16 +97,18 @@ fun Sidebar(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.lrhq_mark_transparent),
-                contentDescription = "LRHQ",
+                contentDescription = stringResource(R.string.app_name),
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.size(42.dp),
+                modifier = Modifier.size(48.dp),
             )
             if (expanded) {
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "LRHQ",
+                    text = stringResource(R.string.app_name),
                     style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.Bold),
                     maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip,
                 )
             }
         }
@@ -133,14 +138,14 @@ private fun SidebarItem(
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(10.dp)
+    val lift by animateDpAsState(
+        targetValue = if (active) (-3).dp else 0.dp,
+        label = "sidebarItemLift",
+    )
 
-    val background = when {
-        focused -> HqColors.Accent.copy(alpha = 0.20f)
-        active -> HqColors.Accent.copy(alpha = 0.12f)
-        else -> Color.Transparent
-    }
     val contentColor = when {
-        focused || active -> HqColors.Accent
+        active -> HqColors.Accent
+        focused -> HqColors.TextPrimary
         else -> HqColors.TextSecondary
     }
 
@@ -148,15 +153,17 @@ private fun SidebarItem(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
-            .background(background)
-            .border(1.dp, if (focused) HqColors.Accent else Color.Transparent, shape)
+            .border(1.dp, if (focused) HqColors.Accent.copy(alpha = 0.55f) else Color.Transparent, shape)
             .clickable { onClick() }
             .focusable()
             .height(40.dp)
             .padding(horizontal = 10.dp),
         contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.offset(y = lift),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(icon, contentDescription = title, tint = contentColor, modifier = Modifier.size(20.dp))
             if (expanded) {
                 Spacer(Modifier.width(14.dp))
@@ -167,6 +174,8 @@ private fun SidebarItem(
                         fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
                     ),
                     maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip,
                 )
             }
         }

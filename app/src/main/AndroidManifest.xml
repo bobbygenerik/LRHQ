@@ -53,6 +53,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".player.ChannelPlayerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.LivingRoomHQ"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode" />
+
         <service
             android:name=".ambient.LrhqDreamService"
             android:exported="true"

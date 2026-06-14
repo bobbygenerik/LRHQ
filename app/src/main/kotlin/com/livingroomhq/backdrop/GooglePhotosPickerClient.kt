@@ -82,6 +82,7 @@ class GooglePhotosPickerClient(
         }
 
         runCatching {
+            val requestId = UUID.randomUUID().toString()
             _state.value = _state.value.copy(
                 isBusy = true,
                 userCode = "",
@@ -94,31 +95,33 @@ class GooglePhotosPickerClient(
                 },
             )
 
-            val device = requestDeviceCode()
+            val device = requestDeviceCode(requestId)
             _state.value = _state.value.copy(
                 isBusy = true,
                 userCode = device.userCode,
                 verificationUrl = device.verificationUrl,
                 verificationUrlComplete = device.verificationUrlComplete,
-                status = "On your phone, open ${device.verificationUrl} and enter ${device.userCode}.",
+                status = "On your phone, open ${device.verificationUrl} and enter ${device.userCode}. Google Photos should open automatically after sign-in.",
             )
 
             val token = pollForToken(device)
             _state.value = _state.value.copy(
                 status = if (sync) {
-                    "Creating Google Photos picker session for refresh..."
+                    "Linking picker session for album refresh..."
                 } else {
-                    "Creating Google Photos picker session..."
+                    "Linking Google Photos picker session..."
                 },
             )
 
-            val session = createPickerSession(token.accessToken)
+            val session = createPickerSession(token.accessToken, requestId)
             _state.value = _state.value.copy(
                 pickerUri = session.pickerUri,
-                status = if (sync) {
-                    "Open the picker link, re-select your LRHQ album, then tap Done."
+                status = if (session.pickerUri.isNotBlank()) {
+                    "Finish selecting photos on your phone. If Photos did not open, use the Picker URL below."
+                } else if (sync) {
+                    "Re-select your LRHQ album on your phone, then tap Done."
                 } else {
-                    "Open the picker link, select your LRHQ album/photos, then tap Done."
+                    "Select your LRHQ album/photos on your phone, then tap Done."
                 },
             )
 
@@ -157,12 +160,19 @@ class GooglePhotosPickerClient(
         }
     }
 
-    private fun requestDeviceCode(): DeviceCodeResponse {
+    private fun requestDeviceCode(requestId: String): DeviceCodeResponse {
+        // photospicker.mediaitems.readonly is not allowed on the TV device-code endpoint.
+        // Use profile + state.requestId for the streamlined picker flow (same pattern as Ambient API).
+        val state = JSONObject()
+            .put("requestId", requestId)
+            .put("displayName", "LRHQ")
+            .toString()
         val json = postForm(
             url = "https://oauth2.googleapis.com/device/code",
             params = mapOf(
                 "client_id" to clientId,
-                "scope" to "https://www.googleapis.com/auth/photospicker.mediaitems.readonly",
+                "scope" to "profile",
+                "state" to state,
             ),
         )
         return DeviceCodeResponse(
@@ -198,10 +208,9 @@ class GooglePhotosPickerClient(
         error("Google sign-in timed out.")
     }
 
-    private fun createPickerSession(accessToken: String): PickerSession {
-        val requestId = UUID.randomUUID().toString()
+    private fun createPickerSession(accessToken: String, requestId: String): PickerSession {
         val json = postJson(
-            url = "https://photospicker.googleapis.com/v1/sessions?requestId=$requestId",
+            url = "https://photospicker.googleapis.com/v1/sessions?requestId=${requestId.urlEncode()}",
             accessToken = accessToken,
             body = JSONObject().put("pickingConfig", JSONObject().put("maxItemCount", "2000")),
         )
@@ -329,10 +338,15 @@ class GooglePhotosPickerClient(
         val stream = if (responseCode in 200..299) inputStream else errorStream
         val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
         if (responseCode !in 200..299) {
-            val error = runCatching { JSONObject(text).optJSONObject("error")?.optString("message") }.getOrNull()
-            error(error ?: "HTTP $responseCode")
+            val message = runCatching {
+                val json = JSONObject(text)
+                json.optJSONObject("error")?.optString("message")
+                    ?: json.optString("error_description")
+                    ?: json.optString("error")
+            }.getOrNull()?.takeIf { it.isNotBlank() }
+            error(message ?: "HTTP $responseCode")
         }
-        return JSONObject(text)
+        return if (text.isBlank()) JSONObject() else JSONObject(text)
     }
 }
 

@@ -46,6 +46,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,15 +55,20 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.GlassPanel
-import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.LivePreview
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun LiveScreen(app: HqApplication) {
+    val context = LocalContext.current
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val epgRevision by app.channels.epgRevision.collectAsState()
@@ -195,6 +201,7 @@ fun LiveScreen(app: HqApplication) {
                             onFocused = { previewId = channel.id },
                             onClick = {
                                 app.channels.markWatched(channel.id)
+                                ChannelPlayer.launch(context, channel)
                             }
                         )
                     }
@@ -215,6 +222,12 @@ fun LiveScreen(app: HqApplication) {
                     .aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black)
+                    .then(
+                        previewChannel?.let { channel ->
+                            Modifier.clickable { ChannelPlayer.launch(context, channel) }
+                        } ?: Modifier,
+                    )
+                    .focusable(previewChannel != null),
             ) {
                 if (previewChannel == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -263,13 +276,36 @@ fun LiveScreen(app: HqApplication) {
                     
                     if (now != null) {
                         Spacer(Modifier.height(12.dp))
-                        val progress = now.progressAt(System.currentTimeMillis())
-                        StatBar(
-                            label = "Elapsed",
-                            value = "${(progress * 100).toInt()}%",
-                            progress = progress,
-                            tint = HqColors.Accent
-                        )
+                        val nowMillis = System.currentTimeMillis()
+                        val progress = now.progressAt(nowMillis)
+                        val minutesLeft = ((now.endMillis - nowMillis) / 60_000L).coerceAtLeast(0)
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(
+                                text = formatProgramWindow(now),
+                                style = HqType.Label.copy(color = HqColors.TextSecondary),
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                text = if (minutesLeft == 0L) "Ending soon" else "${minutesLeft}m left",
+                                style = HqType.Label.copy(color = HqColors.TextTertiary),
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(Color(0x1FFFFFFF)),
+                        ) {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth(progress)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(HqColors.Accent),
+                            )
+                        }
                     }
                     
                     next?.let {
@@ -442,4 +478,12 @@ private fun ChannelGridCard(
             }
         }
     }
+}
+
+private fun formatProgramWindow(program: Program): String {
+    val startFmt = SimpleDateFormat("h:mm", Locale.getDefault())
+    val endFmt = SimpleDateFormat("h:mm a", Locale.getDefault())
+    val start = startFmt.format(Date(program.startMillis))
+    val end = endFmt.format(Date(program.endMillis))
+    return "$start – $end"
 }

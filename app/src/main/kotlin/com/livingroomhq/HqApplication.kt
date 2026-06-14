@@ -6,6 +6,7 @@ import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.AmbientPhotoCacheRepository
 import com.livingroomhq.backdrop.GooglePhotosPickerClient
 import com.livingroomhq.backdrop.UnsplashClient
+import com.livingroomhq.backdrop.mergeAmbientPhotos
 import com.livingroomhq.player.LivePreviewEngine
 import com.livingroomhq.core.data.db.LrhqDatabase
 import com.livingroomhq.core.data.persist.DataStorePrefsStore
@@ -29,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -64,7 +66,7 @@ class HqApplication : Application() {
     private val _ambientBackdropPhotos = MutableStateFlow(AmbientBackdrops.photos)
     private val _remoteAmbientPhotos = MutableStateFlow(AmbientBackdrops.photos)
 
-    /** Credited landscape stills for the hero / ambient cycle; bundled set until Unsplash responds. */
+    /** Cached Google Photos + Unsplash stills for the hero / ambient cycle. */
     val ambientBackdropPhotos: StateFlow<List<AmbientPhoto>> = _ambientBackdropPhotos.asStateFlow()
 
     override fun onCreate() {
@@ -83,8 +85,10 @@ class HqApplication : Application() {
             }
         }
         appScope.launch {
-            ambientPhotoCache.photos.collect { cached ->
-                _ambientBackdropPhotos.value = cached.takeIf { it.isNotEmpty() } ?: _remoteAmbientPhotos.value
+            combine(ambientPhotoCache.photos, _remoteAmbientPhotos) { cached, remote ->
+                mergeAmbientPhotos(cached, remote).ifEmpty { AmbientBackdrops.photos }
+            }.collect { merged ->
+                _ambientBackdropPhotos.value = merged
             }
         }
         // Refresh the ambient backdrop pool once per launch (demo tier: 50 req/hr).
@@ -92,7 +96,6 @@ class HqApplication : Application() {
             val photos = UnsplashClient.fetchLandscapePhotos()
             if (photos.isNotEmpty()) {
                 _remoteAmbientPhotos.value = photos
-                if (ambientPhotoCache.photos.value.isEmpty()) _ambientBackdropPhotos.value = photos
             }
         }
     }

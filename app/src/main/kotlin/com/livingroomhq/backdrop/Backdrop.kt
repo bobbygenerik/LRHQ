@@ -35,6 +35,12 @@ sealed interface BackdropSource {
  * skyline. The live Unsplash API replaces these with per-photo credited stills
  * at runtime; for a fully offline build, bundle these as drawables instead.
  */
+/** Google Photos cache first, then Unsplash; deduped by URL. */
+fun mergeAmbientPhotos(cached: List<AmbientPhoto>, remote: List<AmbientPhoto>): List<AmbientPhoto> {
+    val seen = mutableSetOf<String>()
+    return (cached + remote).filter { seen.add(it.url) }
+}
+
 object AmbientBackdrops {
     val photos: List<AmbientPhoto> = listOf(
         AmbientPhoto("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80", "Unsplash", "https://unsplash.com"),
