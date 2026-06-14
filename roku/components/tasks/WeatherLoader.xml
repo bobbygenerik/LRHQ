@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="WeatherLoader" extends="Task">
+    <script type="text/brightscript" uri="pkg:/components/tasks/Net.brs" />
+    <script type="text/brightscript" uri="pkg:/components/tasks/WeatherLoader.brs" />
+    <interface>
+        <field id="weather" type="assocarray" />
+    </interface>
+</component>

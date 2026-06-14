@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="UnsplashLoader" extends="Task">
+    <script type="text/brightscript" uri="pkg:/components/tasks/Net.brs" />
+    <script type="text/brightscript" uri="pkg:/components/tasks/UnsplashLoader.brs" />
+    <interface>
+        <field id="accessKey" type="string" />
+        <field id="photos" type="array" />
+    </interface>
+</component>

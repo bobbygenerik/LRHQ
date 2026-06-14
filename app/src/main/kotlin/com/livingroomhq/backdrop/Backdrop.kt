@@ -1,7 +1,7 @@
 package com.livingroomhq.backdrop
 
+import com.livingroomhq.R
 import com.livingroomhq.core.data.model.Channel
-import com.livingroomhq.core.data.iptv.XmltvParser
 
 /**
  * A landscape still with optional attribution. Unsplash requires crediting the
@@ -25,6 +25,8 @@ sealed interface BackdropSource {
         val creditUrl: String? = null,
         /** Square channel logos — fit on black instead of cinematic full-bleed crop. */
         val contained: Boolean = false,
+        /** Bundled drawable shown instead of [url] — always available, no network. */
+        val resId: Int? = null,
     ) : BackdropSource
 }
 
@@ -37,6 +39,34 @@ sealed interface BackdropSource {
 fun mergeAmbientPhotos(cached: List<AmbientPhoto>, remote: List<AmbientPhoto>): List<AmbientPhoto> {
     val seen = mutableSetOf<String>()
     return (cached + remote).filter { seen.add(it.url) }
+}
+
+/**
+ * Bundled cinematic stills shipped inside the app — the home hero's resting
+ * backdrop. Always available offline, so the hero never falls back to black
+ * when channel logos or programme art fail to load. Channel identity lives in
+ * the overlaid text, not the backdrop, so this stays consistent across every
+ * channel.
+ */
+object HomeAmbientBackdrops {
+    private val resIds: List<Int> = listOf(
+        R.drawable.hero_ambient_01,
+        R.drawable.hero_ambient_02,
+        R.drawable.hero_ambient_03,
+        R.drawable.hero_ambient_04,
+        R.drawable.hero_ambient_05,
+        R.drawable.hero_ambient_06,
+        R.drawable.hero_ambient_07,
+        R.drawable.hero_ambient_08,
+        R.drawable.hero_ambient_09,
+        R.drawable.hero_ambient_10,
+        R.drawable.hero_ambient_11,
+        R.drawable.hero_ambient_12,
+        R.drawable.hero_ambient_13,
+        R.drawable.hero_ambient_14,
+    )
+
+    val sources: List<BackdropSource> = resIds.map { BackdropSource.Artwork(url = "", resId = it) }
 }
 
 object AmbientBackdrops {
@@ -61,24 +91,18 @@ object AmbientBackdrops {
 object BackdropProvider {
 
     /**
-     * Home hero backdrop: live preview when focused, otherwise EPG programme art for the
-     * current show on [channel]. Never uses ambient/Unsplash stills here — those belong on Ambient.
+     * Home hero backdrop: live preview when focused, otherwise the bundled cinematic
+     * stills that rotate as a calm, always-available backbone. Channel logos and
+     * programme art are deliberately not used here — they load from the network and
+     * read inconsistently across channels; the channel name in the overlay carries
+     * identity instead.
      */
     fun forHome(
         channel: Channel?,
         heroLivePreview: Boolean,
-        programmeArtworkUrl: String?,
-    ): List<BackdropSource> {
-        val programmeArtwork = XmltvParser.normalizeArtworkUrl(programmeArtworkUrl)
-            ?.let { BackdropSource.Artwork(it) }
-        val channelLogo = XmltvParser.normalizeArtworkUrl(channel?.logoUrl)
-            ?.let { BackdropSource.Artwork(it, contained = true) }
-        return when {
-            heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
-            programmeArtwork != null -> listOf(programmeArtwork)
-            channelLogo != null -> listOf(channelLogo)
-            else -> emptyList()
-        }
+    ): List<BackdropSource> = when {
+        heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
+        else -> HomeAmbientBackdrops.sources
     }
 
     fun forAmbient(

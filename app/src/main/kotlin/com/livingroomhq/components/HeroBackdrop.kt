@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
@@ -44,6 +47,8 @@ fun HeroBackdrop(
     modifier: Modifier = Modifier,
     cycle: Boolean = false,
     intervalMillis: Long = 14_000L,
+    /** When set, fades the bottom of the hero into this color so it blends into the page below. */
+    bottomFade: Color? = null,
 ) {
     Box(modifier.background(Color.Black)) {
         if (sources.isEmpty()) return@Box
@@ -88,10 +93,27 @@ fun HeroBackdrop(
                         url = source.url,
                         credit = source.credit,
                         contained = source.contained,
+                        resId = source.resId,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
+        }
+
+        // Blend the hero's bottom into the page color so it doesn't hard-cut into the
+        // content below. Lives on the backdrop layer so it holds even when the
+        // foreground overlays fade out (idle live preview).
+        bottomFade?.let { fade ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.55f to Color.Transparent,
+                            1f to fade,
+                        ),
+                    ),
+            )
         }
     }
 }
@@ -128,13 +150,14 @@ private fun CyclingArtworkStack(
 
     Box(modifier) {
         val base = sources[baseIndex]
-        ArtworkBackdrop(base.url, base.credit, base.contained, Modifier.fillMaxSize())
+        ArtworkBackdrop(base.url, base.credit, base.contained, base.resId, Modifier.fillMaxSize())
         if (overlayIndex >= 0) {
             val overlay = sources[overlayIndex]
             ArtworkBackdrop(
                 url = overlay.url,
                 credit = overlay.credit,
                 contained = overlay.contained,
+                resId = overlay.resId,
                 modifier = Modifier
                     .fillMaxSize()
                     .alpha(overlayAlpha.value),
@@ -149,9 +172,22 @@ private fun ArtworkBackdrop(
     url: String,
     credit: String?,
     contained: Boolean = false,
+    resId: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+
+    if (resId != null) {
+        Image(
+            painter = painterResource(resId),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Black),
+        )
+        return
+    }
 
     if (contained) {
         Box(modifier.background(Color.Black), contentAlignment = Alignment.Center) {

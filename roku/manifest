@@ -1,0 +1,14 @@
+title=LivingRoom HQ
+major_version=0
+minor_version=1
+build_version=38
+
+# Splash / theming
+splash_color=#05070D
+splash_min_time=0
+ui_resolutions=fhd
+
+# Roku does not permit third-party launchers, so this ships as a regular
+# channel (app) the user opens — see README for how the Android launcher
+# concept maps onto Roku.
+bs_const=DEBUG=true

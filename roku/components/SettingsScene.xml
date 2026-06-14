@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SettingsScene" extends="Group">
+    <script type="text/brightscript" uri="pkg:/source/Theme.brs" />
+    <script type="text/brightscript" uri="pkg:/source/Registry.brs" />
+    <script type="text/brightscript" uri="pkg:/components/SettingsScene.brs" />
+    <interface>
+        <field id="settingsChanged" type="boolean" />
+        <function name="proxyKey" />
+        <function name="dialogOpen" />
+    </interface>
+    <children>
+        <Rectangle id="bg" width="1920" height="1080" color="0x05070DFF" />
+        <Label id="title" text="Settings" translation="[80,52]" font="font:LargeBoldSystemFont" />
+
+        <Group id="rows" translation="[80,200]">
+            <Rectangle id="row0Border" translation="[-2,-2]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row0Card" translation="[0,0]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row0Label" translation="[24,18]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row0Value" translation="[24,62]" width="1152" font="font:MediumSystemFont" />
+
+            <Rectangle id="row1Border" translation="[-2,148]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row1Card" translation="[0,150]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row1Label" translation="[24,168]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row1Value" translation="[24,212]" width="1152" font="font:MediumSystemFont" />
+
+            <Rectangle id="row2Border" translation="[-2,298]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row2Card" translation="[0,300]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row2Label" translation="[24,318]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row2Value" translation="[24,362]" width="1152" font="font:MediumSystemFont" />
+
+            <Rectangle id="row3Border" translation="[-2,448]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row3Card" translation="[0,450]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row3Label" translation="[24,468]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row3Value" translation="[24,512]" width="1152" font="font:MediumSystemFont" />
+
+            <Rectangle id="row4Border" translation="[-2,598]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row4Card" translation="[0,600]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row4Label" translation="[24,618]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row4Value" translation="[24,662]" width="1152" font="font:MediumSystemFont" />
+
+            <Rectangle id="row5Border" translation="[-2,748]" width="1204" height="124" color="0x2BE080FF" opacity="0" />
+            <Rectangle id="row5Card" translation="[0,750]" width="1200" height="120" color="0xFFFFFF14" />
+            <Label id="row5Label" translation="[24,768]" width="1152" font="font:MediumBoldSystemFont" />
+            <Label id="row5Value" translation="[24,812]" width="1152" font="font:MediumSystemFont" />
+        </Group>
+    </children>
+</component>

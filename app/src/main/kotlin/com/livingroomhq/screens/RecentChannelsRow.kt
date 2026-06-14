@@ -106,7 +106,7 @@ private fun RecentChannelChip(
                 )
             } else {
                 Text(
-                    channel.number.toString(),
+                    channel.name.firstOrNull()?.uppercase() ?: "?",
                     style = HqType.Label.copy(
                         color = if (active) HqColors.Accent else HqColors.TextSecondary,
                         fontSize = 12.sp,

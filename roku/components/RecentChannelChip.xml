@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="RecentChannelChip" extends="Group">
+    <script type="text/brightscript" uri="pkg:/source/Theme.brs" />
+    <script type="text/brightscript" uri="pkg:/components/RecentChannelChip.brs" />
+    <interface>
+        <field id="itemContent" type="node" onChange="onContentSet" />
+        <field id="focusPercent" type="float" onChange="onFocusChanged" />
+    </interface>
+    <children>
+        <Poster id="border" width="320" height="44" loadDisplayMode="scaleToFill" uri="pkg:/images/chip_border.png" />
+        <Poster id="pill" translation="[1,1]" width="318" height="42" loadDisplayMode="scaleToFill" uri="pkg:/images/chip_bg.png" />
+        <Poster id="logoBox" translation="[6,6]" width="32" height="32" loadDisplayMode="scaleToFill" uri="pkg:/images/chip_logo_bg.png" />
+        <Poster id="logo" translation="[9,9]" width="26" height="26" loadDisplayMode="scaleToFit" visible="false" />
+        <Label id="initial" translation="[6,7]" width="32" height="32" horizAlign="center" vertAlign="center" font="font:SmallBoldSystemFont" />
+        <Label id="name" translation="[48,12]" width="256" font="font:MediumSystemFont" />
+    </children>
+</component>

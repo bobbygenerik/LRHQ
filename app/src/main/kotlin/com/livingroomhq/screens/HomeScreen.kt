@@ -6,6 +6,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Hold time per bundled still before the hero cross-fades to the next one. */
+private const val HOME_HERO_BACKDROP_INTERVAL_MS = 30_000L
+
 /**
  * Home is the IPTV-first landing zone: a full-bleed live hero with EPG context
  * and a compact recent-channel rail beneath it.
@@ -49,6 +53,7 @@ fun HomeScreen(
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val weather by app.ambientInfo.weather.collectAsState()
+    val epgRevision by app.channels.epgRevision.collectAsState()
     val customSettings = LocalCustomSettings.current
 
     val current = recents.firstOrNull() ?: channels.firstOrNull()
@@ -57,12 +62,26 @@ fun HomeScreen(
 
     var clockTime by remember { mutableStateOf(timeNow()) }
     var clockDate by remember { mutableStateOf(dateNow()) }
+    var nowMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
             clockTime = timeNow()
             clockDate = dateNow()
+            nowMillis = System.currentTimeMillis()
             delay(10_000)
         }
+    }
+
+    // Channels currently broadcasting, favorites and recents first, capped so we
+    // never resolve EPG for thousands of channels. Rebuilds on EPG refresh or as
+    // programmes roll over (~30s buckets); the hero channel is excluded.
+    val onNow = remember(channels, recents, epgRevision, nowMillis / 30_000L) {
+        (channels.filter { it.isFavorite } + recents + channels)
+            .distinctBy { it.id }
+            .filter { it.id != current?.id }
+            .take(40)
+            .mapNotNull { ch -> app.channels.epgNowNext(ch.id).first?.let { ch to it } }
+            .take(20)
     }
 
     val context = LocalContext.current
@@ -85,13 +104,11 @@ fun HomeScreen(
             val heroLivePreview = heroFocused && customSettings.showLivePreview && current != null
             val backdropSources = remember(
                 current?.id,
-                nowProgram?.artworkUrl,
                 heroLivePreview,
             ) {
                 BackdropProvider.forHome(
                     channel = current,
                     heroLivePreview = heroLivePreview,
-                    programmeArtworkUrl = nowProgram?.artworkUrl,
                 )
             }
             HomeHeroContent(
@@ -110,7 +127,12 @@ fun HomeScreen(
                     HeroBackdrop(
                         sources = backdropSources,
                         modifier = Modifier.fillMaxSize(),
-                        cycle = false,
+                        // Slow, calm rotation through the bundled stills when the hero
+                        // isn't focused; ignored while the live preview is showing.
+                        cycle = true,
+                        intervalMillis = HOME_HERO_BACKDROP_INTERVAL_MS,
+                        // Blend the hero into the page background below — no hard seam.
+                        bottomFade = HqColors.Abyss,
                     )
                 },
             )
@@ -126,6 +148,18 @@ fun HomeScreen(
                     ChannelPlayer.launch(context, channel)
                 },
             )
+
+            if (onNow.isNotEmpty()) {
+                Spacer(Modifier.height(28.dp))
+                OnNowRail(
+                    items = onNow,
+                    nowMillis = nowMillis,
+                    onChannelSelected = { channel ->
+                        app.channels.markWatched(channel.id)
+                        ChannelPlayer.launch(context, channel)
+                    },
+                )
+            }
         }
     }
 }

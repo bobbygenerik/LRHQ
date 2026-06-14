@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="AmbientOverlay" extends="Group">
+    <script type="text/brightscript" uri="pkg:/source/Theme.brs" />
+    <script type="text/brightscript" uri="pkg:/components/AmbientOverlay.brs" />
+    <interface>
+        <field id="active" type="boolean" onChange="onActiveChanged" />
+        <field id="images" type="array" />
+        <field id="clockText" type="string" onChange="onClockChanged" />
+        <field id="dateText" type="string" onChange="onDateChanged" />
+        <field id="weatherText" type="string" onChange="onWeatherChanged" />
+        <field id="weatherDetail" type="string" onChange="onWeatherDetailChanged" />
+    </interface>
+    <children>
+        <Rectangle id="bg" translation="[0,0]" width="1920" height="1080" color="0x05070DFF" />
+        <Poster id="posterA" translation="[0,0]" width="1920" height="1080" loadDisplayMode="scaleToFill" opacity="0" />
+        <Poster id="posterB" translation="[0,0]" width="1920" height="1080" loadDisplayMode="scaleToFill" opacity="0" />
+        <Rectangle id="scrim" translation="[0,0]" width="1920" height="1080" color="0x000000FF" opacity="0.18" />
+        <Label id="clock" translation="[104,872]" font="font:LargeBoldSystemFont" />
+        <Label id="date" translation="[104,948]" font="font:MediumSystemFont" />
+        <Label id="ambientWeather" translation="[1540,872]" width="300" horizAlign="right" font="font:LargeBoldSystemFont" />
+        <Label id="ambientWeatherDetail" translation="[1140,928]" width="700" horizAlign="right" font="font:SmallSystemFont" />
+        <Label id="credit" text="Photos: Unsplash" translation="[104,990]" font="font:SmallSystemFont" />
+        <Timer id="cycleTimer" repeat="true" duration="30" />
+        <Animation id="fadeAnim" duration="1.2" easeFunction="linear">
+            <FloatFieldInterpolator id="fadeInInterp" key="[0.0,1.0]" keyValue="[0.0,1.0]" fieldToInterp="posterB.opacity" />
+            <FloatFieldInterpolator id="fadeOutInterp" key="[0.0,1.0]" keyValue="[1.0,0.0]" fieldToInterp="posterA.opacity" />
+        </Animation>
+    </children>
+</component>

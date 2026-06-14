@@ -104,7 +104,9 @@ internal fun HomeHeroContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                LiveBadge()
+                // LIVE only reads true once the preview is actually showing; over an
+                // ambient still it would be misleading. Spacer keeps the clock pinned right.
+                if (isLivePreview) LiveBadge() else Spacer(Modifier)
                 if (showWeather) {
                     ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF)
                 }

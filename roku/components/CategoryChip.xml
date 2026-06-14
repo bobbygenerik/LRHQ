@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="CategoryChip" extends="Group">
+    <script type="text/brightscript" uri="pkg:/source/Theme.brs" />
+    <script type="text/brightscript" uri="pkg:/components/CategoryChip.brs" />
+    <interface>
+        <field id="itemContent" type="node" onChange="onContentSet" />
+        <field id="focusPercent" type="float" onChange="onFocusChanged" />
+    </interface>
+    <children>
+        <Rectangle id="border" translation="[-1,-1]" width="182" height="46" color="0x2BE080FF" opacity="0" />
+        <Rectangle id="pill" width="180" height="44" color="0xFFFFFF14" />
+        <Label id="name" translation="[14,11]" width="152" horizAlign="center" font="font:SmallBoldSystemFont" />
+    </children>
+</component>

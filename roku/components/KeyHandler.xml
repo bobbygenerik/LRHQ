@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="KeyHandler" extends="Group">
+    <script type="text/brightscript" uri="pkg:/components/KeyHandler.brs" />
+    <children>
+        <Rectangle id="trap" width="1920" height="1080" opacity="0.01" focusable="true" />
+    </children>
+</component>

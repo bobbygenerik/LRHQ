@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SearchScene" extends="Group">
+    <script type="text/brightscript" uri="pkg:/source/Theme.brs" />
+    <script type="text/brightscript" uri="pkg:/components/SearchScene.brs" />
+    <interface>
+        <field id="channels" type="array" onChange="onChannelsSet" />
+        <field id="chosenUrl" type="string" />
+        <field id="chosenName" type="string" />
+        <field id="chosenId" type="string" />
+        <field id="closed" type="boolean" />
+    </interface>
+    <children>
+        <Rectangle id="bg" width="1920" height="1080" color="0x05070DFF" />
+        <Label id="title" text="Search" translation="[80,52]" font="font:LargeBoldSystemFont" />
+
+        <Keyboard id="keyboard" translation="[80,200]" />
+
+        <LabelList id="results" translation="[820,200]" itemSize="[700,48]" numRows="14" />
+    </children>
+</component>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="EpgLoader" extends="Task">
+    <script type="text/brightscript" uri="pkg:/components/tasks/Net.brs" />
+    <script type="text/brightscript" uri="pkg:/components/tasks/EpgLoader.brs" />
+    <interface>
+        <field id="url" type="string" />
+        <field id="epg" type="assocarray" />
+    </interface>
+</component>
