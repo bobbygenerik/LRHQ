@@ -142,7 +142,6 @@ fun AmbientScreen(app: HqApplication) {
         ) {
             current?.let { channel ->
                 AmbientNowPlaying(
-                    channelNumber = channel.number,
                     channelName = channel.name,
                     programTitle = nowProgram?.title,
                 )
@@ -225,7 +224,6 @@ private fun AmbientClock(
 
 @Composable
 private fun AmbientNowPlaying(
-    channelNumber: Int,
     channelName: String,
     programTitle: String?,
 ) {
@@ -240,7 +238,7 @@ private fun AmbientNowPlaying(
             ),
         )
         Text(
-            text = "CH $channelNumber · $channelName",
+            text = channelName,
             style = HqType.Headline.copy(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,

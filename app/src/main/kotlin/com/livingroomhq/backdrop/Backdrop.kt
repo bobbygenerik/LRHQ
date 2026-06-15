@@ -1,8 +1,6 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.core.data.model.Channel
-import com.livingroomhq.core.data.iptv.XmltvParser
-
 /**
  * A landscape still with optional attribution. Unsplash requires crediting the
  * photographer when its photos are displayed, so the credit travels with the URL.
@@ -54,30 +52,23 @@ object AmbientBackdrops {
 
 /**
  * Resolves the ordered list of backdrop sources for a zone. Home stays
- * contextual (live stream, then this library's landscape art); Ambient cycles
- * the full set as a screensaver. Media backdrops use the dedicated landscape
- * artwork field — never posters — so the hero reads cinematic, not portrait.
+ * constrained to live preview while focused and the user's uploaded backdrop
+ * images while unfocused. Ambient cycles the full screensaver set.
  */
 object BackdropProvider {
 
     /**
-     * Home hero backdrop: live preview when focused, otherwise EPG programme art for the
-     * current show on [channel]. Never uses ambient/Unsplash stills here — those belong on Ambient.
+     * Home hero backdrop: live preview only while focused; otherwise only the
+     * user's uploaded backdrop images. No programme art, media art, Unsplash, or logos.
      */
     fun forHome(
         channel: Channel?,
         heroLivePreview: Boolean,
-        programmeArtworkUrl: String?,
+        uploadedBackdrops: List<AmbientPhoto>,
     ): List<BackdropSource> {
-        val programmeArtwork = XmltvParser.normalizeArtworkUrl(programmeArtworkUrl)
-            ?.let { BackdropSource.Artwork(it) }
-        val channelLogo = XmltvParser.normalizeArtworkUrl(channel?.logoUrl)
-            ?.let { BackdropSource.Artwork(it, contained = true) }
         return when {
             heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
-            programmeArtwork != null -> listOf(programmeArtwork)
-            channelLogo != null -> listOf(channelLogo)
-            else -> emptyList()
+            else -> uploadedBackdrops.distinctBy { it.url }.map { BackdropSource.Artwork(it.url) }
         }
     }
 

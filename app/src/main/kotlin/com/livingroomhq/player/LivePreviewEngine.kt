@@ -98,6 +98,8 @@ class LivePreviewEngine(context: Context) {
         if (!fullscreenActive) return
         fullscreenActive = false
 
+        player.pause()
+        player.volume = 0f
         fullscreenPlayerView?.player = null
         fullscreenPlayerView = null
 
@@ -108,6 +110,11 @@ class LivePreviewEngine(context: Context) {
             IptvExoPlayer.configureForPreview(player, previewMaxVideoWidth, previewMaxVideoHeight)
             player.playWhenReady = true
             player.play()
+        } else {
+            IptvExoPlayer.configureForPreview(player, previewMaxVideoWidth, previewMaxVideoHeight)
+            player.stop()
+            player.clearMediaItems()
+            boundUrl = null
         }
     }
 

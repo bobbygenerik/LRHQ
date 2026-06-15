@@ -49,6 +49,8 @@ fun HomeScreen(
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val weather by app.ambientInfo.weather.collectAsState()
+    val uploadedBackdrops by app.ambientPhotoCache.photos.collectAsState()
+    val epgRevision by app.channels.epgRevision.collectAsState()
     val customSettings = LocalCustomSettings.current
 
     val current = recents.firstOrNull() ?: channels.firstOrNull()
@@ -85,13 +87,13 @@ fun HomeScreen(
             val heroLivePreview = heroFocused && customSettings.showLivePreview && current != null
             val backdropSources = remember(
                 current?.id,
-                nowProgram?.artworkUrl,
                 heroLivePreview,
+                uploadedBackdrops,
             ) {
                 BackdropProvider.forHome(
                     channel = current,
                     heroLivePreview = heroLivePreview,
-                    programmeArtworkUrl = nowProgram?.artworkUrl,
+                    uploadedBackdrops = uploadedBackdrops,
                 )
             }
             HomeHeroContent(
@@ -110,7 +112,7 @@ fun HomeScreen(
                     HeroBackdrop(
                         sources = backdropSources,
                         modifier = Modifier.fillMaxSize(),
-                        cycle = false,
+                        cycle = !heroLivePreview,
                     )
                 },
             )
