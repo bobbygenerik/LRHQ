@@ -96,15 +96,13 @@ fun MediaScreen(app: HqApplication, nav: SpatialNavController) {
         }
         Spacer(Modifier.height(20.dp))
 
-        val rails = remember(library) {
-            listOf(
-                "CONTINUE WATCHING" to app.media.continueWatching(),
-                "RECENTLY ADDED" to app.media.recentlyAdded(),
-                "MOVIES" to library.filter { it.type == MediaType.MOVIE },
-                "TV SHOWS" to library.filter { it.type == MediaType.SHOW },
-                "MUSIC" to library.filter { it.type == MediaType.MUSIC },
-            )
-        }
+        val rails = listOf(
+            "CONTINUE WATCHING" to app.media.continueWatching(),
+            "RECENTLY ADDED" to app.media.recentlyAdded(),
+            "MOVIES" to library.filter { it.type == MediaType.MOVIE },
+            "TV SHOWS" to library.filter { it.type == MediaType.SHOW },
+            "MUSIC" to library.filter { it.type == MediaType.MUSIC },
+        )
         // The first non-empty rail claims initial focus so the D-pad lands on a poster.
         val firstPopulated = rails.indexOfFirst { it.second.isNotEmpty() }
         rails.forEachIndexed { index, (title, items) ->

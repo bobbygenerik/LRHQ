@@ -41,15 +41,9 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
     var group by rememberSaveable { mutableStateOf<String?>(null) }
     var previewId by remember { mutableStateOf(channels.firstOrNull()?.id) }
 
-    val visible = remember(channels, group) {
-        channels.filter { group == null || it.group == group }
-    }
-    val previewChannel = remember(channels, previewId, visible) {
-        channels.firstOrNull { it.id == previewId } ?: visible.firstOrNull()
-    }
-    val (now, next) = remember(previewChannel) {
-        previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
-    }
+    val visible = channels.filter { group == null || it.group == group }
+    val previewChannel = channels.firstOrNull { it.id == previewId } ?: visible.firstOrNull()
+    val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
 
     Row(
         Modifier
@@ -64,11 +58,7 @@ fun LiveScreen(app: HqApplication, nav: SpatialNavController) {
 
             // Group filter chips.
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val filterChips = remember(channels) {
-                    (listOf<String?>(null) + app.channels.groups()).take(5)
-                }
-
-                filterChips.forEachIndexed { index, g ->
+                (listOf<String?>(null) + app.channels.groups()).take(5).forEachIndexed { index, g ->
                     FocusableGlassCard(
                         onClick = { group = g },
                         modifier = if (index == 0) Modifier.initialFocus() else Modifier,

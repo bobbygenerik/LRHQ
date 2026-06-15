@@ -1,0 +1,3 @@
+## 2024-06-16 - D-Pad Focus Recomposition Bottlenecks in TV Apps
+**Learning:** In Android TV apps using Jetpack Compose, moving focus with the D-pad triggers recompositions as UI components update their focus states. If screens perform heavy list filtering or sorting (like `library.filter`) directly in the main composable body, every D-pad movement forces a full recalculation of these derived collections, blocking the main thread and making spatial navigation feel sluggish.
+**Action:** Always wrap derived lists (filtering, sorting) in `remember(source)` blocks in TV Compose screens so that moving focus between cards doesn't recalculate the underlying data structure.

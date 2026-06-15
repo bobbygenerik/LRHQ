@@ -32,7 +32,6 @@ import com.livingroomhq.core.ui.theme.HqType
  * user commits). Demo stream URLs fail silently into the styled placeholder,
  * so the UI is identical with or without a real playlist.
  */
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun LivePreview(
     channel: Channel?,
