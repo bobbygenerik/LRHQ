@@ -24,7 +24,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.livingroomhq.HqApplication
-import com.livingroomhq.player.ChannelPlayer
+import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.ui.components.initialFocus
@@ -32,10 +32,14 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
+import com.livingroomhq.player.ChannelPlayer
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private const val HERO_BACKDROP_ASSET_DIR = "hero_backdrops"
+private val HERO_BACKDROP_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "avif")
 
 /**
  * Home is the IPTV-first landing zone: a full-bleed live hero with EPG context
@@ -49,9 +53,10 @@ fun HomeScreen(
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val weather by app.ambientInfo.weather.collectAsState()
-    val uploadedBackdrops by app.ambientPhotoCache.photos.collectAsState()
     val epgRevision by app.channels.epgRevision.collectAsState()
     val customSettings = LocalCustomSettings.current
+    val context = LocalContext.current
+    val heroBackdrops = remember(context) { bundledHeroBackdrops(context) }
 
     val current = recents.firstOrNull() ?: channels.firstOrNull()
     val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
@@ -66,8 +71,6 @@ fun HomeScreen(
             delay(10_000)
         }
     }
-
-    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -88,12 +91,12 @@ fun HomeScreen(
             val backdropSources = remember(
                 current?.id,
                 heroLivePreview,
-                uploadedBackdrops,
+                heroBackdrops,
             ) {
                 BackdropProvider.forHome(
                     channel = current,
                     heroLivePreview = heroLivePreview,
-                    uploadedBackdrops = uploadedBackdrops,
+                    heroBackdrops = heroBackdrops,
                 )
             }
             HomeHeroContent(
@@ -163,3 +166,15 @@ private fun HomeHero(
 
 private fun timeNow(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 private fun dateNow(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())
+
+private fun bundledHeroBackdrops(context: android.content.Context): List<AmbientPhoto> =
+    context.assets.list(HERO_BACKDROP_ASSET_DIR)
+        .orEmpty()
+        .filter { name ->
+            name.substringAfterLast('.', missingDelimiterValue = "")
+                .lowercase(Locale.US) in HERO_BACKDROP_EXTENSIONS
+        }
+        .sorted()
+        .map { name ->
+            AmbientPhoto(url = "file:///android_asset/$HERO_BACKDROP_ASSET_DIR/$name")
+        }

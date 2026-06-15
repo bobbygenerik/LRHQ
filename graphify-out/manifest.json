@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
-    "mtime": 1781553450.5945575,
-    "ast_hash": "819a23f81ba24978d1b32f551d38ea4a",
+    "mtime": 1781554403.37061,
+    "ast_hash": "4db2e913e7c53315c2ab72766f54476e",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {
@@ -275,8 +275,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/backdrop/Backdrop.kt": {
-    "mtime": 1781553441.4700177,
-    "ast_hash": "327f566b5aa8ca19a9514f4a89c2a7e7",
+    "mtime": 1781554381.7628608,
+    "ast_hash": "21da05c9db21879ad8dd8406b19e7cf6",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/backdrop/BackdropBlurTransformation.kt": {
@@ -457,6 +457,86 @@
   "app/src/main/kotlin/com/livingroomhq/screens/OnNowRail.kt": {
     "mtime": 1781487681.9436998,
     "ast_hash": "ed4b96d2ee269437e7940808685a279a",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771172536857-0e5ecfa0-c535-456c-af6d-747fe9a53a4c.jpg": {
+    "mtime": 1781554365.655745,
+    "ast_hash": "6e8635a2bb785aeacb0784aa77116b2d",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771172968318-a7ea08cf-6db5-4f48-a1b5-6e611c52462e.jpg": {
+    "mtime": 1781554365.657745,
+    "ast_hash": "af5e0e0a7aa09c94e93546aac06a2316",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173049865-3ea97531-d44c-49b4-a1df-0d90f3eb1ef8.jpg": {
+    "mtime": 1781554365.6607447,
+    "ast_hash": "06b5c01b6480b580c6b51fb49f4f16de",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173076546-b67c58a3-ee7d-43a7-bc16-b58de92e1911.jpg": {
+    "mtime": 1781554365.6627445,
+    "ast_hash": "f24ac8f32fb5aec33f5d3ca921765130",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173116411-eed8b3b3-6f80-4e7d-8195-c34ab9388d36.jpg": {
+    "mtime": 1781554365.6647444,
+    "ast_hash": "efd668d188c5c5a6421461975e1d9156",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173180872-6f1e3d6b-2ccf-433b-ae88-9669fac4f6b0_.jpg": {
+    "mtime": 1781554365.6657443,
+    "ast_hash": "bbfa3bb98ce82641dc4c0131ff04b9a0",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173244441-0ceb1749-8ccc-479b-8afb-0916206e4eb7.jpg": {
+    "mtime": 1781554365.6667442,
+    "ast_hash": "5b3eb4f418c6afa552c133dab03ebadd",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771173384494-851020e8-f731-4db5-80e4-818778181fb1.jpg": {
+    "mtime": 1781554365.6677442,
+    "ast_hash": "792f24c197136ceb2694d1b585f733e1",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771184028438-6b327fc3-37a0-4b5a-9d9b-a493e3ad3dbc.jpg": {
+    "mtime": 1781554365.668744,
+    "ast_hash": "9c2fad55f68283ec70352a52f3214b8e",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771184052314-94cf04f1-ae1b-462c-aa9c-14ee20b592eb.jpg": {
+    "mtime": 1781554365.669035,
+    "ast_hash": "ad47e3129287a95da8e644d5d6319aa5",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771184078774-9a7abede-661c-482e-97ed-f93bb616e58e_.jpg": {
+    "mtime": 1781554365.6697955,
+    "ast_hash": "f5dfea25f144929c0076036eef213137",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771184105452-da8ae2ef-2dc0-4218-a82a-a8de14b1fa4c.jpg": {
+    "mtime": 1781554365.670744,
+    "ast_hash": "60e2a1dda6a5eb5079d58d889aaa2e7e",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771190893407-18eb2d17-bb63-4e28-a147-f042cf952e12_.jpg": {
+    "mtime": 1781554365.6717439,
+    "ast_hash": "6bf88c1cf96761f39e0cfdf680092607",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771190983401-6364844f-6a25-4f89-966e-e86e4b5dbad3_.jpg": {
+    "mtime": 1781554365.6727438,
+    "ast_hash": "b0cb7ce14ce9829b47a2e2fc2bd24ffe",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771191013840-07667abb-37ce-45a4-9104-a2d5a21f3c93.jpg": {
+    "mtime": 1781554365.6757436,
+    "ast_hash": "eb19b9b77b58438f421c3211a4f2b40e",
+    "semantic_hash": ""
+  },
+  "app/src/main/assets/hero_backdrops/1771191111206-f9946f7c-bec9-4581-a037-2730d2ff9bc3.jpg": {
+    "mtime": 1781554365.6787434,
+    "ast_hash": "f53028c4825f8845561be430ed9dc6a8",
     "semantic_hash": ""
   }
 }

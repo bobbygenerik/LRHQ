@@ -1,6 +1,7 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.core.data.model.Channel
+
 /**
  * A landscape still with optional attribution. Unsplash requires crediting the
  * photographer when its photos are displayed, so the credit travels with the URL.
@@ -52,23 +53,23 @@ object AmbientBackdrops {
 
 /**
  * Resolves the ordered list of backdrop sources for a zone. Home stays
- * constrained to live preview while focused and the user's uploaded backdrop
- * images while unfocused. Ambient cycles the full screensaver set.
+ * constrained to live preview while focused and bundled hero backdrop images
+ * while unfocused. Ambient cycles the full screensaver set.
  */
 object BackdropProvider {
 
     /**
      * Home hero backdrop: live preview only while focused; otherwise only the
-     * user's uploaded backdrop images. No programme art, media art, Unsplash, or logos.
+     * bundled hero backdrop images. No programme art, media art, Unsplash, or logos.
      */
     fun forHome(
         channel: Channel?,
         heroLivePreview: Boolean,
-        uploadedBackdrops: List<AmbientPhoto>,
+        heroBackdrops: List<AmbientPhoto>,
     ): List<BackdropSource> {
         return when {
             heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
-            else -> uploadedBackdrops.distinctBy { it.url }.map { BackdropSource.Artwork(it.url) }
+            else -> heroBackdrops.distinctBy { it.url }.map { BackdropSource.Artwork(it.url) }
         }
     }
 

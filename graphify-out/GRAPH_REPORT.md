@@ -1,16 +1,16 @@
 # Graph Report - LRHQ  (2026-06-15)
 
 ## Corpus Check
-- 85 files · ~55,577 words
+- 85 files · ~1,989,752 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 883 nodes · 1549 edges · 62 communities (49 shown, 13 thin omitted)
+- 887 nodes · 1554 edges · 65 communities (51 shown, 14 thin omitted)
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 106 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `57f2b66e`
+- Built from commit: `a64f9a89`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -72,6 +72,9 @@
 - [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
 - [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `PersistentChannelRepository` - 25 edges
@@ -81,9 +84,9 @@
 5. `GooglePhotosPickerClient` - 22 edges
 6. `GlassPanel()` - 21 edges
 7. `IptvDao` - 20 edges
-8. `String` - 19 edges
-9. `FocusableGlassCard()` - 19 edges
-10. `MainActivity` - 18 edges
+8. `HomeScreen()` - 19 edges
+9. `String` - 19 edges
+10. `FocusableGlassCard()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `OLED-Dark Glassmorphism Design System` --conceptually_related_to--> `FocusableGlassCard()`  [INFERRED]
@@ -108,23 +111,23 @@
 - **Widget Plugin Contract and Registry** — widget_widgetplugin_widgetplugin, widget_widgetplugin_widgetstate, widget_widgetplugin_widgetstat, widget_widgetregistry_widgetregistry [EXTRACTED 1.00]
 - **Demo Repository Implementations Behind Stable Interfaces** — repo_ambientinforepository_demoambientinforepository, repo_channelrepository_demochannelrepository, repo_mediarepository_demomediarepository, readme_demo_repository_pattern [INFERRED 0.95]
 
-## Communities (62 total, 13 thin omitted)
+## Communities (65 total, 14 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
-Cohesion: 0.11
-Nodes (26): Boolean, Channel, Float, Int, Modifier, String, Brush, StatBar() (+18 more)
+Cohesion: 0.17
+Nodes (13): Brush, StatBar(), Color, Float, Modifier, String, Color, DownloadJob (+5 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.12
-Nodes (10): Boolean, Bundle, Int, Intent, LauncherNavController, KeyEvent, Edge D-pad navigation pattern, MainActivity (+2 more)
+Cohesion: 0.21
+Nodes (5): Bundle, Intent, LauncherNavController, Edge D-pad navigation pattern, MainActivity
 
 ### Community 2 - "IPTV Channels & EPG"
-Cohesion: 0.36
-Nodes (9): Channel, List, Long, Pair, Program, String, OnNowCard(), OnNowRail() (+1 more)
+Cohesion: 0.09
+Nodes (29): android, AmbientPhoto, Boolean, HqApplication, LauncherNavController, List, String, Channel (+21 more)
 
 ### Community 3 - "Widget Plugin Contract"
 Cohesion: 0.06
-Nodes (28): ActivityManager, Float, Long, Channel, List, Long, Pair, Program (+20 more)
+Nodes (25): Float, Long, Channel, List, Long, Pair, Program, StateFlow (+17 more)
 
 ### Community 4 - "Data Models & Installed Apps"
 Cohesion: 0.09
@@ -143,8 +146,8 @@ Cohesion: 0.15
 Nodes (18): Any, AmbientPhoto, Bitmap, Boolean, Int, List, Long, StateFlow (+10 more)
 
 ### Community 8 - "Main Activity Key Handling"
-Cohesion: 0.09
-Nodes (30): AmbientInfoRepository, AmbientPhotoCacheRepository, Boolean, Channel, List, String, AmbientPhoto, ChannelRepository (+22 more)
+Cohesion: 0.10
+Nodes (19): AmbientInfoRepository, AmbientPhotoCacheRepository, AmbientPhoto, ChannelRepository, LauncherPrefsStore, List, StateFlow, WidgetRegistry (+11 more)
 
 ### Community 9 - "Ambient Info Services"
 Cohesion: 0.22
@@ -223,16 +226,16 @@ Cohesion: 0.16
 Nodes (10): Boolean, Channel, Context, ExoPlayer, Int, MediaItem, String, Tracks (+2 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.24
-Nodes (6): Boolean, LaunchableApp, List, String, LaunchableApp, InstalledAppsRepository
+Cohesion: 0.17
+Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, Command Center Dashboard, SystemMonitor (+1 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.22
 Nodes (5): List, Map, Program, String, XmltvParserTest
 
 ### Community 37 - "Community 37"
-Cohesion: 0.28
-Nodes (15): HqApplication, Modifier, String, WidgetPlugin, WidgetState, AmbientClock(), ambientDate(), ambientMeridiem() (+7 more)
+Cohesion: 0.47
+Nodes (8): HqApplication, String, AmbientClock(), ambientDate(), ambientMeridiem(), AmbientNowPlaying(), AmbientScreen(), ambientTime()
 
 ### Community 38 - "Community 38"
 Cohesion: 0.25
@@ -248,7 +251,7 @@ Nodes (5): AmbientPhoto, Int, List, String, UnsplashClient
 
 ### Community 42 - "Community 42"
 Cohesion: 0.33
-Nodes (8): Boolean, HqApplication, LauncherNavController, String, dateNow(), HomeHero(), HomeScreen(), timeNow()
+Nodes (11): Boolean, Channel, List, String, AmbientBackdrops, AmbientPhoto, Artwork, BackdropProvider (+3 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.38
@@ -267,8 +270,8 @@ Cohesion: 0.60
 Nodes (3): Program, fromModel(), ProgramEntity
 
 ### Community 48 - "Community 48"
-Cohesion: 0.31
-Nodes (8): Boolean, Channel, List, Modifier, String, RecentChannelChip(), RecentChannelsRow(), SectionHeader()
+Cohesion: 0.29
+Nodes (13): Boolean, Channel, Float, Int, Modifier, String, ClockWeather(), heroTextShadow() (+5 more)
 
 ### Community 53 - "Community 53"
 Cohesion: 0.50
@@ -286,10 +289,18 @@ Nodes (3): Float, MediaType, WatchNextTest
 Cohesion: 0.47
 Nodes (5): Modifier, WidgetPlugin, WidgetState, DefaultWidgetBody(), WidgetCard()
 
+### Community 62 - "Community 62"
+Cohesion: 0.48
+Nodes (7): Modifier, WidgetPlugin, WidgetState, AmbientWeatherCard(), AmbientWeatherCardWrapper(), AmbientWidgetCard(), AmbientWidgetCardWrapper()
+
+### Community 63 - "Community 63"
+Cohesion: 0.50
+Nodes (3): Boolean, Int, KeyEvent
+
 ## Knowledge Gaps
-- **226 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+221 more)
+- **229 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+224 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -299,12 +310,12 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `StatBar()` connect `Command Center Dashboard` to `Community 59`, `Community 61`, `Community 28`, `System Monitoring`?**
   _High betweenness centrality (0.211) - this node is a cross-community bridge._
 - **Why does `PersistentChannelRepository` connect `Data Models & Installed Apps` to `Main Activity Key Handling`, `Tools Screen`?**
-  _High betweenness centrality (0.177) - this node is a cross-community bridge._
+  _High betweenness centrality (0.176) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist leaves channels empty`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
   _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
-  _231 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Command Center Dashboard` be split into smaller, more focused modules?**
-  _Cohesion score 0.1103448275862069 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.12280701754385964 - nodes in this community are weakly interconnected._
+  _234 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `IPTV Channels & EPG` be split into smaller, more focused modules?**
+  _Cohesion score 0.09274193548387097 - nodes in this community are weakly interconnected._
+- **Should `Widget Plugin Contract` be split into smaller, more focused modules?**
+  _Cohesion score 0.06477732793522267 - nodes in this community are weakly interconnected._
