@@ -1,16 +1,16 @@
 # Graph Report - LRHQ  (2026-06-14)
 
 ## Corpus Check
-- 86 files · ~154,802 words
+- 80 files · ~161,312 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 880 nodes · 1574 edges · 60 communities (47 shown, 13 thin omitted)
+- 866 nodes · 1566 edges · 59 communities (51 shown, 8 thin omitted)
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 104 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `57f2b66e`
+- Built from commit: `f5702a80`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -53,6 +53,7 @@
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 45|Community 45]]
@@ -68,7 +69,6 @@
 - [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 56|Community 56]]
 - [[_COMMUNITY_Community 57|Community 57]]
-- [[_COMMUNITY_Community 58|Community 58]]
 - [[_COMMUNITY_Community 62|Community 62]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -84,29 +84,29 @@
 10. `MainActivity` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `OLED-Dark Glassmorphism Design System` --conceptually_related_to--> `FocusableGlassCard()`  [INFERRED]
-  README.md → core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt
 - `Command Center Dashboard` --references--> `SystemMonitor`  [EXTRACTED]
   README.md → core/data/src/main/kotlin/com/livingroomhq/core/data/repo/SystemMonitor.kt
-- `OLED-Dark Glassmorphism Design System` --references--> `GlassPanel()`  [EXTRACTED]
-  README.md → core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/GlassPanel.kt
+- `OLED-Dark Glassmorphism Design System` --conceptually_related_to--> `FocusableGlassCard()`  [INFERRED]
+  README.md → core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt
 - `Apps Are Cards, Never Icons` --references--> `WidgetPlugin`  [EXTRACTED]
   README.md → core/widget/src/main/kotlin/com/livingroomhq/core/widget/WidgetPlugin.kt
 - `Apps Are Cards, Never Icons` --references--> `WidgetRegistry`  [EXTRACTED]
   README.md → core/widget/src/main/kotlin/com/livingroomhq/core/widget/WidgetRegistry.kt
+- `parseOpenMeteoWeather()` --calls--> `JSONObject`  [INFERRED]
+  core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt → app/src/main/kotlin/com/livingroomhq/backdrop/GooglePhotosPickerClient.kt
 
 ## Import Cycles
 - None detected.
 
-## Communities (60 total, 13 thin omitted)
+## Communities (59 total, 8 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
 Cohesion: 0.09
 Nodes (35): Iterable, List, Long, Map, Program, String, Boolean, Channel (+27 more)
 
 ### Community 1 - "Spatial Zone Navigation"
-Cohesion: 0.07
-Nodes (43): AmbientPhotoCacheStats, LauncherPrefsStore, Modifier, List, Modifier, String, Boolean, Color (+35 more)
+Cohesion: 0.05
+Nodes (56): AmbientPhotoCacheStats, LauncherPrefsStore, Modifier, List, Modifier, String, Boolean, Color (+48 more)
 
 ### Community 2 - "IPTV Channels & EPG"
 Cohesion: 0.28
@@ -141,8 +141,8 @@ Cohesion: 0.23
 Nodes (9): Boolean, Int, List, MediaItem, MediaType, StateFlow, String, LocalMediaRepository (+1 more)
 
 ### Community 10 - "App Composition Root"
-Cohesion: 0.17
-Nodes (8): Channel, List, Long, Pair, Program, StateFlow, String, ChannelRepository
+Cohesion: 0.06
+Nodes (25): Float, Long, Channel, List, Long, Pair, Program, StateFlow (+17 more)
 
 ### Community 11 - "Live Preview Player"
 Cohesion: 0.12
@@ -169,8 +169,8 @@ Cohesion: 0.24
 Nodes (6): Boolean, Context, Intent, DefaultHomeHelper, shouldPromptForDefault(), DefaultHomeHelperTest
 
 ### Community 17 - "Community 17"
-Cohesion: 0.11
-Nodes (26): Boolean, Channel, Float, Int, Modifier, String, Brush, StatBar() (+18 more)
+Cohesion: 0.30
+Nodes (13): Boolean, Channel, Float, Int, Modifier, String, ClockWeather(), heroTextShadow() (+5 more)
 
 ### Community 18 - "Gradle Build Config"
 Cohesion: 0.24
@@ -205,8 +205,8 @@ Cohesion: 0.16
 Nodes (16): AmbientPhotoCacheSource, Boolean, List, Long, Map, StateFlow, String, DeviceCodeResponse (+8 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.22
-Nodes (6): ActivityManager, Boolean, Flow, Command Center Dashboard, SystemMonitor, SystemStats
+Cohesion: 0.17
+Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, Command Center Dashboard, SystemMonitor (+1 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.25
@@ -215,6 +215,30 @@ Nodes (7): Context, IptvDao, build(), LrhqDatabase, migrate(), RoomDatabase, Sup
 ### Community 35 - "Community 35"
 Cohesion: 0.60
 Nodes (3): Channel, ChannelEntity, fromModel()
+
+### Community 37 - "Community 37"
+Cohesion: 0.33
+Nodes (8): Boolean, HqApplication, LauncherNavController, String, dateNow(), HomeHero(), HomeScreen(), timeNow()
+
+### Community 38 - "Community 38"
+Cohesion: 0.31
+Nodes (8): Boolean, Channel, List, Modifier, String, RecentChannelChip(), RecentChannelsRow(), SectionHeader()
+
+### Community 41 - "Community 41"
+Cohesion: 0.43
+Nodes (7): HqApplication, ImageVector, String, CommandCenterScreen(), getLocalIpAddress(), getTailscaleIpAddress(), MetricCard()
+
+### Community 42 - "Community 42"
+Cohesion: 0.36
+Nodes (3): Float, MediaType, WatchNextTest
+
+### Community 43 - "Community 43"
+Cohesion: 0.43
+Nodes (6): HqApplication, Intent, String, launchSettingsIntent(), ToolsScreen(), UtilItem
+
+### Community 44 - "Community 44"
+Cohesion: 0.47
+Nodes (5): Modifier, WidgetPlugin, WidgetState, DefaultWidgetBody(), WidgetCard()
 
 ### Community 45 - "Community 45"
 Cohesion: 0.60
@@ -225,8 +249,8 @@ Cohesion: 0.07
 Nodes (21): Boolean, Flow, List, Set, String, Boolean, ChannelEntity, Flow (+13 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.11
-Nodes (25): Boolean, HqApplication, LauncherNavController, String, Channel, List, Long, Pair (+17 more)
+Cohesion: 0.36
+Nodes (9): Channel, List, Long, Pair, Program, String, OnNowCard(), OnNowRail() (+1 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.40
@@ -245,48 +269,44 @@ Cohesion: 0.39
 Nodes (4): InputStream, Long, String, XmltvParser
 
 ### Community 53 - "Community 53"
-Cohesion: 0.05
-Nodes (34): Modifier, WidgetPlugin, WidgetState, Boolean, Bundle, Int, Intent, LauncherNavController (+26 more)
+Cohesion: 0.16
+Nodes (7): Bundle, Intent, LauncherNavController, Edge D-pad navigation pattern, MainActivity, Spatial zone grid layout, Zone
 
 ### Community 54 - "Community 54"
-Cohesion: 0.17
-Nodes (11): Float, Long, Channel, MediaItem, MediaType, Program, ServiceHealth, ServiceStatus (+3 more)
+Cohesion: 0.50
+Nodes (3): Boolean, Int, KeyEvent
 
 ### Community 55 - "Community 55"
 Cohesion: 0.38
 Nodes (5): Collection, List, String, fromAliases(), GuideChannelEntity
 
 ### Community 56 - "Community 56"
-Cohesion: 0.22
-Nodes (6): Boolean, List, String, LaunchableApp, LaunchableApp, InstalledAppsRepository
+Cohesion: 0.50
+Nodes (3): Modifier, Zone, LauncherNavHost()
 
 ### Community 57 - "Community 57"
 Cohesion: 0.25
 Nodes (7): Configure the playlist + guide, Important platform differences, LivingRoom HQ — Roku, Project layout, Roadmap (remaining Android parity), Sideload (developer mode), What's implemented
 
-### Community 58 - "Community 58"
-Cohesion: 0.50
-Nodes (3): Float, Long, Pair
-
 ## Knowledge Gaps
-- **224 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LrhqDatabase`, `WidgetRegistry` (+219 more)
+- **219 isolated node(s):** `LrhqDatabase`, `WidgetRegistry`, `AmbientPhotoCacheRepository`, `GooglePhotosPickerClient`, `LivePreviewEngine` (+214 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `StatBar()` connect `Community 17` to `System Monitoring`, `Widget Plugin Contract`, `Community 53`?**
-  _High betweenness centrality (0.206) - this node is a cross-community bridge._
+- **Why does `StatBar()` connect `Spatial Zone Navigation` to `Community 41`, `Widget Plugin Contract`, `Community 44`, `System Monitoring`?**
+  _High betweenness centrality (0.213) - this node is a cross-community bridge._
 - **Why does `PersistentChannelRepository` connect `Command Center Dashboard` to `Community 46`, `Community 7`?**
-  _High betweenness centrality (0.172) - this node is a cross-community bridge._
-- **Why does `DownloadJob` connect `Community 17` to `Community 54`, `Built-in Widgets`?**
-  _High betweenness centrality (0.172) - this node is a cross-community bridge._
+  _High betweenness centrality (0.178) - this node is a cross-community bridge._
+- **Why does `DownloadJob` connect `Spatial Zone Navigation` to `App Composition Root`, `Built-in Widgets`?**
+  _High betweenness centrality (0.177) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist leaves channels empty`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
   _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 13 inferred relationships involving `GlassPanel()` (e.g. with `DefaultHomeBanner()` and `AmbientScreen()`) actually correct?**
   _`GlassPanel()` has 13 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
-  _229 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `LrhqDatabase`, `WidgetRegistry`, `AmbientPhotoCacheRepository` to the rest of the system?**
+  _224 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Command Center Dashboard` be split into smaller, more focused modules?**
   _Cohesion score 0.08961038961038961 - nodes in this community are weakly interconnected._

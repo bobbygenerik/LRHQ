@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "roku/README.md": {
-    "mtime": 1781457347.593771,
-    "ast_hash": "22d382e7375a11fd8e8d0f19ddf0bf20",
+    "mtime": 1781458573.5349295,
+    "ast_hash": "e98935de54bf43c8136e2410a187d443",
     "semantic_hash": ""
   },
   "roku/images/ambient_01.jpg": {
@@ -562,6 +562,36 @@
   "roku/images/ambient_06.jpg": {
     "mtime": 1781446527.2459078,
     "ast_hash": "9739521d6321b60b2825c0884051c7d0",
+    "semantic_hash": ""
+  },
+  "roku/images/lrhq_mark_transparent.png": {
+    "mtime": 1781458740.1419182,
+    "ast_hash": "90e2a7a087ce2f1f81049bf8b5a2c935",
+    "semantic_hash": ""
+  },
+  "roku/images/nav_apps.png": {
+    "mtime": 1781460018.0991027,
+    "ast_hash": "1c23af6f09c267685f4ef7c811ce6a98",
+    "semantic_hash": ""
+  },
+  "roku/images/nav_dashboard.png": {
+    "mtime": 1781460018.0993211,
+    "ast_hash": "17e61932e2b1b5373bdbf14c29899d66",
+    "semantic_hash": ""
+  },
+  "roku/images/nav_home.png": {
+    "mtime": 1781460018.0986345,
+    "ast_hash": "dd4c5c10312b19eb7ce8dfe1e5f76079",
+    "semantic_hash": ""
+  },
+  "roku/images/nav_settings.png": {
+    "mtime": 1781460245.314941,
+    "ast_hash": "38afec834be3c427d688fc7d3e629d90",
+    "semantic_hash": ""
+  },
+  "roku/images/nav_tv.png": {
+    "mtime": 1781460018.098882,
+    "ast_hash": "7c61c8c3adf8e05a91bfb6b491ed81fe",
     "semantic_hash": ""
   }
 }

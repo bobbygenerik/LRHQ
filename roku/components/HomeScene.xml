@@ -155,6 +155,6 @@
 
         <Group id="overlays" />
         <KeyHandler id="keyHandler" width="1920" height="1080" translation="[0,0]" />
-        <Label id="buildTag" text="LRHQ build 38" translation="[1680,1044]" width="220" horizAlign="right" color="0xFFFFFF88" font="font:SmallBoldSystemFont" />
+        <Label id="buildTag" text="LRHQ build 39" translation="[1680,1044]" width="220" horizAlign="right" color="0xFFFFFF88" font="font:SmallBoldSystemFont" />
     </children>
 </component>
