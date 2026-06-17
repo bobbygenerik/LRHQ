@@ -11,3 +11,4 @@ Rules:
 ## Behavior Rules
 - **No Premature Action**: Never modify, add, or delete files, or run command-line tools to make changes, when the user is only asking a question or seeking explanation. Answer the question directly and wait for explicit instructions or approval before writing code.
 - **No Simulated Data**: Never introduce simulated, mock, or placeholder data into production repository classes, widgets, or screens. If a feature or data source is unconfigured, leave it empty/unimplemented or handle configuration appropriately, rather than mocking dummy values.
+- **Build and Deployment**: Never build or install the `debug` variant (e.g. `installDebug`, `assembleDebug`). Always build and install the `profile` variant (e.g. `installProfile`, `assembleProfile`) when building or installing the app for device testing, as the user does not want debug builds on their device.
