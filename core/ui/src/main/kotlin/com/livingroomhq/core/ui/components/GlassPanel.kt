@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.LocalCustomSettings
 
 /**
  * Frosted glass panel — the base surface of every card and pane in the
@@ -36,8 +37,9 @@ import com.livingroomhq.core.ui.theme.HqColors
  * panel composites cheaply at 60 fps on Shield-class GPUs; the layered
  * gradients read as frosted glass on a 10-foot screen.
  *
- * Includes a premium, light-reflecting sheen sweep animation that triggers
- * whenever focus is gained.
+ * When [sheenOnFocus] is true (default), a light-reflecting sheen sweeps
+ * across the panel on focus gain. Disable it for elements that get D-pad
+ * skimmed rapidly (rails, grids) so the constant shimmer doesn't feel busy.
  */
 @Composable
 fun GlassPanel(
@@ -45,9 +47,12 @@ fun GlassPanel(
     focused: Boolean = false,
     cornerRadius: Dp = 12.dp,
     contentPadding: PaddingValues = PaddingValues(20.dp),
+    sheenOnFocus: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(cornerRadius)
+    val customSettings = LocalCustomSettings.current
+    val reducedMotion = customSettings.animations != "Smooth"
 
     val fill by animateColorAsState(
         targetValue = if (focused) HqColors.GlassFillFocused else HqColors.GlassFill,
@@ -61,14 +66,16 @@ fun GlassPanel(
     )
     val scale by animateFloatAsState(
         targetValue = if (focused) 1.04f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
         label = "glassScale",
     )
 
-    // Sheen sweep animation progress
     val sheenProgress = remember { Animatable(0f) }
-    LaunchedEffect(focused) {
-        if (focused) {
+    LaunchedEffect(focused, sheenOnFocus, reducedMotion) {
+        if (focused && sheenOnFocus && !reducedMotion) {
             sheenProgress.snapTo(0f)
             sheenProgress.animateTo(
                 targetValue = 1f,
@@ -89,9 +96,9 @@ fun GlassPanel(
             .background(fill)
             .background(
                 Brush.verticalGradient(
-                    0f to Color(0x1AFFFFFF),
+                    0f to HqColors.GlassSheenTop,
                     0.25f to Color.Transparent,
-                    1f to Color(0x0D000000),
+                    1f to HqColors.GlassVignette,
                 )
             )
             .border(1.dp, stroke, shape)
@@ -101,15 +108,15 @@ fun GlassPanel(
                     val width = size.width
                     val height = size.height
                     val progress = sheenProgress.value
-                    
+
                     val sheenWidth = (width * 0.4f).coerceAtLeast(80.dp.toPx())
                     val xOffset = -sheenWidth + (width + 2 * sheenWidth) * progress
-                    
+
                     val brush = Brush.linearGradient(
                         colors = listOf(
                             Color.Transparent,
                             Color.White.copy(alpha = 0.08f),
-                            Color.White.copy(alpha = 0.22f), // bright center line
+                            Color.White.copy(alpha = 0.22f),
                             Color.White.copy(alpha = 0.08f),
                             Color.Transparent
                         ),
@@ -123,4 +130,3 @@ fun GlassPanel(
         content = content,
     )
 }
-

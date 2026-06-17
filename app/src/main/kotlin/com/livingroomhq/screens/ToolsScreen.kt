@@ -40,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -146,7 +145,14 @@ fun ToolsScreen(app: HqApplication) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("No installed applications found", style = HqType.Body)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("No installed applications found", style = HqType.Body)
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Install apps from the Play Store, or use App Manager in Settings to review installed packages.",
+                            style = HqType.Label.copy(color = HqColors.TextTertiary),
+                        )
+                    }
                 }
             } else {
                 LazyVerticalGrid(
@@ -244,6 +250,7 @@ private fun AppCard(
         modifier = cardModifier,
         cornerRadius = 8.dp,
         contentPadding = PaddingValues(12.dp),
+        sheenOnFocus = false,
     ) { focused ->
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -251,9 +258,9 @@ private fun AppCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color(0x11FFFFFF)),
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(HqColors.IconWell),
                 contentAlignment = Alignment.Center,
             ) {
                 var appIcon by remember(entry.packageName) { mutableStateOf<Drawable?>(null) }
@@ -272,7 +279,7 @@ private fun AppCard(
                         imageVector = Icons.Default.Apps,
                         contentDescription = null,
                         tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
@@ -291,7 +298,7 @@ private fun AppCard(
                     text = if (entry.isTvApp) "TV APP" else "MOBILE APP",
                     style = HqType.Label.copy(
                         color = if (entry.isTvApp) HqColors.Accent else HqColors.TextSecondary,
-                        fontSize = 9.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     ),
                     maxLines = 1,
@@ -315,7 +322,7 @@ private fun AppActionMenu(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xCC000000))
+            .background(HqColors.Scrim)
             .onPreviewKeyEvent { event ->
                 if (!waitingForLongPressRelease || !event.key.isCenterKey()) {
                     return@onPreviewKeyEvent false

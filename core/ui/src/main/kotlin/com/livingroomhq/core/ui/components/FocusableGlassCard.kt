@@ -43,15 +43,21 @@ fun FocusableGlassCard(
     contentPadding: PaddingValues = PaddingValues(20.dp),
     onLongClick: (() -> Unit)? = null,
     onFocused: (() -> Unit)? = null,
+    enabled: Boolean = true,
+    sheenOnFocus: Boolean = true,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
 
-    val activation = if (onLongClick == null) {
-        Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
-    } else {
-        Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+    val activation = when {
+        !enabled -> Modifier
+        onLongClick == null -> {
+            Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+        }
+        else -> {
+            Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+        }
     }
 
     GlassPanel(
@@ -61,12 +67,13 @@ fun FocusableGlassCard(
                 if (it.isFocused) onFocused?.invoke()
             }
             .then(activation)
-            .focusable(interactionSource = interactionSource),
-        focused = focused,
+            .then(if (enabled) Modifier.focusable(interactionSource = interactionSource) else Modifier),
+        focused = focused && enabled,
         cornerRadius = cornerRadius,
         contentPadding = contentPadding,
+        sheenOnFocus = sheenOnFocus,
     ) {
-        content(focused)
+        content(focused && enabled)
     }
 }
 

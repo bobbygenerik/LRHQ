@@ -80,8 +80,8 @@ private fun RecentChannelChip(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
-            .background(if (active) HqColors.Accent.copy(alpha = 0.16f) else androidx.compose.ui.graphics.Color(0x0CFFFFFF))
-            .border(1.dp, if (active) HqColors.Accent else androidx.compose.ui.graphics.Color(0x14FFFFFF), shape)
+            .background(if (active) HqColors.Accent.copy(alpha = 0.16f) else HqColors.GlassFill)
+            .border(1.dp, if (active) HqColors.Accent else HqColors.GlassStroke, shape)
             .clickable { onClick() }
             .focusable()
             .padding(start = 6.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
@@ -92,7 +92,7 @@ private fun RecentChannelChip(
             Modifier
                 .size(32.dp)
                 .clip(logoShape)
-                .background(if (active) HqColors.Accent.copy(alpha = 0.22f) else androidx.compose.ui.graphics.Color(0x14FFFFFF)),
+                .background(if (active) HqColors.Accent.copy(alpha = 0.22f) else HqColors.GlassStroke),
             contentAlignment = Alignment.Center,
         ) {
             if (channel.logoUrl != null) {

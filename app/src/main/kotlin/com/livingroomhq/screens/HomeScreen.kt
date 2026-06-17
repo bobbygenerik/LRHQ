@@ -1,6 +1,9 @@
 package com.livingroomhq.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.livingroomhq.HqApplication
@@ -168,25 +174,46 @@ private fun HomeHero(
     content: @Composable (heroFocused: Boolean) -> Unit,
 ) {
     var heroFocused by remember { mutableStateOf(false) }
+    val borderColor by animateColorAsState(
+        targetValue = if (heroFocused) HqColors.Accent else Color.Transparent,
+        animationSpec = tween(180),
+        label = "heroBorder",
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(360.dp)
             .onFocusChanged { heroFocused = it.isFocused }
             .clickable { focusedAction() }
-            .focusable()
             .then(if (requestInitialFocus) Modifier.initialFocus() else Modifier),
     ) {
         content(heroFocused)
         if (heroFocused) {
             Box(
                 Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .height(96.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Black.copy(alpha = 0.55f),
+                            1f to Color.Transparent,
+                        )
+                    )
+            )
+            Box(
+                Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .height(3.dp)
+                    .height(5.dp)
                     .background(HqColors.Accent),
             )
         }
+        Box(
+            Modifier
+                .matchParentSize()
+                .border(2.dp, borderColor, RoundedCornerShape(0.dp)),
+        )
     }
 }
 

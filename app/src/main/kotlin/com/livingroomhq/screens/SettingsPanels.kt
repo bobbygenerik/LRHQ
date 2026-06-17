@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -69,14 +69,16 @@ internal fun PlaylistSettingsPanel(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
-                    label = "Load Playlist",
+                    label = if (isLoading) "Loading..." else "Load Playlist",
                     color = HqColors.Accent,
                     onClick = onLoadPlaylist,
+                    enabled = !isLoading,
                 )
                 SettingsActionButton(
                     label = "Clear Playlist",
                     color = HqColors.Critical,
                     onClick = onClearPlaylist,
+                    enabled = !isLoading,
                     leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp)) },
                 )
             }
@@ -94,6 +96,7 @@ internal fun PlaylistSettingsPanel(
                     .height(52.dp),
                 cornerRadius = 8.dp,
                 contentPadding = PaddingValues(horizontal = 16.dp),
+                enabled = !isLoading,
             ) { _ ->
                 Row(
                     modifier = Modifier.fillMaxSize(),
@@ -112,6 +115,7 @@ internal fun PlaylistSettingsPanel(
 internal fun EpgSettingsPanel(
     epgUrl: String,
     epgStatus: String,
+    isLoading: Boolean,
     onEpgUrlChange: (String) -> Unit,
     onLoadGuide: () -> Unit,
     onClearGuide: () -> Unit,
@@ -132,14 +136,16 @@ internal fun EpgSettingsPanel(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
-                    label = "Load Guide",
+                    label = if (isLoading) "Loading..." else "Load Guide",
                     color = HqColors.Accent,
                     onClick = onLoadGuide,
+                    enabled = !isLoading,
                 )
                 SettingsActionButton(
                     label = "Clear",
                     color = HqColors.Critical,
                     onClick = onClearGuide,
+                    enabled = !isLoading,
                 )
             }
             if (epgStatus.isNotEmpty()) {
@@ -160,6 +166,7 @@ internal fun AmbientPhotosSettingsPanel(
     onImportPhotos: () -> Unit,
     onClearCache: () -> Unit,
 ) {
+    val clearEnabled = cacheStats.photoCount > 0 && !cacheStats.isImporting && !pickerState.isBusy
     Text("AMBIENT PHOTO CACHE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -171,9 +178,8 @@ internal fun AmbientPhotosSettingsPanel(
                 SettingsActionButton(
                     label = if (pickerState.isBusy) "Working..." else "Connect Album",
                     color = HqColors.Accent,
-                    onClick = {
-                        if (!pickerState.isBusy) onStartGooglePhotosPicker()
-                    },
+                    onClick = { if (!pickerState.isBusy) onStartGooglePhotosPicker() },
+                    enabled = !pickerState.isBusy,
                     leadingIcon = {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = HqColors.Accent, modifier = Modifier.size(16.dp))
                     },
@@ -184,6 +190,7 @@ internal fun AmbientPhotosSettingsPanel(
                     onClick = {
                         if (cacheStats.photoCount > 0 && !pickerState.isBusy) onRefreshGooglePhotosAlbum()
                     },
+                    enabled = cacheStats.photoCount > 0 && !pickerState.isBusy,
                     leadingIcon = {
                         Icon(
                             Icons.Default.Refresh,
@@ -201,7 +208,7 @@ internal fun AmbientPhotosSettingsPanel(
             if (pickerState.userCode.isNotBlank()) {
                 Text(
                     text = "On any phone, tablet, or computer, go to:",
-                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.verificationUrl.ifBlank { "https://www.google.com/device" },
@@ -209,7 +216,7 @@ internal fun AmbientPhotosSettingsPanel(
                 )
                 Text(
                     text = "Enter this code:",
-                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.userCode,
@@ -219,7 +226,7 @@ internal fun AmbientPhotosSettingsPanel(
             if (pickerState.pickerUri.isNotBlank()) {
                 Text(
                     text = "Then open this Google Photos link. Search for your album, share its items, and tap Done:",
-                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.pickerUri,
@@ -232,7 +239,7 @@ internal fun AmbientPhotosSettingsPanel(
             Spacer(Modifier.height(4.dp))
             Text(
                 "Fallback/test import: paste direct image URLs below.",
-                style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
             )
             GlassTextField(
                 value = importText,
@@ -247,11 +254,13 @@ internal fun AmbientPhotosSettingsPanel(
                     label = if (cacheStats.isImporting) "Caching..." else "Cache URLs",
                     color = HqColors.Accent,
                     onClick = onImportPhotos,
+                    enabled = !cacheStats.isImporting,
                 )
                 SettingsActionButton(
                     label = "Clear Cache",
                     color = HqColors.Critical,
                     onClick = onClearCache,
+                    enabled = clearEnabled,
                     leadingIcon = {
                         Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp))
                     },
@@ -299,11 +308,17 @@ internal fun AppearanceSettingsPanel(
             }
             AppearanceRow("Animations") {
                 CustomButtonToggle(
-                    options = listOf("Smooth", "Fast"),
-                    selected = settings.animations,
-                    onSelected = { onSettingsChanged(settings.copy(animations = it)) },
+                    options = listOf("Full", "Reduced"),
+                    selected = if (settings.animations == "Smooth") "Full" else "Reduced",
+                    onSelected = {
+                        onSettingsChanged(settings.copy(animations = if (it == "Full") "Smooth" else "Fast"))
+                    },
                 )
             }
+            Text(
+                "Reduced motion shortens transitions and disables the glass sheen sweep.",
+                style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+            )
         }
     }
 }
@@ -313,6 +328,7 @@ private fun SettingsActionButton(
     label: String,
     color: Color,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
     FocusableGlassCard(
@@ -320,14 +336,21 @@ private fun SettingsActionButton(
         modifier = Modifier.height(44.dp),
         cornerRadius = 8.dp,
         contentPadding = PaddingValues(horizontal = 16.dp),
-    ) { _ ->
+        enabled = enabled,
+    ) { focused ->
         Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (leadingIcon != null) {
                     leadingIcon()
                     Spacer(Modifier.width(6.dp))
                 }
-                Text(label, style = HqType.Label.copy(color = color, fontWeight = FontWeight.Bold))
+                Text(
+                    label,
+                    style = HqType.Label.copy(
+                        color = if (!enabled) HqColors.TextTertiary else color,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                )
             }
         }
     }
@@ -350,12 +373,12 @@ private fun PlaylistStatus(
             imageVector = when {
                 isLoading -> Icons.Default.CloudDownload
                 isSuccess -> Icons.Default.CheckCircle
-                else -> Icons.Default.BrokenImage
+                else -> Icons.Default.Error
             },
             contentDescription = null,
             tint = when {
                 isLoading -> HqColors.Accent
-                isSuccess -> Color(0xFF48BB78)
+                isSuccess -> HqColors.Success
                 else -> HqColors.Critical
             },
             modifier = Modifier.size(16.dp),

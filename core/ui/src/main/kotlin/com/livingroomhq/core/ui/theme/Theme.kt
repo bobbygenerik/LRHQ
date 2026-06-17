@@ -55,8 +55,15 @@ object HqColors {
 
     val AccentWarm = Color(0xFFFFB86B)
     val Positive = Color(0xFF2BE080)
+    val Success = Color(0xFF48BB78)
     val Warning = Color(0xFFFFD166)
     val Critical = Color(0xFFFF6B7A)
+
+    val Scrim = Color(0xCC000000)
+    val Track = Color(0x33FFFFFF)
+    val IconWell = Color(0x11FFFFFF)
+    val GlassSheenTop = Color(0x1AFFFFFF)
+    val GlassVignette = Color(0x0D000000)
 
     /** Layered radial wash behind every zone; keeps depth without lifting blacks. */
     fun backdrop(): Brush = Brush.radialGradient(

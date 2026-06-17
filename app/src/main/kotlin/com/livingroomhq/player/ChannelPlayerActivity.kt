@@ -12,7 +12,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -31,6 +33,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
@@ -45,6 +48,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
@@ -103,12 +107,14 @@ private fun ChannelPlayerScreen(
     val context = LocalContext.current
     val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
     var playbackError by remember { mutableStateOf<String?>(null) }
+    var retryNonce by remember { mutableIntStateOf(0) }
 
     // Live TV has no transport bar to seek, so the info overlay is the only chrome.
     // Show it briefly, then fade it out; any DPAD press brings it back and restarts the timer.
     var infoVisible by remember { mutableStateOf(true) }
     var interactionNonce by remember { mutableIntStateOf(0) }
     val focusRequester = remember { FocusRequester() }
+    val retryFocus = remember { FocusRequester() }
 
     LaunchedEffect(interactionNonce) {
         infoVisible = true
@@ -116,6 +122,11 @@ private fun ChannelPlayerScreen(
         infoVisible = false
     }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    LaunchedEffect(retryNonce) {
+        if (retryNonce > 0) {
+            runCatching { focusRequester.requestFocus() }
+        }
+    }
 
     DisposableEffect(channel.id, engine) {
         val listener = object : Player.Listener {
@@ -168,14 +179,48 @@ private fun ChannelPlayerScreen(
                 Modifier
                     .align(Alignment.Center)
                     .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     channel.name,
                     style = HqType.Headline.copy(color = HqColors.TextPrimary),
                 )
+                Spacer(Modifier.height(8.dp))
                 Text(
                     playbackError.orEmpty(),
                     style = HqType.Body.copy(color = HqColors.Critical),
+                )
+                Spacer(Modifier.height(20.dp))
+                FocusableGlassCard(
+                    onClick = {
+                        playbackError = null
+                        retryNonce++
+                    },
+                    modifier = Modifier
+                        .height(44.dp)
+                        .focusRequester(retryFocus),
+                    cornerRadius = 8.dp,
+                    sheenOnFocus = false,
+                ) { focused ->
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            "Retry",
+                            style = HqType.Label.copy(
+                                color = if (focused) HqColors.Accent else HqColors.TextPrimary,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Press Back to return to the channel list.",
+                    style = HqType.Label.copy(color = HqColors.TextTertiary),
                 )
             }
         }

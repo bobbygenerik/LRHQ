@@ -30,14 +30,9 @@ fun LauncherNavHost(
         AnimatedContent(
             targetState = zone,
             transitionSpec = {
-                val fromIndex = getZoneIndex(initialState)
-                val toIndex = getZoneIndex(targetState)
-
                 if (initialState == Zone.AMBIENT || targetState == Zone.AMBIENT) {
-                    // Soft cross-fade for ambient screensaver transition
                     fadeIn(tween(450)).togetherWith(fadeOut(tween(450)))
-                } else if (toIndex > fromIndex) {
-                    // Sidebar navigation DOWN: slide new content UP (from bottom)
+                } else if (targetState.order > initialState.order) {
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Up,
                         animationSpec = tween(TRANSITION_MILLIS)
@@ -48,7 +43,6 @@ fun LauncherNavHost(
                         )
                     )
                 } else {
-                    // Sidebar navigation UP: slide new content DOWN (from top)
                     slideIntoContainer(
                         towards = AnimatedContentTransitionScope.SlideDirection.Down,
                         animationSpec = tween(TRANSITION_MILLIS)
@@ -65,14 +59,5 @@ fun LauncherNavHost(
             content(active)
         }
     }
-}
-
-private fun getZoneIndex(zone: Zone): Int = when (zone) {
-    Zone.HOME -> 0
-    Zone.LIVE -> 1
-    Zone.TOOLS -> 2
-    Zone.COMMAND_CENTER -> 3
-    Zone.SETTINGS -> 4
-    Zone.AMBIENT -> 5
 }
 

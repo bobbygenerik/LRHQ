@@ -67,7 +67,7 @@ fun HeroBackdrop(
         } else {
             Crossfade(
                 targetState = current,
-                animationSpec = tween(800),
+                animationSpec = tween(450),
                 label = "heroBackdrop",
                 modifier = Modifier.fillMaxSize(),
             ) { source ->
@@ -112,7 +112,6 @@ private fun CyclingArtworkStack(
 
     LaunchedEffect(index) {
         val next = index.coerceIn(0, sources.lastIndex)
-        if (next == baseIndex && overlayIndex < 0) return@LaunchedEffect
         if (next == baseIndex) return@LaunchedEffect
         overlayIndex = next
         overlayAlpha.snapTo(0f)
@@ -171,7 +170,7 @@ private fun ArtworkBackdrop(
         credit?.let { name ->
             Text(
                 text = "Photo by $name on Unsplash",
-                style = HqType.Label.copy(color = Color.White.copy(alpha = 0.55f), fontSize = 9.sp),
+                style = HqType.Label.copy(color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
