@@ -1,6 +1,5 @@
 package com.livingroomhq.components
 
-import android.os.Build
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -17,16 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.livingroomhq.backdrop.BackdropBlurTransformation
 import com.livingroomhq.backdrop.BackdropSource
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.player.LivePreview
@@ -49,7 +44,7 @@ fun HeroBackdrop(
         if (sources.isEmpty()) return@Box
 
         var index by remember(sources) {
-            mutableIntStateOf(if (sources.size > 1) Random.nextInt(sources.size) else 0)
+            mutableIntStateOf(if (cycle && sources.size > 1) Random.nextInt(sources.size) else 0)
         }
         if (cycle && sources.size > 1) {
             LaunchedEffect(sources) {
@@ -143,7 +138,7 @@ private fun CyclingArtworkStack(
     }
 }
 
-/** Sharp centered still over a full-bleed blurred copy, or a contained logo on black. */
+/** Full-bleed cropped background photo, or a contained logo on black. */
 @Composable
 private fun ArtworkBackdrop(
     url: String,
@@ -151,8 +146,6 @@ private fun ArtworkBackdrop(
     contained: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-
     if (contained) {
         Box(modifier.background(Color.Black), contentAlignment = Alignment.Center) {
             AsyncImage(
@@ -167,34 +160,11 @@ private fun ArtworkBackdrop(
         return
     }
 
-    val useComposeBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
-    Box(modifier.background(Color.Black)) {
-        if (useComposeBlur) {
-            AsyncImage(
-                model = url,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(42.dp),
-            )
-        } else {
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(url)
-                    .transformations(BackdropBlurTransformation(context, radius = 25f, sampling = 2f))
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-
+    Box(modifier = modifier.background(Color.Black)) {
         AsyncImage(
             model = url,
             contentDescription = null,
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
 

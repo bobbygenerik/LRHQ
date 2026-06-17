@@ -19,6 +19,7 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
     private object Keys {
         val FAVORITES = stringSetPreferencesKey("favorite_channel_ids")
         val RECENTS = stringPreferencesKey("recent_channel_ids")
+        val APP_ORDER = stringPreferencesKey("app_order")
         val PLAYLIST_URL = stringPreferencesKey("playlist_url")
         val EPG_URL = stringPreferencesKey("epg_url")
         val PROMPT_DISMISSED = booleanPreferencesKey("default_prompt_dismissed")
@@ -30,6 +31,11 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
     override val recents: Flow<List<String>> =
         store.data.map { prefs ->
             prefs[Keys.RECENTS]?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
+        }
+
+    override val appOrder: Flow<List<String>> =
+        store.data.map { prefs ->
+            prefs[Keys.APP_ORDER]?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
         }
 
     override val playlistUrl: Flow<String?> =
@@ -47,6 +53,10 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
 
     override suspend fun setRecents(ids: List<String>) {
         store.edit { it[Keys.RECENTS] = ids.joinToString("\n") }
+    }
+
+    override suspend fun setAppOrder(packageNames: List<String>) {
+        store.edit { it[Keys.APP_ORDER] = packageNames.joinToString("\n") }
     }
 
     override suspend fun setPlaylistUrl(url: String?) {

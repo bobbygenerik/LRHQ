@@ -5,22 +5,34 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -92,6 +104,19 @@ private fun ChannelPlayerScreen(
     val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
     var playbackError by remember { mutableStateOf<String?>(null) }
 
+    // Live TV has no transport bar to seek, so the info overlay is the only chrome.
+    // Show it briefly, then fade it out; any DPAD press brings it back and restarts the timer.
+    var infoVisible by remember { mutableStateOf(true) }
+    var interactionNonce by remember { mutableIntStateOf(0) }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(interactionNonce) {
+        infoVisible = true
+        delay(4_000)
+        infoVisible = false
+    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
     DisposableEffect(channel.id, engine) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
@@ -114,14 +139,19 @@ private fun ChannelPlayerScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(Color.Black)
+            .focusRequester(focusRequester)
+            .focusable()
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) interactionNonce++
+                false
+            },
     ) {
         if (playbackError == null) {
             AndroidView(
                 factory = { ctx ->
                     PlayerView(ctx).apply {
-                        useController = true
-                        controllerShowTimeoutMs = 4_000
+                        useController = false
                         setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                         engine.promoteToFullscreen(this, channel)
                     }
@@ -151,21 +181,24 @@ private fun ChannelPlayerScreen(
         }
 
         if (playbackError == null) {
-            Column(
-                Modifier
-                    .align(Alignment.TopStart)
-                    .padding(24.dp),
+            AnimatedVisibility(
+                visible = infoVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.TopStart),
             ) {
-                Text(
-                    channel.name,
-                    style = HqType.Headline.copy(color = HqColors.TextPrimary),
-                )
-                nowTitle?.let {
+                Column(Modifier.padding(24.dp)) {
                     Text(
-                        it,
-                        style = HqType.Body.copy(color = HqColors.TextSecondary),
-                        maxLines = 1,
+                        channel.name,
+                        style = HqType.Headline.copy(color = HqColors.TextPrimary),
                     )
+                    nowTitle?.let {
+                        Text(
+                            it,
+                            style = HqType.Body.copy(color = HqColors.TextSecondary),
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         }

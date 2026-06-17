@@ -9,15 +9,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+private const val LONG_PRESS_MS = 500L
 
 /**
  * A [GlassPanel] wired for D-pad use: focusable, click/OK activatable, and
  * reporting its focus state so the panel can light up and scale.
+ *
+ * When [onLongClick] is supplied, OK/center is handled manually so a *held*
+ * press fires the long action — `combinedClickable` does not detect D-pad
+ * long-press on Android TV, so we time the key down/up ourselves.
  */
 @Composable
 fun FocusableGlassCard(
@@ -25,11 +41,18 @@ fun FocusableGlassCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 12.dp,
     contentPadding: PaddingValues = PaddingValues(20.dp),
+    onLongClick: (() -> Unit)? = null,
     onFocused: (() -> Unit)? = null,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
+
+    val activation = if (onLongClick == null) {
+        Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+    } else {
+        Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+    }
 
     GlassPanel(
         modifier = modifier
@@ -37,7 +60,7 @@ fun FocusableGlassCard(
                 focused = it.isFocused
                 if (it.isFocused) onFocused?.invoke()
             }
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .then(activation)
             .focusable(interactionSource = interactionSource),
         focused = focused,
         cornerRadius = cornerRadius,
@@ -46,3 +69,49 @@ fun FocusableGlassCard(
         content(focused)
     }
 }
+
+/**
+ * Distinguishes a tap from a hold on the D-pad OK button. A timer (or the
+ * platform long-press flag) fires [onLongClick] while held; releasing before
+ * the threshold fires [onClick].
+ */
+private fun Modifier.dpadPressable(
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+): Modifier = composed {
+    val scope = rememberCoroutineScope()
+    var longJob by remember { mutableStateOf<Job?>(null) }
+    var longFired by remember { mutableStateOf(false) }
+    var pressed by remember { mutableStateOf(false) }
+
+    onKeyEvent { event ->
+        if (!event.key.isOkKey()) return@onKeyEvent false
+        when (event.type) {
+            KeyEventType.KeyDown -> {
+                // First down of a press arms the hold timer; auto-repeat downs are ignored.
+                if (!pressed) {
+                    pressed = true
+                    longFired = false
+                    longJob?.cancel()
+                    longJob = scope.launch {
+                        delay(LONG_PRESS_MS)
+                        longFired = true
+                        onLongClick()
+                    }
+                }
+                true
+            }
+            KeyEventType.KeyUp -> {
+                pressed = false
+                longJob?.cancel()
+                if (!longFired) onClick()
+                longFired = false
+                true
+            }
+            else -> false
+        }
+    }
+}
+
+private fun Key.isOkKey(): Boolean =
+    this == Key.DirectionCenter || this == Key.Enter || this == Key.NumPadEnter

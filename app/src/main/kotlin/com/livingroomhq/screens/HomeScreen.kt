@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -64,12 +65,25 @@ fun HomeScreen(
 
     var clockTime by remember { mutableStateOf(timeNow()) }
     var clockDate by remember { mutableStateOf(dateNow()) }
+    var nowMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
             clockTime = timeNow()
             clockDate = dateNow()
+            nowMillis = System.currentTimeMillis()
             delay(10_000)
         }
+    }
+
+    val onNow = remember(channels, recents, epgRevision, nowMillis / 30_000L) {
+        (channels.filter { it.isFavorite } + recents + channels)
+            .distinctBy { it.id }
+            .filter { it.id != current?.id }
+            .take(40)
+            .mapNotNull { channel ->
+                app.channels.epgNowNext(channel.id).first?.let { program -> channel to program }
+            }
+            .take(20)
     }
 
     Column(
@@ -131,6 +145,18 @@ fun HomeScreen(
                     ChannelPlayer.launch(context, channel)
                 },
             )
+
+            if (onNow.isNotEmpty()) {
+                Spacer(Modifier.height(28.dp))
+                OnNowRail(
+                    items = onNow,
+                    nowMillis = nowMillis,
+                    onChannelSelected = { channel ->
+                        app.channels.markWatched(channel.id)
+                        ChannelPlayer.launch(context, channel)
+                    },
+                )
+            }
         }
     }
 }

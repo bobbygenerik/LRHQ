@@ -164,12 +164,12 @@ internal fun AmbientPhotosSettingsPanel(
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                "Connect Google Photos, select your LRHQ album/photos, and LRHQ will cache resized display copies locally. Ambient rotates your photos together with Unsplash stills.",
+                "Connect a Google Photos album and LRHQ will cache resized display copies locally. Ambient rotates your album together with Unsplash stills.",
                 style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
-                    label = if (pickerState.isBusy) "Working..." else "Start Picker",
+                    label = if (pickerState.isBusy) "Working..." else "Connect Album",
                     color = HqColors.Accent,
                     onClick = {
                         if (!pickerState.isBusy) onStartGooglePhotosPicker()
@@ -179,7 +179,7 @@ internal fun AmbientPhotosSettingsPanel(
                     },
                 )
                 SettingsActionButton(
-                    label = if (pickerState.isBusy) "Working..." else "Refresh Album",
+                    label = if (pickerState.isBusy) "Working..." else "Update Album Cache",
                     color = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent else HqColors.TextTertiary,
                     onClick = {
                         if (cacheStats.photoCount > 0 && !pickerState.isBusy) onRefreshGooglePhotosAlbum()
@@ -200,17 +200,27 @@ internal fun AmbientPhotosSettingsPanel(
             )
             if (pickerState.userCode.isNotBlank()) {
                 Text(
+                    text = "On any phone, tablet, or computer, go to:",
+                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                )
+                Text(
+                    text = pickerState.verificationUrl.ifBlank { "https://www.google.com/device" },
+                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
+                )
+                Text(
+                    text = "Enter this code:",
+                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                )
+                Text(
                     text = pickerState.userCode,
                     style = HqType.Headline.copy(fontSize = 28.sp, color = HqColors.Accent, fontWeight = FontWeight.Bold),
                 )
             }
-            if (pickerState.verificationUrlComplete.isNotBlank()) {
-                Text(
-                    text = pickerState.verificationUrlComplete,
-                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
-                )
-            }
             if (pickerState.pickerUri.isNotBlank()) {
+                Text(
+                    text = "Then open this Google Photos link. Search for your album, share its items, and tap Done:",
+                    style = HqType.Label.copy(fontSize = 10.sp, color = HqColors.TextTertiary),
+                )
                 Text(
                     text = pickerState.pickerUri,
                     style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),

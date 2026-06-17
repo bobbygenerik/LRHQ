@@ -2,6 +2,8 @@ package com.livingroomhq.core.data.repo
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import com.livingroomhq.core.data.model.LaunchableApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,6 +55,28 @@ class InstalledAppsRepository(
             // ActivityNotFoundException or SecurityException from a stale entry.
             onLaunchError(packageName)
             false
+        }
+    }
+
+    /** Opens the system "App info" / settings page for the given package. */
+    fun openAppSettings(packageName: String): Boolean {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            .setData(Uri.fromParts("package", packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: Exception) {
+            // Some TV builds restrict the per-app settings deep link; fall back to all-apps settings.
+            val fallback = Intent(Settings.ACTION_APPLICATION_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                context.startActivity(fallback)
+                true
+            } catch (e2: Exception) {
+                onLaunchError(packageName)
+                false
+            }
         }
     }
 }
