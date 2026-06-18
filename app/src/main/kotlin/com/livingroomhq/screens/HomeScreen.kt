@@ -92,13 +92,18 @@ fun HomeScreen(
             .take(20)
     }
 
+    val scrollState = rememberScrollState()
+    LaunchedEffect(Unit) {
+        scrollState.scrollTo(0)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(scrollState),
     ) {
         HomeHero(
-            requestInitialFocus = recentList.isEmpty(),
+            requestInitialFocus = true,
             focusedAction = {
                 if (current != null) {
                     ChannelPlayer.launch(context, current)
@@ -145,7 +150,6 @@ fun HomeScreen(
             RecentChannelsRow(
                 channels = channels,
                 recents = recents,
-                requestInitialFocus = recentList.isNotEmpty(),
                 onChannelSelected = { channel ->
                     app.channels.markWatched(channel.id)
                     ChannelPlayer.launch(context, channel)

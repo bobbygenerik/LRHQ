@@ -1,6 +1,7 @@
 package com.livingroomhq.screens
 
 import android.graphics.drawable.Drawable
+import android.os.SystemClock
 import coil.compose.AsyncImage
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -30,6 +31,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +49,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,19 +60,35 @@ import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val COLUMNS = 4
+private const val ARM_LAUNCH_MS = 2_500L
 
 @Composable
 fun ToolsScreen(app: HqApplication) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
     var detected by remember { mutableStateOf<List<LaunchableApp>>(emptyList()) }
     val savedOrder by app.prefs.appOrder.collectAsState(initial = emptyList())
+    val hostResumeTick by app.installedApps.hostResumeTick.collectAsState()
+
+    var armedPackage by remember { mutableStateOf<String?>(null) }
+    var armedAt by remember { mutableLongStateOf(0L) }
+
+    fun disarmLaunch() {
+        armedPackage = null
+        armedAt = 0L
+    }
+
+    LaunchedEffect(hostResumeTick) {
+        if (hostResumeTick > 0) disarmLaunch()
+    }
 
     LaunchedEffect(Unit) {
         detected = app.installedApps.launchableApps()
@@ -117,6 +137,25 @@ fun ToolsScreen(app: HqApplication) {
         apps.addAll(mergeOrder(detected, savedOrder))
     }
 
+    fun openApp(packageName: String) {
+        if (!app.installedApps.canLaunch()) return
+        focusManager.clearFocus(force = true)
+        disarmLaunch()
+        app.installedApps.launch(packageName, context)
+    }
+
+    fun requestLaunch(packageName: String, label: String) {
+        if (!app.installedApps.canLaunch()) return
+        val now = SystemClock.uptimeMillis()
+        if (armedPackage == packageName && now - armedAt <= ARM_LAUNCH_MS) {
+            openApp(packageName)
+        } else {
+            armedPackage = packageName
+            armedAt = now
+            UiMessages.post("Press OK again to open $label")
+        }
+    }
+
     BackHandler(enabled = menuPackage != null) { menuPackage = null }
     BackHandler(enabled = movingPackage != null) { cancelMove() }
 
@@ -132,7 +171,7 @@ fun ToolsScreen(app: HqApplication) {
                 text = if (movingPackage != null) {
                     "D-pad to position · OK to place · Back to cancel"
                 } else {
-                    "Press OK to open · hold OK for more"
+                    "Press OK twice to open · hold OK for more"
                 },
                 style = HqType.Label.copy(
                     color = if (movingPackage != null) HqColors.Accent else HqColors.TextSecondary,
@@ -168,13 +207,17 @@ fun ToolsScreen(app: HqApplication) {
                         AppCard(
                             entry = entry,
                             isMoving = isMoving,
+                            isArmed = armedPackage == entry.packageName,
                             packageManagerIcon = {
                                 runCatching {
                                     context.packageManager.getApplicationIcon(entry.packageName)
                                 }.getOrNull()
                             },
-                            onClick = { app.installedApps.launch(entry.packageName) },
+                            onClick = { requestLaunch(entry.packageName, entry.label) },
                             onLongClick = { menuPackage = entry.packageName },
+                            onDisarm = {
+                                if (armedPackage == entry.packageName) disarmLaunch()
+                            },
                             moveModifier = if (isMoving) {
                                 Modifier
                                     .focusRequester(moverFocus)
@@ -206,7 +249,7 @@ fun ToolsScreen(app: HqApplication) {
                     label = entry.label,
                     onOpen = {
                         menuPackage = null
-                        app.installedApps.launch(pkg)
+                        openApp(pkg)
                     },
                     onSettings = {
                         menuPackage = null
@@ -227,19 +270,22 @@ fun ToolsScreen(app: HqApplication) {
 private fun AppCard(
     entry: LaunchableApp,
     isMoving: Boolean,
+    isArmed: Boolean,
     packageManagerIcon: suspend () -> Drawable?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onDisarm: () -> Unit,
     moveModifier: Modifier,
 ) {
     val cardModifier = Modifier
         .fillMaxWidth()
         .height(72.dp)
+        .onFocusChanged { if (!it.isFocused) onDisarm() }
         .then(
-            if (isMoving) {
-                Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(8.dp))
-            } else {
-                Modifier
+            when {
+                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(8.dp))
+                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                else -> Modifier
             },
         )
         .then(moveModifier)
@@ -295,9 +341,17 @@ private fun AppCard(
                     maxLines = 1,
                 )
                 Text(
-                    text = if (entry.isTvApp) "TV APP" else "MOBILE APP",
+                    text = when {
+                        isArmed -> "PRESS OK AGAIN"
+                        entry.isTvApp -> "TV APP"
+                        else -> "MOBILE APP"
+                    },
                     style = HqType.Label.copy(
-                        color = if (entry.isTvApp) HqColors.Accent else HqColors.TextSecondary,
+                        color = when {
+                            isArmed -> HqColors.Accent
+                            entry.isTvApp -> HqColors.Accent
+                            else -> HqColors.TextSecondary
+                        },
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     ),

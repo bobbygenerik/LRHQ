@@ -14,14 +14,21 @@ class LauncherNavController {
     private var previousZone: Zone = Zone.HOME
     private var autoAmbient = false
 
+    /** Tab kept visible under the ambient overlay during the fade-in. */
+    val underlyingZone: Zone
+        get() = if (zone == Zone.AMBIENT) previousZone else zone
+
     var lastInteractionAt by mutableLongStateOf(System.currentTimeMillis())
         private set
+
+    /** Suppress immediate auto-exit after entering ambient (Back triggers [touch] too). */
+    private var ambientEnteredAt = 0L
 
     fun touch() {
         lastInteractionAt = System.currentTimeMillis()
         if (zone == Zone.AMBIENT && autoAmbient) {
-            autoAmbient = false
-            zone = previousZone
+            if (System.currentTimeMillis() - ambientEnteredAt < AMBIENT_WAKE_GRACE_MS) return
+            exitAmbient()
         }
     }
 
@@ -42,5 +49,18 @@ class LauncherNavController {
         previousZone = zone
         autoAmbient = true
         zone = Zone.AMBIENT
+        ambientEnteredAt = System.currentTimeMillis()
+        lastInteractionAt = ambientEnteredAt
+    }
+
+    fun exitAmbient() {
+        if (zone != Zone.AMBIENT || !autoAmbient) return
+        autoAmbient = false
+        zone = previousZone
+        lastInteractionAt = System.currentTimeMillis()
+    }
+
+    private companion object {
+        const val AMBIENT_WAKE_GRACE_MS = 1_200L
     }
 }

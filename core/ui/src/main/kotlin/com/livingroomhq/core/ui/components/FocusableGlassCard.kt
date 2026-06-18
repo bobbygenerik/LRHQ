@@ -109,10 +109,11 @@ private fun Modifier.dpadPressable(
                 true
             }
             KeyEventType.KeyUp -> {
+                val shouldClick = pressed && !longFired
                 pressed = false
                 longJob?.cancel()
-                if (!longFired) onClick()
                 longFired = false
+                if (shouldClick) onClick()
                 true
             }
             else -> false

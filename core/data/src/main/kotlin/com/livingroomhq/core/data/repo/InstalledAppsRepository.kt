@@ -1,11 +1,16 @@
 package com.livingroomhq.core.data.repo
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import com.livingroomhq.core.data.model.LaunchableApp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
 /**
@@ -17,6 +22,42 @@ class InstalledAppsRepository(
     private val context: Context,
     private val onLaunchError: (packageName: String) -> Unit = {},
 ) {
+
+    /** Foreground launcher activity; registered while the host activity is resumed. */
+    @Volatile
+    private var hostActivity: Activity? = null
+
+    /** True after we start a third-party app until the host resumes again. */
+    private var launchedExternalApp = false
+
+    /** Blocks phantom OK/click relaunches when returning from an external app. */
+    private var blockLaunchUntil = 0L
+
+    private val _hostResumeTick = MutableStateFlow(0)
+    /** Increments on every host [onHostResumed] so UI can drop stale launch arms. */
+    val hostResumeTick: StateFlow<Int> = _hostResumeTick.asStateFlow()
+
+    fun setHostActivity(activity: Activity) {
+        hostActivity = activity
+    }
+
+    fun clearHostActivity() {
+        hostActivity = null
+    }
+
+    /** Call when the launcher activity resumes so stale focus clicks cannot relaunch. */
+    fun onHostResumed(onReturnedFromExternal: () -> Unit = {}) {
+        val now = System.currentTimeMillis()
+        blockLaunchUntil = maxOf(blockLaunchUntil, now + RESUME_LAUNCH_GUARD_MS)
+        _hostResumeTick.value++
+        if (launchedExternalApp) {
+            blockLaunchUntil = now + RETURN_LAUNCH_GUARD_MS
+            launchedExternalApp = false
+            onReturnedFromExternal()
+        }
+    }
+
+    fun canLaunch(): Boolean = System.currentTimeMillis() >= blockLaunchUntil
 
     suspend fun launchableApps(): List<LaunchableApp> = withContext(Dispatchers.IO) {
         val pm = context.packageManager
@@ -40,19 +81,36 @@ class InstalledAppsRepository(
             .sortedBy { it.label.lowercase() }
     }
 
-    /** Launches the app, reporting failure (uninstalled race, no intent, blocked). */
-    fun launch(packageName: String): Boolean {
+    /**
+     * Launches the app, reporting failure (uninstalled race, no intent, blocked).
+     *
+     * Starts on the host activity's back stack when possible so Back returns to
+     * LRHQ. Leanback intents ship with [Intent.FLAG_ACTIVITY_NEW_TASK], which
+     * strands apps like TizenTube in a separate task when left in place.
+     */
+    fun launch(packageName: String, launcher: Context? = null): Boolean {
+        if (!canLaunch()) return false
+
         val intent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName)
             ?: context.packageManager.getLaunchIntentForPackage(packageName)
         if (intent == null) {
             onLaunchError(packageName)
             return false
         }
+
+        val activity = hostActivity ?: (launcher ?: context).findActivity()
         return try {
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            if (activity != null) {
+                intent.flags = 0
+                activity.startActivity(intent)
+                launchedExternalApp = true
+            } else {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }
             true
         } catch (e: Exception) {
-            // ActivityNotFoundException or SecurityException from a stale entry.
+            launchedExternalApp = false
             onLaunchError(packageName)
             false
         }
@@ -78,5 +136,20 @@ class InstalledAppsRepository(
                 false
             }
         }
+    }
+
+    private companion object {
+        const val RESUME_LAUNCH_GUARD_MS = 2_500L
+        const val RETURN_LAUNCH_GUARD_MS = 8_000L
+    }
+}
+
+/** Walk [ContextWrapper] chains from Compose's themed context to the hosting activity. */
+private fun Context.findActivity(): Activity? {
+    var current: Context = this
+    while (true) {
+        if (current is Activity) return current
+        if (current !is ContextWrapper) return null
+        current = current.baseContext
     }
 }
