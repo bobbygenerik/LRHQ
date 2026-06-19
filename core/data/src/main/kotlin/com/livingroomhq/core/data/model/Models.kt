@@ -9,6 +9,8 @@ data class Channel(
     val streamUrl: String,
     val logoUrl: String? = null,
     val isFavorite: Boolean = false,
+    /** Original `tvg-id` from the playlist, preserved even when app ids are disambiguated. */
+    val tvgId: String? = null,
     /** Optional `tvg-name` from the playlist — often matches XMLTV display names. */
     val tvgName: String? = null,
     /** Optional `tvg-chno` from the playlist — some guides key on channel number. */

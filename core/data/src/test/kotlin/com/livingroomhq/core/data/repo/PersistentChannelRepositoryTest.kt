@@ -106,6 +106,30 @@ class PersistentChannelRepositoryTest {
     }
 
     @Test
+    fun `loadM3u keeps channels with repeated tvg ids`() = runTest(UnconfinedTestDispatcher()) {
+        val duplicatePlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup One
+            http://s/1.m3u8
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup Two
+            http://s/2.m3u8
+            #EXTINF:-1 tvg-id="dup" group-title="Sports",Dup Three
+            http://s/3.m3u8
+        """.trimIndent()
+        val repo = repository(InMemoryPrefsStore(), duplicatePlaylist)
+
+        repo.loadM3u("http://x/list.m3u")
+        advanceUntilIdle()
+
+        val channels = repo.channels.first()
+        assertEquals(3, channels.size)
+        assertEquals(listOf("Dup One", "Dup Two", "Dup Three"), channels.map { it.name })
+        assertEquals(listOf("News", "News", "Sports"), channels.map { it.group })
+        assertEquals(3, channels.map { it.id }.distinct().size)
+        assertTrue(channels.all { it.tvgId == "dup" })
+    }
+
+    @Test
     fun `restore reloads persisted playlist at startup`() = runTest(UnconfinedTestDispatcher()) {
         val prefs = InMemoryPrefsStore().apply { setPlaylistUrl("http://x/list.m3u") }
         val repo = repository(prefs, playlist)
@@ -184,6 +208,42 @@ class PersistentChannelRepositoryTest {
         advanceUntilIdle()
 
         assertEquals("Evening Report", repo.epgNowNext("one").first?.title)
+    }
+
+    @Test
+    fun `epg matches original tvg id after duplicate channel id disambiguation`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val duplicatePlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup One
+            http://s/1.m3u8
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup Two
+            http://s/2.m3u8
+        """.trimIndent()
+        val duplicateGuide = """
+            <tv>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="dup">
+                <title>Shared Guide</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) duplicateGuide.byteInputStream() else duplicatePlaylist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val duplicateId = repo.channels.first().last().id
+        assertTrue(duplicateId.startsWith("dup#"))
+        assertEquals("Shared Guide", repo.epgNowNext(duplicateId).first?.title)
     }
 
     @Test

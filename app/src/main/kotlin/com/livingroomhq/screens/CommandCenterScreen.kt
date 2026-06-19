@@ -75,7 +75,6 @@ fun CommandCenterScreen(app: HqApplication) {
             contentPadding = PaddingValues(bottom = 36.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // 1. System Gauge
             item {
                 MetricCard(
                     title = "System",
@@ -85,12 +84,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(deviceModel, style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
                         val cpuPct = stats?.cpuPercent ?: 18f
-                        val temp = (38f + (cpuPct * 0.12f)).toInt()
                         StatBar("CPU", "${cpuPct.toInt()}%", cpuPct / 100f)
-                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("TEMP", style = HqType.Label)
-                            Text("${temp}°C", style = HqType.Label.copy(color = HqColors.TextPrimary))
-                        }
                     }
                 }
             }

@@ -15,6 +15,20 @@ import java.util.TimeZone
  */
 object XmltvParser {
 
+    private val xmltvFormatLocal = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue(): SimpleDateFormat {
+            return SimpleDateFormat("yyyyMMddHHmmss Z", Locale.US)
+        }
+    }
+
+    private val xmltvUtcFormatLocal = object : ThreadLocal<SimpleDateFormat>() {
+        override fun initialValue(): SimpleDateFormat {
+            return SimpleDateFormat("yyyyMMddHHmmss", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+        }
+    }
+
     fun parse(
         inputStream: InputStream,
         onChannelParsed: (id: String, displayNames: List<String>) -> Unit = { _, _ -> },
@@ -104,11 +118,9 @@ object XmltvParser {
             val datePart = s.substring(0, 14)
             val zonePart = s.substring(14).trim()
             if (zonePart.isNotEmpty()) {
-                SimpleDateFormat("yyyyMMddHHmmss Z", Locale.US).parse("$datePart $zonePart")?.time
+                xmltvFormatLocal.get()!!.parse("$datePart $zonePart")?.time
             } else {
-                SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
-                    .apply { timeZone = TimeZone.getTimeZone("UTC") }
-                    .parse(datePart)?.time
+                xmltvUtcFormatLocal.get()!!.parse(datePart)?.time
             }
         }.getOrNull()
     }

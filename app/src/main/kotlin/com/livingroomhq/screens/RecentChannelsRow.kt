@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import com.livingroomhq.HqApplication
+import com.livingroomhq.components.fullscreenFocusRestore
 import coil.compose.AsyncImage
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.initialFocus
@@ -37,6 +39,7 @@ import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
 internal fun RecentChannelsRow(
+    app: HqApplication,
     channels: List<Channel>,
     recents: List<Channel>,
     requestInitialFocus: Boolean = false,
@@ -54,7 +57,9 @@ internal fun RecentChannelsRow(
                 RecentChannelChip(
                     channel = channel,
                     onClick = { onChannelSelected(channel) },
-                    modifier = if (requestInitialFocus && index == 0) Modifier.initialFocus() else Modifier,
+                    modifier = Modifier
+                        .fullscreenFocusRestore(app, homeRecentFocusTarget(channel.id))
+                        .then(if (requestInitialFocus && index == 0) Modifier.initialFocus() else Modifier),
                 )
             }
         }

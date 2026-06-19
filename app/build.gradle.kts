@@ -20,6 +20,10 @@ val googlePhotosClientSecret: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("googlePhotos.clientSecret", "")
+val releaseSigningProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
 
 android {
     namespace = "com.livingroomhq"
@@ -37,10 +41,23 @@ android {
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_SECRET", "\"$googlePhotosClientSecret\"")
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFilePath = releaseSigningProps.getProperty("releaseStoreFile")
+            if (!storeFilePath.isNullOrBlank()) {
+                storeFile = rootProject.file(storeFilePath)
+                storePassword = releaseSigningProps.getProperty("releaseStorePassword")
+                keyAlias = releaseSigningProps.getProperty("releaseKeyAlias")
+                keyPassword = releaseSigningProps.getProperty("releaseKeyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         create("profile") {

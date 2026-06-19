@@ -15,7 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.livingroomhq.backdrop.BackdropSource
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.player.LivePreview
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -39,8 +41,17 @@ fun HeroBackdrop(
     modifier: Modifier = Modifier,
     cycle: Boolean = false,
     intervalMillis: Long = 14_000L,
+    applyBlur: Boolean = false,
 ) {
-    Box(modifier.background(Color.Black)) {
+    val customSettings = LocalCustomSettings.current
+    val reducedMotion = customSettings.animations != "Smooth"
+    val blurRadius = if (applyBlur && !reducedMotion) 24.dp else 0.dp
+
+    Box(
+        modifier
+            .background(Color.Black)
+            .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier)
+    ) {
         if (sources.isEmpty()) return@Box
 
         var index by remember(sources) {
@@ -131,7 +142,7 @@ private fun CyclingArtworkStack(
                 contained = overlay.contained,
                 modifier = Modifier
                     .fillMaxSize()
-                    .alpha(overlayAlpha.value),
+                    .graphicsLayer { alpha = overlayAlpha.value },
             )
         }
     }

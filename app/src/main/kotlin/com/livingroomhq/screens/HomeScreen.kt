@@ -34,10 +34,12 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
+import com.livingroomhq.components.fullscreenFocusRestore
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherNavController
+import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import kotlinx.coroutines.delay
@@ -103,9 +105,11 @@ fun HomeScreen(
             .verticalScroll(scrollState),
     ) {
         HomeHero(
+            app = app,
             requestInitialFocus = true,
             focusedAction = {
                 if (current != null) {
+                    app.fullscreenFocusReturn.arm(homeHeroFocusTarget())
                     ChannelPlayer.launch(context, current)
                 } else {
                     nav.goTo(Zone.LIVE)
@@ -141,6 +145,7 @@ fun HomeScreen(
                         sources = backdropSources,
                         modifier = Modifier.fillMaxSize(),
                         cycle = !heroLivePreview,
+                        applyBlur = !heroFocused,
                     )
                 },
             )
@@ -148,10 +153,12 @@ fun HomeScreen(
 
         Column(modifier = Modifier.padding(horizontal = 40.dp, vertical = 28.dp)) {
             RecentChannelsRow(
+                app = app,
                 channels = channels,
                 recents = recents,
                 onChannelSelected = { channel ->
                     app.channels.markWatched(channel.id)
+                    app.fullscreenFocusReturn.arm(homeRecentFocusTarget(channel.id))
                     ChannelPlayer.launch(context, channel)
                 },
             )
@@ -159,10 +166,12 @@ fun HomeScreen(
             if (onNow.isNotEmpty()) {
                 Spacer(Modifier.height(28.dp))
                 OnNowRail(
+                    app = app,
                     items = onNow,
                     nowMillis = nowMillis,
                     onChannelSelected = { channel ->
                         app.channels.markWatched(channel.id)
+                        app.fullscreenFocusReturn.arm(homeOnNowFocusTarget(channel.id))
                         ChannelPlayer.launch(context, channel)
                     },
                 )
@@ -173,6 +182,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHero(
+    app: HqApplication,
     requestInitialFocus: Boolean,
     focusedAction: () -> Unit,
     content: @Composable (heroFocused: Boolean) -> Unit,
@@ -187,6 +197,7 @@ private fun HomeHero(
         modifier = Modifier
             .fillMaxWidth()
             .height(360.dp)
+            .fullscreenFocusRestore(app, homeHeroFocusTarget())
             .onFocusChanged { heroFocused = it.isFocused }
             .clickable { focusedAction() }
             .then(if (requestInitialFocus) Modifier.initialFocus() else Modifier),
@@ -220,6 +231,15 @@ private fun HomeHero(
         )
     }
 }
+
+internal fun homeHeroFocusTarget(): LauncherFocusTarget =
+    LauncherFocusTarget(Zone.HOME, "home:hero")
+
+internal fun homeRecentFocusTarget(channelId: String): LauncherFocusTarget =
+    LauncherFocusTarget(Zone.HOME, "home:recent:$channelId")
+
+internal fun homeOnNowFocusTarget(channelId: String): LauncherFocusTarget =
+    LauncherFocusTarget(Zone.HOME, "home:on-now:$channelId")
 
 private fun timeNow(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 private fun dateNow(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())

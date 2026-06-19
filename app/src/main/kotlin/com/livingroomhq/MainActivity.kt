@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var nav: LauncherNavController
     private var homeBackTapCount = 0
     private var homeBackWindowStart = 0L
+    private var isResumedState = false
 
     companion object {
         /** TV remotes are slower than phones; keep the double-Back window generous. */
@@ -98,7 +99,7 @@ class MainActivity : ComponentActivity() {
                 val timeoutMillis = settings.idleTimeSeconds * 1000L
                 while (true) {
                     delay(5_000)
-                    if (controller.zone != Zone.AMBIENT && System.currentTimeMillis() - controller.lastInteractionAt >= timeoutMillis) {
+                    if (controller.zone != Zone.AMBIENT && SystemClock.elapsedRealtime() - controller.lastInteractionAt >= timeoutMillis) {
                         controller.enterAmbientFromIdle()
                     }
                 }
@@ -150,16 +151,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        isResumedState = true
         val app = application as HqApplication
         app.installedApps.setHostActivity(this)
-        app.installedApps.onHostResumed {
-            // Leave the Apps tab so a focused card cannot relaunch on stale OK KeyUp.
-            if (::nav.isInitialized) nav.goHome()
-        }
+        app.installedApps.onHostResumed()
+        app.fullscreenFocusReturn.onLauncherResumed()
         applyLauncherWindowPolicy()
     }
 
     override fun onPause() {
+        isResumedState = false
         (application as HqApplication).installedApps.clearHostActivity()
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         super.onPause()
@@ -220,7 +221,7 @@ class MainActivity : ComponentActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (::nav.isInitialized) nav.goHome()
+        if (::nav.isInitialized && isResumedState) nav.goHome()
     }
 
     override fun onUserInteraction() {

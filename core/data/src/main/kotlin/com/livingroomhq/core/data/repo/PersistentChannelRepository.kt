@@ -48,6 +48,7 @@ class PersistentChannelRepository(
     private val loadedEpgAliasIndex = MutableStateFlow<Map<String, String>>(emptyMap())
     private val resolvedGuideChannelIds = ConcurrentHashMap<String, String>()
     private val unresolvedGuideChannelIds = ConcurrentHashMap.newKeySet<String>()
+    private val unmappedGuideChannels = ConcurrentHashMap.newKeySet<String>()
     private val dbFallbackRequested = ConcurrentHashMap.newKeySet<String>()
     private val _epgRevision = MutableStateFlow(0L)
 
@@ -180,6 +181,8 @@ class PersistentChannelRepository(
     }
 
     private fun programsForChannel(channelId: String): List<Program> {
+        if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return emptyList()
+
         val guide = loadedEpg.value
         lookupGuidePrograms(guide, channelId)?.let { programs ->
             if (programs.isNotEmpty()) return programs
@@ -189,8 +192,8 @@ class PersistentChannelRepository(
                 if (programs.isNotEmpty()) return programs
                 scheduleDbFallback(channelId, resolvedId)
             }
+            return emptyList()
         }
-        if (channelId in unresolvedGuideChannelIds) return emptyList()
 
         val channel = channels.value.firstOrNull { it.id == channelId } ?: return emptyList()
         val aliases = channel.matchAliases()
@@ -200,6 +203,7 @@ class PersistentChannelRepository(
             lookupGuidePrograms(guide, matchedGuideId)?.let { programs ->
                 if (programs.isNotEmpty()) return programs
             }
+            unmappedGuideChannels += channelId
             scheduleDbFallback(channelId, matchedGuideId)
             return emptyList()
         }
@@ -215,6 +219,7 @@ class PersistentChannelRepository(
             lookupGuidePrograms(guide, matchedGuideId)?.let { programs ->
                 if (programs.isNotEmpty()) return programs
             }
+            unmappedGuideChannels += channelId
             scheduleDbFallback(channelId, matchedGuideId)
         }
         return emptyList()
@@ -223,6 +228,7 @@ class PersistentChannelRepository(
     private fun clearGuideMatchCache() {
         resolvedGuideChannelIds.clear()
         unresolvedGuideChannelIds.clear()
+        unmappedGuideChannels.clear()
         dbFallbackRequested.clear()
     }
 
@@ -312,6 +318,10 @@ private fun Channel.matchAliases(): Set<String> =
         addAll(name.normalizedGuideKeys())
         addAll(name.substringBefore('(').normalizedGuideKeys())
         addAll(name.substringBefore('-').normalizedGuideKeys())
+        tvgId?.let {
+            addAll(it.normalizedGuideKeys())
+            addAll(it.guideMatchKeys())
+        }
         tvgName?.let { addAll(it.normalizedGuideKeys()) }
         tvgChno?.let { chno ->
             add(chno)

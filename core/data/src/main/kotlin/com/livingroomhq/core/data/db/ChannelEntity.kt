@@ -13,6 +13,7 @@ data class ChannelEntity(
     val streamUrl: String,
     val logoUrl: String? = null,
     val isFavorite: Boolean = false,
+    val tvgId: String? = null,
     val tvgName: String? = null,
     val tvgChno: String? = null,
 ) {
@@ -24,6 +25,7 @@ data class ChannelEntity(
         streamUrl = streamUrl,
         logoUrl = logoUrl,
         isFavorite = isFavorite,
+        tvgId = tvgId,
         tvgName = tvgName,
         tvgChno = tvgChno,
     )
@@ -37,6 +39,7 @@ data class ChannelEntity(
             streamUrl = model.streamUrl,
             logoUrl = model.logoUrl,
             isFavorite = model.isFavorite,
+            tvgId = model.tvgId,
             tvgName = model.tvgName,
             tvgChno = model.tvgChno,
         )

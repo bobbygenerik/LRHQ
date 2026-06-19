@@ -74,4 +74,23 @@ class M3uParserTest {
         assertEquals("one", ch.id)
         assertEquals("http://x/l.png", ch.logoUrl)
     }
+
+    @Test
+    fun `disambiguates repeated tvg ids without dropping original tvg id`() {
+        val text = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup One
+            http://s/1.m3u8
+            #EXTINF:-1 tvg-id="dup" group-title="News",Dup Two
+            http://s/2.m3u8
+        """.trimIndent()
+
+        val channels = parseM3u(text)
+
+        assertEquals(2, channels.size)
+        assertEquals("dup", channels[0].id)
+        assertEquals("dup", channels[0].tvgId)
+        assertTrue(channels[1].id.startsWith("dup#"))
+        assertEquals("dup", channels[1].tvgId)
+    }
 }

@@ -1,17 +1,17 @@
 {
   "app/build.gradle.kts": {
-    "mtime": 1781400758.5713155,
-    "ast_hash": "a4f14513ded19f5638208fde0b72586c",
+    "mtime": 1781782732.0266595,
+    "ast_hash": "fab9ab4651018534694348034880d7f0",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/HqApplication.kt": {
-    "mtime": 1781409169.3167303,
-    "ast_hash": "85b4a61acd5cc3e5ab1f90038f2f45d0",
+    "mtime": 1781782048.8468716,
+    "ast_hash": "cf9d04079c5ccfd71a691dbd982c0f83",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/MainActivity.kt": {
-    "mtime": 1781404228.935144,
-    "ast_hash": "9da476161196335ea75754c142df9788",
+    "mtime": 1781900203.341086,
+    "ast_hash": "50cf46963c7c2e4ca2d32637be7101c5",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/components/WidgetCard.kt": {
@@ -20,8 +20,8 @@
     "semantic_hash": "112a97b09cd50b872c6bf982e18ce28e"
   },
   "app/src/main/kotlin/com/livingroomhq/navigation/Zone.kt": {
-    "mtime": 1781403261.2003446,
-    "ast_hash": "a4a2e869994a0bb82ab21781fda89c3a",
+    "mtime": 1781738505.3434062,
+    "ast_hash": "f6e77a8fd3d630e2d37a8e951b1752dd",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/player/LivePreview.kt": {
@@ -35,23 +35,23 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/CommandCenterScreen.kt": {
-    "mtime": 1781403280.7912526,
-    "ast_hash": "f8652508d42a527ec1f73ae9ca4291c5",
+    "mtime": 1781900001.803496,
+    "ast_hash": "46cd930ceb16d30e05cf237561dd662a",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
-    "mtime": 1781554403.37061,
-    "ast_hash": "4db2e913e7c53315c2ab72766f54476e",
+    "mtime": 1781900821.8634617,
+    "ast_hash": "4fe7e1177ea3ca17704c5cc569e7ef22",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {
-    "mtime": 1781411973.1298459,
-    "ast_hash": "32d11dac678d3854f8aa988f09adb176",
+    "mtime": 1781900844.297292,
+    "ast_hash": "19055b075d43041a05bd7b59091bb609",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/ToolsScreen.kt": {
-    "mtime": 1781487982.773827,
-    "ast_hash": "627d0f54a5108d1d2377320febfffebc",
+    "mtime": 1781745753.0404224,
+    "ast_hash": "8010b7a93c53e5ee64fdce9c1b511e42",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/widgets/BuiltInWidgets.kt": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/model/Models.kt": {
-    "mtime": 1781403620.3943098,
-    "ast_hash": "e292cd9cc41d6e9d320f71446ff66387",
+    "mtime": 1781782330.7641356,
+    "ast_hash": "0849978a09feaa3cae9d89f21ad665c8",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/AmbientInfoRepository.kt": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/InstalledAppsRepository.kt": {
-    "mtime": 1781484098.5062318,
-    "ast_hash": "37a892893afd65e63cf9c57aad9fbd33",
+    "mtime": 1781899972.1335034,
+    "ast_hash": "284eb0b49f77bdb622b72bf87a659eeb",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/MediaRepository.kt": {
@@ -105,23 +105,23 @@
     "semantic_hash": "9c8b87423b139d5cea1e36a2d36c47e4"
   },
   "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/FocusableGlassCard.kt": {
-    "mtime": 1781485456.6754458,
-    "ast_hash": "e34b2b9773c7c04e82d31cc3a4f95d27",
+    "mtime": 1781745619.308628,
+    "ast_hash": "27b867717188fd55588595774747d474",
     "semantic_hash": ""
   },
   "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/GlassPanel.kt": {
-    "mtime": 1781311770.8876069,
-    "ast_hash": "7a74bbe375a2109fe6492bbf4f17b70e",
-    "semantic_hash": "7a74bbe375a2109fe6492bbf4f17b70e"
+    "mtime": 1781738936.1614468,
+    "ast_hash": "e6ee28cf9510467ae42e02c5d2fcf802",
+    "semantic_hash": ""
   },
   "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/StatBar.kt": {
-    "mtime": 1781239837.777113,
-    "ast_hash": "123ed420b304b94f35248b78ce395f74",
-    "semantic_hash": "123ed420b304b94f35248b78ce395f74"
+    "mtime": 1781822422.8556414,
+    "ast_hash": "58a91f17bc0727bf323e19273ff7f26c",
+    "semantic_hash": ""
   },
   "core/ui/src/main/kotlin/com/livingroomhq/core/ui/theme/Theme.kt": {
-    "mtime": 1781370362.3249757,
-    "ast_hash": "382092dd62561c96dfdca7d59d87c92a",
+    "mtime": 1781900798.0196402,
+    "ast_hash": "ac21c9927a6cda1d360e83bc3c3dcca2",
     "semantic_hash": ""
   },
   "core/widget/build.gradle.kts": {
@@ -190,8 +190,8 @@
     "semantic_hash": "abf49304df43f9e31a093a840b657ef2"
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/M3uParser.kt": {
-    "mtime": 1781403626.3743029,
-    "ast_hash": "627c6abb05727afcb53dae5116a7fbdc",
+    "mtime": 1781782331.1871307,
+    "ast_hash": "bd3d0830b9db9fbe693c580895c12e4e",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/persist/DataStorePrefsStore.kt": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt": {
-    "mtime": 1781404067.0866528,
-    "ast_hash": "2e84273a218a5efe59b64597d4f9d726",
+    "mtime": 1781899959.3685017,
+    "ast_hash": "e403669f8961408684df3715a7f48806",
     "semantic_hash": ""
   },
   "core/data/src/test/kotlin/com/livingroomhq/core/data/SanityTest.kt": {
@@ -215,8 +215,8 @@
     "semantic_hash": "4f6accb737422a8723f0c09c06898b1d"
   },
   "core/data/src/test/kotlin/com/livingroomhq/core/data/iptv/M3uParserTest.kt": {
-    "mtime": 1781376550.5578613,
-    "ast_hash": "2ac82c9cb70b2e99cd19903c576c7ab7",
+    "mtime": 1781782356.4978282,
+    "ast_hash": "8bc8e5e3aa825ff26e2a464b6e9f8753",
     "semantic_hash": ""
   },
   "core/data/src/test/kotlin/com/livingroomhq/core/data/persist/InMemoryPrefsStoreTest.kt": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt": {
-    "mtime": 1781404085.8473651,
-    "ast_hash": "dfc43794615b00094c7377a0ef221d75",
+    "mtime": 1781782356.6238267,
+    "ast_hash": "2815da7d56e109a55b869644ed565316",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-06-12-launcher-completion.md": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/SettingsScreen.kt": {
-    "mtime": 1781403280.7922087,
-    "ast_hash": "8b6434dc85d58dbc30f17e9521622d8d",
+    "mtime": 1781738886.1885133,
+    "ast_hash": "0675eb0c1491eff6870153f6c90c56aa",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
@@ -285,8 +285,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/backdrop/GooglePhotosPickerClient.kt": {
-    "mtime": 1781489228.4578834,
-    "ast_hash": "bcde7c458ae5deaafd389102fda0899b",
+    "mtime": 1781668987.2156994,
+    "ast_hash": "2baabb915440f727b7139856497a95aa",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/backdrop/UnsplashClient.kt": {
@@ -295,18 +295,18 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/components/HeroBackdrop.kt": {
-    "mtime": 1781483262.1689854,
-    "ast_hash": "b67a996753dbe6bc822f7fa1041fc401",
+    "mtime": 1781900815.955506,
+    "ast_hash": "f2af45487dc5c08163ce526d2fc74477",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/navigation/LauncherNavController.kt": {
-    "mtime": 1781403262.4758253,
-    "ast_hash": "69fe67e7f8c6f522db38720075b10af4",
+    "mtime": 1781899993.5744996,
+    "ast_hash": "04fc45a4058264a4c82b501c04eaf2d8",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/navigation/LauncherNavHost.kt": {
-    "mtime": 1781403264.0808182,
-    "ast_hash": "34214f4cebb7aeb4ddb72bdc59c61dcf",
+    "mtime": 1781746072.1816843,
+    "ast_hash": "d1ce611ca8d923d1381123d83a3957e8",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/player/ChannelPlayer.kt": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/player/ChannelPlayerActivity.kt": {
-    "mtime": 1781483545.5935423,
-    "ast_hash": "ddfa19ef3466e2525ad75d28703ae7e3",
+    "mtime": 1781739165.7007399,
+    "ast_hash": "169c1799dd2d4c17946281335907bb61",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/player/IptvExoPlayer.kt": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/player/LivePreviewEngine.kt": {
-    "mtime": 1781553315.3899975,
-    "ast_hash": "cc86d633aae1bdaea96f05e2d75bfe40",
+    "mtime": 1781899982.9185026,
+    "ast_hash": "3e98dbc8876e3086493a6f7f84984eb8",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeHero.kt": {
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/RecentChannelsRow.kt": {
-    "mtime": 1781483262.1689854,
-    "ast_hash": "e4d10774f044ae3c95681a3f83c9b55c",
+    "mtime": 1781782072.6106234,
+    "ast_hash": "c1865550efb631fcba82fe88f60ff29b",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/SettingsControls.kt": {
@@ -345,13 +345,13 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/SettingsPanels.kt": {
-    "mtime": 1781489228.5808845,
-    "ast_hash": "28504f39d7cc0820dc7ca155df91e22f",
+    "mtime": 1781738772.14475,
+    "ast_hash": "684eedb3162b3aa01895c071798ccf1c",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/ChannelEntity.kt": {
-    "mtime": 1781403620.8531172,
-    "ast_hash": "1eb7eb5af2f2a5e0cacbac2d0254d3f1",
+    "mtime": 1781782330.905683,
+    "ast_hash": "2c306ba7888e3eb16974a351926434fc",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/GuideChannelEntity.kt": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/LrhqDatabase.kt": {
-    "mtime": 1781403624.6934085,
-    "ast_hash": "9486875991c783c0ecfcaefb7d1eeb23",
+    "mtime": 1781782331.0491323,
+    "ast_hash": "ad26d37f436251e998df7e19125e80ee",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/ProgramEntity.kt": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/iptv/XmltvParser.kt": {
-    "mtime": 1781414117.6375415,
-    "ast_hash": "ff28027b0b7512cf49882a8f47179035",
+    "mtime": 1781899967.8165033,
+    "ast_hash": "606554d4741f8caa51bebfa5a98e8735",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/EpgMemoryWindow.kt": {
@@ -415,8 +415,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1781373772.056284,
-    "ast_hash": "e36f38f2f81e64cc51c1718ead9f3847",
+    "mtime": 1781667652.8468816,
+    "ast_hash": "95eb401c86a1da432d71e6c1b5c1c5d5",
     "semantic_hash": ""
   },
   "app/src/main/res/drawable-hdpi/lrhq_mark_transparent.png": {
@@ -455,88 +455,103 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/OnNowRail.kt": {
-    "mtime": 1781487681.9436998,
-    "ast_hash": "ed4b96d2ee269437e7940808685a279a",
+    "mtime": 1781782072.834622,
+    "ast_hash": "78035200b54945db0d73e00a59a135ed",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771172536857-0e5ecfa0-c535-456c-af6d-747fe9a53a4c.jpg": {
-    "mtime": 1781554365.655745,
-    "ast_hash": "6e8635a2bb785aeacb0784aa77116b2d",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_01.png": {
+    "mtime": 1781441552.1806307,
+    "ast_hash": "9d2b1775513a3e3de0332df99d7a693d",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771172968318-a7ea08cf-6db5-4f48-a1b5-6e611c52462e.jpg": {
-    "mtime": 1781554365.657745,
-    "ast_hash": "af5e0e0a7aa09c94e93546aac06a2316",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_02.png": {
+    "mtime": 1781441572.0624003,
+    "ast_hash": "ad88d211d3218e78d11c62cc39d5e013",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173049865-3ea97531-d44c-49b4-a1df-0d90f3eb1ef8.jpg": {
-    "mtime": 1781554365.6607447,
-    "ast_hash": "06b5c01b6480b580c6b51fb49f4f16de",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_03.png": {
+    "mtime": 1781441579.4944458,
+    "ast_hash": "22878ec773b9dbf8783628110c806211",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173076546-b67c58a3-ee7d-43a7-bc16-b58de92e1911.jpg": {
-    "mtime": 1781554365.6627445,
-    "ast_hash": "f24ac8f32fb5aec33f5d3ca921765130",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_04.png": {
+    "mtime": 1781441585.9129462,
+    "ast_hash": "66e671713bc02e4f5c6e84c15fc1b1d7",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173116411-eed8b3b3-6f80-4e7d-8195-c34ab9388d36.jpg": {
-    "mtime": 1781554365.6647444,
-    "ast_hash": "efd668d188c5c5a6421461975e1d9156",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_05.png": {
+    "mtime": 1781441592.763396,
+    "ast_hash": "647845a918cf81c71e9df614fc3e7157",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173180872-6f1e3d6b-2ccf-433b-ae88-9669fac4f6b0_.jpg": {
-    "mtime": 1781554365.6657443,
-    "ast_hash": "bbfa3bb98ce82641dc4c0131ff04b9a0",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_06.png": {
+    "mtime": 1781441602.777323,
+    "ast_hash": "74b070e77f07aa1841b6a5f55db61350",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173244441-0ceb1749-8ccc-479b-8afb-0916206e4eb7.jpg": {
-    "mtime": 1781554365.6667442,
-    "ast_hash": "5b3eb4f418c6afa552c133dab03ebadd",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_07.png": {
+    "mtime": 1781441609.1077588,
+    "ast_hash": "f57a03a2ecfba5f0507a6f60a115fb63",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771173384494-851020e8-f731-4db5-80e4-818778181fb1.jpg": {
-    "mtime": 1781554365.6677442,
-    "ast_hash": "792f24c197136ceb2694d1b585f733e1",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_08.png": {
+    "mtime": 1781441615.9373627,
+    "ast_hash": "42e725a8591ff15fab2380113db53ed1",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771184028438-6b327fc3-37a0-4b5a-9d9b-a493e3ad3dbc.jpg": {
-    "mtime": 1781554365.668744,
-    "ast_hash": "9c2fad55f68283ec70352a52f3214b8e",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_09.png": {
+    "mtime": 1781441622.3355362,
+    "ast_hash": "93a52b3f85fb54d544aba839459711c5",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771184052314-94cf04f1-ae1b-462c-aa9c-14ee20b592eb.jpg": {
-    "mtime": 1781554365.669035,
-    "ast_hash": "ad47e3129287a95da8e644d5d6319aa5",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_10.png": {
+    "mtime": 1781441627.6513126,
+    "ast_hash": "f8312bc786521fc272a82af8f6e5f9d3",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771184078774-9a7abede-661c-482e-97ed-f93bb616e58e_.jpg": {
-    "mtime": 1781554365.6697955,
-    "ast_hash": "f5dfea25f144929c0076036eef213137",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_11.png": {
+    "mtime": 1781441634.295372,
+    "ast_hash": "a3c6098e465d3e33754c05af6e6e28b7",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771184105452-da8ae2ef-2dc0-4218-a82a-a8de14b1fa4c.jpg": {
-    "mtime": 1781554365.670744,
-    "ast_hash": "60e2a1dda6a5eb5079d58d889aaa2e7e",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_12.png": {
+    "mtime": 1781441680.0922384,
+    "ast_hash": "3ab0a56f6cc0c616e54f15e7dc33c544",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771190893407-18eb2d17-bb63-4e28-a147-f042cf952e12_.jpg": {
-    "mtime": 1781554365.6717439,
-    "ast_hash": "6bf88c1cf96761f39e0cfdf680092607",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_13.png": {
+    "mtime": 1781441695.2469883,
+    "ast_hash": "1b5d816d45f31712dfe7982e5708da7f",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771190983401-6364844f-6a25-4f89-966e-e86e4b5dbad3_.jpg": {
-    "mtime": 1781554365.6727438,
-    "ast_hash": "b0cb7ce14ce9829b47a2e2fc2bd24ffe",
+  "app/src/main/assets/hero_backdrops/hero_backdrop_14.png": {
+    "mtime": 1781441702.5218923,
+    "ast_hash": "c65b282005721ce8b4a31c25e3c23cc9",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771191013840-07667abb-37ce-45a4-9104-a2d5a21f3c93.jpg": {
-    "mtime": 1781554365.6757436,
-    "ast_hash": "eb19b9b77b58438f421c3211a4f2b40e",
+  "screenshot.png": {
+    "mtime": 1781667847.5731907,
+    "ast_hash": "c88203ecc09a5e76e27f11ec3e6bac48",
     "semantic_hash": ""
   },
-  "app/src/main/assets/hero_backdrops/1771191111206-f9946f7c-bec9-4581-a037-2730d2ff9bc3.jpg": {
-    "mtime": 1781554365.6787434,
-    "ast_hash": "f53028c4825f8845561be430ed9dc6a8",
+  "core/ui/src/main/kotlin/com/livingroomhq/core/ui/components/ConfirmDialog.kt": {
+    "mtime": 1781900015.948487,
+    "ast_hash": "250ba04138d7f1646f334e4f8ed616cb",
+    "semantic_hash": ""
+  },
+  "screenshot-shield.png": {
+    "mtime": 1781739956.4576058,
+    "ast_hash": "4a34370f9a57f488100d135065887859",
+    "semantic_hash": ""
+  },
+  "app/src/main/kotlin/com/livingroomhq/components/FullscreenFocusRestore.kt": {
+    "mtime": 1781782184.374711,
+    "ast_hash": "ea5880b58533b87e66f40da80b8330f6",
+    "semantic_hash": ""
+  },
+  "app/src/main/kotlin/com/livingroomhq/navigation/FullscreenFocusReturn.kt": {
+    "mtime": 1781782048.2557747,
+    "ast_hash": "6e7d26d9c5f9e8577bd00f533eca7e60",
     "semantic_hash": ""
   }
 }

@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChannelEntity::class, ProgramEntity::class, GuideChannelEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class LrhqDatabase : RoomDatabase() {
@@ -32,13 +32,19 @@ abstract class LrhqDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE channels ADD COLUMN tvgId TEXT")
+            }
+        }
+
         fun build(context: Context): LrhqDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
                 LrhqDatabase::class.java,
                 "lrhq_launcher.db"
             )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
     }
 }

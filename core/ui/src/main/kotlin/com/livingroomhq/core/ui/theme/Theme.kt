@@ -8,8 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -74,18 +76,24 @@ object HqColors {
     )
 }
 
+private val defaultTextShadow = Shadow(
+    color = Color.Black.copy(alpha = 0.45f),
+    offset = Offset(0f, 1f),
+    blurRadius = 4f,
+)
+
 /**
  * 10-foot typography, tuned for a dense, premium dashboard rather than oversized
  * cards. Sizes are deliberately restrained — the reference UI reads small and
  * crisp from the couch; weight and tracking carry the hierarchy, not bulk.
  */
 object HqType {
-    val Display = TextStyle(fontSize = 46.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, letterSpacing = (-1).sp)
-    val Title = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
-    val Headline = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = HqColors.TextPrimary)
-    val Body = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary)
-    val Label = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp)
-    val Stat = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary)
+    val Display = TextStyle(fontSize = 46.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, letterSpacing = (-1).sp, shadow = defaultTextShadow)
+    val Title = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, shadow = defaultTextShadow)
+    val Headline = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = HqColors.TextPrimary, shadow = defaultTextShadow)
+    val Body = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary, shadow = defaultTextShadow)
+    val Label = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp, shadow = defaultTextShadow)
+    val Stat = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, shadow = defaultTextShadow)
 }
 
 data class HqTheme(

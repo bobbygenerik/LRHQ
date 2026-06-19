@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import com.livingroomhq.HqApplication
+import com.livingroomhq.components.fullscreenFocusRestore
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
@@ -30,6 +32,7 @@ import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
 internal fun OnNowRail(
+    app: HqApplication,
     items: List<Pair<Channel, Program>>,
     nowMillis: Long,
     onChannelSelected: (Channel) -> Unit,
@@ -42,6 +45,7 @@ internal fun OnNowRail(
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items(items, key = { (channel, _) -> channel.id }) { (channel, program) ->
             OnNowCard(
+                app = app,
                 channel = channel,
                 program = program,
                 nowMillis = nowMillis,
@@ -53,6 +57,7 @@ internal fun OnNowRail(
 
 @Composable
 private fun OnNowCard(
+    app: HqApplication,
     channel: Channel,
     program: Program,
     nowMillis: Long,
@@ -62,7 +67,8 @@ private fun OnNowCard(
         onClick = onClick,
         modifier = Modifier
             .width(200.dp)
-            .height(124.dp),
+            .height(124.dp)
+            .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),
         cornerRadius = 12.dp,
         contentPadding = PaddingValues(14.dp),
         sheenOnFocus = false,

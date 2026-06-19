@@ -20,6 +20,7 @@ import com.livingroomhq.core.data.repo.PersistentChannelRepository
 import com.livingroomhq.core.data.repo.RealAmbientInfoRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
+import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
 import com.livingroomhq.ui.UiMessages
@@ -62,6 +63,7 @@ class HqApplication : Application() {
     val ambientPhotoCache: AmbientPhotoCacheRepository by lazy { AmbientPhotoCacheRepository(this) }
     val googlePhotosPicker: GooglePhotosPickerClient by lazy { GooglePhotosPickerClient(ambientPhotoCache) }
     val livePreviewEngine: LivePreviewEngine by lazy { LivePreviewEngine(this) }
+    val fullscreenFocusReturn: FullscreenFocusReturn by lazy { FullscreenFocusReturn() }
 
     private val _ambientBackdropPhotos = MutableStateFlow(AmbientBackdrops.photos)
     private val _remoteAmbientPhotos = MutableStateFlow(AmbientBackdrops.photos)

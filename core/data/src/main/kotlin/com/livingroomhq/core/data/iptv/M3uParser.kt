@@ -15,6 +15,7 @@ object M3uParser {
 
     fun parse(inputStream: InputStream): List<Channel> {
         val channels = mutableListOf<Channel>()
+        val usedIds = mutableSetOf<String>()
         var pendingExtinf: String? = null
 
         inputStream.bufferedReader(UTF_8).use { reader ->
@@ -32,13 +33,19 @@ object M3uParser {
                                     m.groupValues[1].lowercase() to (m.groupValues[2].ifEmpty { m.groupValues[3] })
                                 }
                             val name = extinf.displayName().ifEmpty { line }
+                            val tvgId = attrs["tvg-id"]?.takeIf { it.isNotBlank() }
                             channels += Channel(
-                                id = attrs["tvg-id"]?.takeIf { it.isNotBlank() } ?: line,
+                                id = uniqueChannelId(
+                                    preferred = tvgId ?: line,
+                                    streamUrl = line,
+                                    usedIds = usedIds,
+                                ),
                                 number = channels.size + 1,
                                 name = name,
                                 group = attrs["group-title"]?.takeIf { it.isNotBlank() } ?: "Other",
                                 streamUrl = line,
                                 logoUrl = attrs["tvg-logo"]?.takeIf { it.isNotBlank() },
+                                tvgId = tvgId,
                                 tvgName = attrs["tvg-name"]?.takeIf { it.isNotBlank() },
                                 tvgChno = attrs["tvg-chno"]?.takeIf { it.isNotBlank() },
                             )
@@ -48,6 +55,23 @@ object M3uParser {
             }
         }
         return channels
+    }
+
+    private fun uniqueChannelId(
+        preferred: String,
+        streamUrl: String,
+        usedIds: MutableSet<String>,
+    ): String {
+        if (usedIds.add(preferred)) return preferred
+
+        val urlHash = Integer.toUnsignedString(streamUrl.hashCode(), 16)
+        var candidate = "$preferred#$urlHash"
+        var suffix = 2
+        while (!usedIds.add(candidate)) {
+            candidate = "$preferred#$urlHash-$suffix"
+            suffix++
+        }
+        return candidate
     }
 
     private fun String.displayName(): String {

@@ -140,7 +140,7 @@ class InstalledAppsRepository(
 
     private companion object {
         const val RESUME_LAUNCH_GUARD_MS = 2_500L
-        const val RETURN_LAUNCH_GUARD_MS = 8_000L
+        const val RETURN_LAUNCH_GUARD_MS = 1_500L
     }
 }
 

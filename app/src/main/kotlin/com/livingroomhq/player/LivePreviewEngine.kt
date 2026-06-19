@@ -70,6 +70,7 @@ class LivePreviewEngine(context: Context) {
         player.clearMediaItems()
         boundOwner = null
         boundView = null
+        previewTextureView = null
         boundUrl = null
     }
 
@@ -116,6 +117,7 @@ class LivePreviewEngine(context: Context) {
             player.clearMediaItems()
             boundUrl = null
         }
+        previewTextureView = null
     }
 
     fun ensureFullscreenAudio(tracks: Tracks) {

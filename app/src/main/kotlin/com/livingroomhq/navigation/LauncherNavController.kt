@@ -1,5 +1,6 @@
 package com.livingroomhq.navigation
 
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -18,16 +19,16 @@ class LauncherNavController {
     val underlyingZone: Zone
         get() = if (zone == Zone.AMBIENT) previousZone else zone
 
-    var lastInteractionAt by mutableLongStateOf(System.currentTimeMillis())
+    var lastInteractionAt by mutableLongStateOf(SystemClock.elapsedRealtime())
         private set
 
     /** Suppress immediate auto-exit after entering ambient (Back triggers [touch] too). */
     private var ambientEnteredAt = 0L
 
     fun touch() {
-        lastInteractionAt = System.currentTimeMillis()
+        lastInteractionAt = SystemClock.elapsedRealtime()
         if (zone == Zone.AMBIENT && autoAmbient) {
-            if (System.currentTimeMillis() - ambientEnteredAt < AMBIENT_WAKE_GRACE_MS) return
+            if (SystemClock.elapsedRealtime() - ambientEnteredAt < AMBIENT_WAKE_GRACE_MS) return
             exitAmbient()
         }
     }
@@ -49,7 +50,7 @@ class LauncherNavController {
         previousZone = zone
         autoAmbient = true
         zone = Zone.AMBIENT
-        ambientEnteredAt = System.currentTimeMillis()
+        ambientEnteredAt = SystemClock.elapsedRealtime()
         lastInteractionAt = ambientEnteredAt
     }
 
@@ -57,7 +58,7 @@ class LauncherNavController {
         if (zone != Zone.AMBIENT || !autoAmbient) return
         autoAmbient = false
         zone = previousZone
-        lastInteractionAt = System.currentTimeMillis()
+        lastInteractionAt = SystemClock.elapsedRealtime()
     }
 
     private companion object {
