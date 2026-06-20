@@ -16,9 +16,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import com.livingroomhq.components.Sidebar
+import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
@@ -107,33 +108,39 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(LocalCustomSettings provides settings) {
                 Box(Modifier.fillMaxSize()) {
-                    Row(Modifier.fillMaxSize()) {
-                        AnimatedVisibility(
-                            visible = controller.zone != Zone.AMBIENT,
-                            enter = fadeIn(tween(SIDEBAR_FADE_MS, easing = LinearOutSlowInEasing)),
-                            exit = fadeOut(tween(SIDEBAR_FADE_MS, easing = FastOutLinearInEasing)),
-                        ) {
-                            Sidebar(
-                                currentZone = controller.underlyingZone,
-                                onZoneSelected = { zone -> controller.goTo(zone) },
-                                modifier = Modifier.fillMaxHeight(),
-                            )
-                        }
-                        Box(Modifier.weight(1f).fillMaxHeight()) {
-                            LauncherNavHost(
-                                zone = controller.underlyingZone,
-                                modifier = Modifier.fillMaxSize(),
-                            ) { zone ->
-                                when (zone) {
-                                    Zone.HOME -> HomeScreen(app, controller)
-                                    Zone.LIVE -> LiveScreen(app)
-                                    Zone.TOOLS -> ToolsScreen(app)
-                                    Zone.COMMAND_CENTER -> CommandCenterScreen(app)
-                                    Zone.SETTINGS -> SettingsScreen(app, settings, onSettingsChanged = { settings = it })
-                                    Zone.AMBIENT -> Unit // drawn as a full-screen overlay below
-                                }
+                    // Content is inset by the collapsed rail width; the rail floats
+                    // on top and expands over content on focus, so focusing the
+                    // sidebar never reflows or shoves the whole screen sideways.
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(start = SidebarCollapsedWidth),
+                    ) {
+                        LauncherNavHost(
+                            zone = controller.underlyingZone,
+                            modifier = Modifier.fillMaxSize(),
+                        ) { zone ->
+                            when (zone) {
+                                Zone.HOME -> HomeScreen(app, controller)
+                                Zone.LIVE -> LiveScreen(app)
+                                Zone.TOOLS -> ToolsScreen(app)
+                                Zone.COMMAND_CENTER -> CommandCenterScreen(app)
+                                Zone.SETTINGS -> SettingsScreen(app, settings, onSettingsChanged = { settings = it })
+                                Zone.AMBIENT -> Unit // drawn as a full-screen overlay below
                             }
                         }
+                    }
+                    AnimatedVisibility(
+                        visible = controller.zone != Zone.AMBIENT,
+                        enter = fadeIn(tween(SIDEBAR_FADE_MS, easing = LinearOutSlowInEasing)),
+                        exit = fadeOut(tween(SIDEBAR_FADE_MS, easing = FastOutLinearInEasing)),
+                        modifier = Modifier.fillMaxHeight(),
+                    ) {
+                        Sidebar(
+                            currentZone = controller.underlyingZone,
+                            onZoneSelected = { zone -> controller.goTo(zone) },
+                            modifier = Modifier.fillMaxHeight(),
+                        )
                     }
                     AnimatedVisibility(
                         visible = controller.zone == Zone.AMBIENT,

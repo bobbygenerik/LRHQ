@@ -245,6 +245,7 @@ internal fun AmbientPhotosSettingsPanel(
                 value = importText,
                 onValueChange = onImportTextChange,
                 placeholder = "Paste direct photo URLs...",
+                singleLine = false,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(86.dp),

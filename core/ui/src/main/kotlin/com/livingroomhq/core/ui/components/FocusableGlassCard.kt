@@ -1,10 +1,13 @@
 package com.livingroomhq.core.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +22,8 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
@@ -35,6 +40,7 @@ private const val LONG_PRESS_MS = 500L
  * press fires the long action — `combinedClickable` does not detect D-pad
  * long-press on Android TV, so we time the key down/up ourselves.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FocusableGlassCard(
     onClick: () -> Unit,
@@ -45,10 +51,13 @@ fun FocusableGlassCard(
     onFocused: (() -> Unit)? = null,
     enabled: Boolean = true,
     sheenOnFocus: Boolean = true,
+    contentDescription: String? = null,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
+    val bringIntoView = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
 
     val activation = when {
         !enabled -> Modifier
@@ -62,10 +71,15 @@ fun FocusableGlassCard(
 
     GlassPanel(
         modifier = modifier
+            .bringIntoViewRequester(bringIntoView)
             .onFocusChanged {
                 focused = it.isFocused
-                if (it.isFocused) onFocused?.invoke()
+                if (it.isFocused) {
+                    onFocused?.invoke()
+                    scope.launch { bringIntoView.bringIntoView() }
+                }
             }
+            .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
             .then(activation)
             .then(if (enabled) Modifier.focusable(interactionSource = interactionSource) else Modifier),
         focused = focused && enabled,

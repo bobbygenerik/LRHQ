@@ -19,7 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.core.data.model.WeatherCondition
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import kotlinx.coroutines.delay
@@ -52,6 +58,7 @@ internal fun HomeHeroContent(
     clockTime: String,
     clockDate: String,
     temperatureF: Int?,
+    weatherCondition: WeatherCondition?,
     showWeather: Boolean,
     nowTitle: String?,
     nowDescription: String?,
@@ -106,7 +113,7 @@ internal fun HomeHeroContent(
             ) {
                 LiveBadge()
                 if (showWeather) {
-                    ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF)
+                    ClockWeather(clockTime = clockTime, clockDate = clockDate, temperatureF = temperatureF, condition = weatherCondition)
                 }
             }
 
@@ -160,6 +167,7 @@ private fun ClockWeather(
     clockTime: String,
     clockDate: String,
     temperatureF: Int?,
+    condition: WeatherCondition?,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(horizontalAlignment = Alignment.End) {
@@ -167,7 +175,7 @@ private fun ClockWeather(
             Text(clockDate, style = HqType.Label.copy(color = Color.White.copy(alpha = 0.8f), shadow = heroTextShadow()))
         }
         Spacer(Modifier.width(14.dp))
-        Icon(Icons.Default.Cloud, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+        Icon(weatherIcon(condition), contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(6.dp))
         Text(
             temperatureF?.let { "$it°F" } ?: "—",
@@ -224,6 +232,15 @@ private fun NowPlayingSummary(
             )
         }
     }
+}
+
+/** Maps the current condition to a glyph so the hero icon isn't always a cloud. */
+private fun weatherIcon(condition: WeatherCondition?): ImageVector = when (condition) {
+    WeatherCondition.CLEAR -> Icons.Default.WbSunny
+    WeatherCondition.RAIN -> Icons.Default.Grain
+    WeatherCondition.SNOW -> Icons.Default.AcUnit
+    WeatherCondition.STORM -> Icons.Default.Bolt
+    WeatherCondition.PARTLY_CLOUDY, WeatherCondition.CLOUDY, null -> Icons.Default.Cloud
 }
 
 private fun heroTextShadow(): Shadow =

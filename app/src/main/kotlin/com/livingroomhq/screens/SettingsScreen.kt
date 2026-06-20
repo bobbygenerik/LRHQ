@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.ConfirmDialog
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.zonePadding
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
@@ -74,11 +74,11 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .zonePadding()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text("SETTINGS / LAUNCHER CONFIGURATION", style = HqType.Title)
+            Text("Settings", style = HqType.Title)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),

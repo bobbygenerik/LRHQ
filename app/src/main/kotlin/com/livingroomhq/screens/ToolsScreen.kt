@@ -59,7 +59,9 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -163,7 +165,7 @@ fun ToolsScreen(app: HqApplication) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .zonePadding(),
         ) {
             Text("APPS", style = HqType.Title)
             Spacer(Modifier.height(4.dp))
@@ -199,7 +201,13 @@ fun ToolsScreen(app: HqApplication) {
                     state = gridState,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 36.dp),
+                    // Horizontal inset so focus-scaled edge cards don't clip.
+                    contentPadding = PaddingValues(
+                        start = HqDimens.GridEdgeInset,
+                        end = HqDimens.GridEdgeInset,
+                        top = HqDimens.GridEdgeInset,
+                        bottom = 36.dp,
+                    ),
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(apps, key = { it.packageName }) { entry ->

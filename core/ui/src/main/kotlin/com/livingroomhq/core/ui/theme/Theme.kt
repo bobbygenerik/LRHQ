@@ -52,11 +52,13 @@ object HqColors {
     val GlassStrokeFocused: Color get() = Accent
 
     val TextPrimary = Color(0xFFF2F5FA)
-    val TextSecondary = Color(0xB3D7DEE8)
-    val TextTertiary = Color(0x66C2CBD8)
+    val TextSecondary = Color(0xC2D7DEE8)
+    val TextTertiary = Color(0x99C2CBD8)
 
     val AccentWarm = Color(0xFFFFB86B)
-    val Positive = Color(0xFF2BE080)
+    // Semantic "good" state, kept distinct from the brand Accent so a green
+    // accent doesn't make every "Connected/Online" read as branding.
+    val Positive = Color(0xFF48BB78)
     val Success = Color(0xFF48BB78)
     val Warning = Color(0xFFFFD166)
     val Critical = Color(0xFFFF6B7A)

@@ -42,6 +42,13 @@ fun StatBar(
         progress > 0.75f -> HqColors.Warning
         else -> HqColors.Accent
     }
+    // Glyph backs up the colour so severity survives colour-blindness. Only
+    // auto-derived severity gets a glyph; explicit tints stay clean.
+    val severityGlyph = if (tint == null) when {
+        progress > 0.9f -> "▲ "
+        progress > 0.75f -> "△ "
+        else -> ""
+    } else ""
 
     Column(
         modifier = modifier
@@ -53,7 +60,7 @@ fun StatBar(
         Row {
             Text(label.uppercase(), style = HqType.Label)
             Spacer(Modifier.weight(1f))
-            Text(value, style = HqType.Label.copy(color = HqColors.TextSecondary))
+            Text("$severityGlyph$value", style = HqType.Label.copy(color = HqColors.TextSecondary))
         }
         Spacer(Modifier.height(6.dp))
         Box(

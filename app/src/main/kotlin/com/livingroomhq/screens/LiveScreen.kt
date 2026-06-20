@@ -64,7 +64,9 @@ import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
@@ -169,7 +171,7 @@ fun LiveScreen(app: HqApplication) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 24.dp),
+            .zonePadding(),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Left column: Category Rail
@@ -268,7 +270,14 @@ private fun LiveChannelGridColumn(
                 state = gridState,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 72.dp),
+                // Inner inset so a focus-scaled edge card doesn't clip against
+                // the category rail or the preview pane.
+                contentPadding = PaddingValues(
+                    start = HqDimens.GridEdgeInset,
+                    end = HqDimens.GridEdgeInset,
+                    top = HqDimens.GridEdgeInset,
+                    bottom = 72.dp,
+                ),
                 modifier = Modifier
                     .fillMaxSize()
                     .onFocusChanged { onGridFocusChanged(it.hasFocus) }
@@ -301,6 +310,7 @@ private fun LivePreviewColumn(
     onLaunchPreview: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
     var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(previewChannel?.id) {
@@ -383,7 +393,7 @@ private fun LivePreviewColumn(
                         val minutesLeft = ((now.endMillis - nowMillis) / 60_000L).coerceAtLeast(0)
                         Row(Modifier.fillMaxWidth()) {
                             Text(
-                                text = formatProgramWindow(now),
+                                text = formatProgramWindow(context, now),
                                 style = HqType.Label.copy(color = HqColors.TextSecondary),
                             )
                             Spacer(Modifier.weight(1f))
@@ -571,11 +581,12 @@ private fun ChannelGridCard(
     }
 }
 
-private fun formatProgramWindow(program: Program): String {
-    val startFmt = SimpleDateFormat("h:mm", Locale.getDefault())
-    val endFmt = SimpleDateFormat("h:mm a", Locale.getDefault())
-    val start = startFmt.format(Date(program.startMillis))
-    val end = endFmt.format(Date(program.endMillis))
+private fun formatProgramWindow(context: android.content.Context, program: Program): String {
+    // Respect the device 12/24-hour setting for EPG windows.
+    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else "h:mm a"
+    val fmt = SimpleDateFormat(pattern, Locale.getDefault())
+    val start = fmt.format(Date(program.startMillis))
+    val end = fmt.format(Date(program.endMillis))
     return "$start – $end"
 }
 

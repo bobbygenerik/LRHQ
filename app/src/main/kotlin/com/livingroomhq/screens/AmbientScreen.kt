@@ -53,6 +53,7 @@ import java.util.Locale
 @Composable
 fun AmbientScreen(app: HqApplication) {
     val view = LocalView.current
+    val context = androidx.compose.ui.platform.LocalContext.current
     val recents by app.channels.recents.collectAsState()
     val library by app.media.library.collectAsState()
     val ambientPhotos by app.ambientBackdropPhotos.collectAsState()
@@ -81,13 +82,13 @@ fun AmbientScreen(app: HqApplication) {
         }
     }
 
-    var clockTime by remember { mutableStateOf(ambientTime()) }
-    var clockMeridiem by remember { mutableStateOf(ambientMeridiem()) }
+    var clockTime by remember { mutableStateOf(ambientTime(context)) }
+    var clockMeridiem by remember { mutableStateOf(ambientMeridiem(context)) }
     var clockDate by remember { mutableStateOf(ambientDate()) }
     LaunchedEffect(Unit) {
         while (true) {
-            clockTime = ambientTime()
-            clockMeridiem = ambientMeridiem()
+            clockTime = ambientTime(context)
+            clockMeridiem = ambientMeridiem(context)
             clockDate = ambientDate()
             delay(1_000)
         }
@@ -400,9 +401,19 @@ private fun AmbientWidgetCard(
     }
 }
 
-private fun ambientTime(): String = SimpleDateFormat("h:mm", Locale.getDefault()).format(Date())
-private fun ambientMeridiem(): String = SimpleDateFormat("a", Locale.getDefault()).format(Date())
-private fun ambientDate(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())
+private fun ambientTime(context: android.content.Context): String {
+    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else "h:mm"
+    return android.text.format.DateFormat.format(pattern, Date()).toString()
+}
+
+// Meridiem is blank in 24-hour locales so the clock reads cleanly without AM/PM.
+private fun ambientMeridiem(context: android.content.Context): String =
+    if (android.text.format.DateFormat.is24HourFormat(context)) "" else SimpleDateFormat("a", Locale.getDefault()).format(Date())
+
+private fun ambientDate(): String {
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), "EEEEMMMMd")
+    return android.text.format.DateFormat.format(pattern, Date()).toString()
+}
 
 private val ambientPrimaryShadow = Shadow(
     color = Color.Black.copy(alpha = 0.72f),

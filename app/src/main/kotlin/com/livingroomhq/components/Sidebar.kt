@@ -58,7 +58,10 @@ data class NavigationItem(
     val zone: Zone,
 )
 
-private val COLLAPSED_WIDTH = 68.dp
+/** Width of the always-visible collapsed rail; content is inset by this so the
+ *  rail can expand *over* content on focus instead of reflowing the layout. */
+val SidebarCollapsedWidth = 68.dp
+private val COLLAPSED_WIDTH = SidebarCollapsedWidth
 private val EXPANDED_WIDTH = 196.dp
 
 /**

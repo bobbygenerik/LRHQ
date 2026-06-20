@@ -43,7 +43,6 @@ import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
@@ -71,12 +70,12 @@ fun HomeScreen(
     val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
     val recentList = recents.ifEmpty { channels.take(6) }
 
-    var clockTime by remember { mutableStateOf(timeNow()) }
+    var clockTime by remember { mutableStateOf(timeNow(context)) }
     var clockDate by remember { mutableStateOf(dateNow()) }
     var nowMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
-            clockTime = timeNow()
+            clockTime = timeNow(context)
             clockDate = dateNow()
             nowMillis = System.currentTimeMillis()
             delay(10_000)
@@ -133,6 +132,7 @@ fun HomeScreen(
                 clockTime = clockTime,
                 clockDate = clockDate,
                 temperatureF = weather?.temperatureF,
+                weatherCondition = weather?.condition,
                 showWeather = customSettings.showWeather,
                 nowTitle = nowProgram?.title,
                 nowDescription = nowProgram?.description,
@@ -241,8 +241,16 @@ internal fun homeRecentFocusTarget(channelId: String): LauncherFocusTarget =
 internal fun homeOnNowFocusTarget(channelId: String): LauncherFocusTarget =
     LauncherFocusTarget(Zone.HOME, "home:on-now:$channelId")
 
-private fun timeNow(): String = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-private fun dateNow(): String = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Date())
+private fun timeNow(context: android.content.Context): String {
+    // Honour the device 12/24-hour setting instead of forcing 12-hour.
+    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else "h:mm a"
+    return android.text.format.DateFormat.format(pattern, Date()).toString()
+}
+
+private fun dateNow(): String {
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(Locale.getDefault(), "EEEEMMMMd")
+    return android.text.format.DateFormat.format(pattern, Date()).toString()
+}
 
 private fun bundledHeroBackdrops(context: android.content.Context): List<AmbientPhoto> =
     context.assets.list(HERO_BACKDROP_ASSET_DIR)
