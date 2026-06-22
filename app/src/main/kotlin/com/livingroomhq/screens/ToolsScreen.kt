@@ -42,7 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -58,6 +60,7 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -70,6 +73,7 @@ import kotlinx.coroutines.withContext
 private const val COLUMNS = 4
 private const val ARM_LAUNCH_MS = 2_500L
 
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun ToolsScreen(app: HqApplication) {
     val context = LocalContext.current
@@ -111,6 +115,7 @@ fun ToolsScreen(app: HqApplication) {
 
     val gridState = rememberLazyGridState()
     val moverFocus = remember { FocusRequester() }
+    val firstItemFocusRequester = remember { FocusRequester() }
     var moveTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(moveTick, movingPackage) {
         val pkg = movingPackage ?: return@LaunchedEffect
@@ -141,7 +146,6 @@ fun ToolsScreen(app: HqApplication) {
 
     fun openApp(packageName: String) {
         if (!app.installedApps.canLaunch()) return
-        focusManager.clearFocus(force = true)
         disarmLaunch()
         app.installedApps.launch(packageName, context)
     }
@@ -161,7 +165,11 @@ fun ToolsScreen(app: HqApplication) {
     BackHandler(enabled = menuPackage != null) { menuPackage = null }
     BackHandler(enabled = movingPackage != null) { cancelMove() }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .focusProperties { enter = { firstItemFocusRequester } }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -210,7 +218,7 @@ fun ToolsScreen(app: HqApplication) {
                     ),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(apps, key = { it.packageName }) { entry ->
+                    itemsIndexed(apps, key = { _, app -> app.packageName }) { index, entry ->
                         val isMoving = entry.packageName == movingPackage
                         AppCard(
                             entry = entry,
@@ -226,8 +234,8 @@ fun ToolsScreen(app: HqApplication) {
                             onDisarm = {
                                 if (armedPackage == entry.packageName) disarmLaunch()
                             },
-                            moveModifier = if (isMoving) {
-                                Modifier
+                            moveModifier = when {
+                                isMoving -> Modifier
                                     .focusRequester(moverFocus)
                                     .onPreviewKeyEvent { ev ->
                                         if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent true
@@ -241,9 +249,9 @@ fun ToolsScreen(app: HqApplication) {
                                         }
                                         true
                                     }
-                            } else {
-                                Modifier
+                                else -> Modifier
                             },
+                            modifier = if (index == 0) Modifier.initialFocus(firstItemFocusRequester) else Modifier
                         )
                     }
                 }
@@ -284,6 +292,7 @@ private fun AppCard(
     onLongClick: () -> Unit,
     onDisarm: () -> Unit,
     moveModifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val cardModifier = Modifier
         .fillMaxWidth()
@@ -297,6 +306,7 @@ private fun AppCard(
             },
         )
         .then(moveModifier)
+        .then(modifier)
 
     FocusableGlassCard(
         onClick = onClick,
@@ -397,7 +407,7 @@ private fun AppActionMenu(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.widthIn(min = 260.dp).padding(24.dp),
+            modifier = Modifier.width(280.dp).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(

@@ -26,7 +26,7 @@ class LivePreviewEngine(context: Context) {
     private var boundUrl: String? = null
     private var previewMaxVideoWidth: Int = 1280
     private var previewMaxVideoHeight: Int = 720
-    private var fullscreenActive = false
+    var fullscreenActive = false
 
     val player: ExoPlayer = IptvExoPlayer.create(appContext).apply {
         playWhenReady = true

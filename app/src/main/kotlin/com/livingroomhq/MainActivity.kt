@@ -45,6 +45,9 @@ import com.livingroomhq.screens.ToolsScreen
 import com.livingroomhq.ui.MessageOverlay
 import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -88,7 +91,35 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val controller = remember { nav }
-            var settings by remember { mutableStateOf(CustomSettings()) }
+            val coroutineScope = rememberCoroutineScope()
+
+            val themeState by app.prefs.theme.collectAsState(initial = "Dark")
+            val accentColorState by app.prefs.accentColor.collectAsState(initial = "Green")
+            val showLivePreviewState by app.prefs.showLivePreview.collectAsState(initial = true)
+            val showWeatherState by app.prefs.showWeather.collectAsState(initial = true)
+            val idleTimeSecondsState by app.prefs.idleTimeSeconds.collectAsState(initial = 300)
+            val animationsState by app.prefs.animations.collectAsState(initial = "Smooth")
+            val soundEffectsState by app.prefs.soundEffects.collectAsState(initial = true)
+
+            val settings = remember(
+                themeState,
+                accentColorState,
+                showLivePreviewState,
+                showWeatherState,
+                idleTimeSecondsState,
+                animationsState,
+                soundEffectsState
+            ) {
+                CustomSettings(
+                    theme = themeState,
+                    accentColor = accentColorState,
+                    showLivePreview = showLivePreviewState,
+                    showWeather = showWeatherState,
+                    idleTimeSeconds = idleTimeSecondsState,
+                    animations = animationsState,
+                    soundEffects = soundEffectsState
+                )
+            }
 
             // Dynamic accent color updating
             LaunchedEffect(settings.accentColor) {
@@ -100,7 +131,7 @@ class MainActivity : ComponentActivity() {
                 val timeoutMillis = settings.idleTimeSeconds * 1000L
                 while (true) {
                     delay(5_000)
-                    if (controller.zone != Zone.AMBIENT && SystemClock.elapsedRealtime() - controller.lastInteractionAt >= timeoutMillis) {
+                    if (isResumedState && controller.zone != Zone.AMBIENT && SystemClock.elapsedRealtime() - controller.lastInteractionAt >= timeoutMillis) {
                         controller.enterAmbientFromIdle()
                     }
                 }
@@ -113,8 +144,7 @@ class MainActivity : ComponentActivity() {
                     // sidebar never reflows or shoves the whole screen sideways.
                     Box(
                         Modifier
-                            .fillMaxSize()
-                            .padding(start = SidebarCollapsedWidth),
+                            .fillMaxSize(),
                     ) {
                         LauncherNavHost(
                             zone = controller.underlyingZone,
@@ -125,7 +155,21 @@ class MainActivity : ComponentActivity() {
                                 Zone.LIVE -> LiveScreen(app)
                                 Zone.TOOLS -> ToolsScreen(app)
                                 Zone.COMMAND_CENTER -> CommandCenterScreen(app)
-                                Zone.SETTINGS -> SettingsScreen(app, settings, onSettingsChanged = { settings = it })
+                                Zone.SETTINGS -> SettingsScreen(
+                                    app = app,
+                                    settings = settings,
+                                    onSettingsChanged = { newSettings ->
+                                        coroutineScope.launch {
+                                            if (newSettings.theme != settings.theme) app.prefs.setTheme(newSettings.theme)
+                                            if (newSettings.accentColor != settings.accentColor) app.prefs.setAccentColor(newSettings.accentColor)
+                                            if (newSettings.showLivePreview != settings.showLivePreview) app.prefs.setShowLivePreview(newSettings.showLivePreview)
+                                            if (newSettings.showWeather != settings.showWeather) app.prefs.setShowWeather(newSettings.showWeather)
+                                            if (newSettings.idleTimeSeconds != settings.idleTimeSeconds) app.prefs.setIdleTimeSeconds(newSettings.idleTimeSeconds)
+                                            if (newSettings.animations != settings.animations) app.prefs.setAnimations(newSettings.animations)
+                                            if (newSettings.soundEffects != settings.soundEffects) app.prefs.setSoundEffects(newSettings.soundEffects)
+                                        }
+                                    }
+                                )
                                 Zone.AMBIENT -> Unit // drawn as a full-screen overlay below
                             }
                         }
@@ -134,12 +178,12 @@ class MainActivity : ComponentActivity() {
                         visible = controller.zone != Zone.AMBIENT,
                         enter = fadeIn(tween(SIDEBAR_FADE_MS, easing = LinearOutSlowInEasing)),
                         exit = fadeOut(tween(SIDEBAR_FADE_MS, easing = FastOutLinearInEasing)),
-                        modifier = Modifier.fillMaxHeight(),
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         Sidebar(
                             currentZone = controller.underlyingZone,
                             onZoneSelected = { zone -> controller.goTo(zone) },
-                            modifier = Modifier.fillMaxHeight(),
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                     AnimatedVisibility(
@@ -158,6 +202,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (::nav.isInitialized) {
+            nav.resetIdleTimer()
+        }
+        resetHomeBackGesture()
         isResumedState = true
         val app = application as HqApplication
         app.installedApps.setHostActivity(this)
@@ -228,6 +276,8 @@ class MainActivity : ComponentActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        val app = application as HqApplication
+        if (app.installedApps.launchedExternalApp) return
         if (::nav.isInitialized && isResumedState) nav.goHome()
     }
 

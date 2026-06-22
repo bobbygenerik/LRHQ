@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,11 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,6 +68,7 @@ import com.livingroomhq.components.fullscreenFocusRestore
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -79,6 +86,7 @@ import java.util.Locale
 /** Wait for focus to settle before swapping the live preview stream. */
 private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
 
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun LiveScreen(app: HqApplication) {
     val context = LocalContext.current
@@ -90,6 +98,7 @@ fun LiveScreen(app: HqApplication) {
     var previewChannelId by remember { mutableStateOf<String?>(null) }
     
     val activeCategoryFocusRequester = remember { FocusRequester() }
+    val gridFirstItemFocusRequester = remember { FocusRequester() }
     var isGridFocused by remember { mutableStateOf(false) }
 
     BackHandler(enabled = isGridFocused) {
@@ -111,6 +120,11 @@ fun LiveScreen(app: HqApplication) {
         if (focusedChannelId == id) {
             previewChannelId = id
         }
+    }
+
+    LaunchedEffect(previewChannelId) {
+        val id = previewChannelId ?: return@LaunchedEffect
+        runCatching { app.channels.fetchEpgDetails(id) }
     }
 
     if (channels.isEmpty()) {
@@ -168,10 +182,17 @@ fun LiveScreen(app: HqApplication) {
 
     val previewChannel = channels.firstOrNull { it.id == previewChannelId }
 
+    LaunchedEffect(visibleChannels) {
+        if (visibleChannels.isNotEmpty()) {
+            runCatching { app.channels.prefetchEpgForChannels(visibleChannels.map { it.id }) }
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .zonePadding(),
+            .zonePadding()
+            .focusProperties { enter = { activeCategoryFocusRequester } },
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Left column: Category Rail
@@ -196,7 +217,8 @@ fun LiveScreen(app: HqApplication) {
                         onClick = { selectedCategoryId = cat.id },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (isActive) Modifier.focusRequester(activeCategoryFocusRequester) else Modifier),
+                            .focusProperties { right = gridFirstItemFocusRequester }
+                            .then(if (isActive) Modifier.initialFocus(activeCategoryFocusRequester) else Modifier),
                     )
                 }
             }
@@ -209,6 +231,7 @@ fun LiveScreen(app: HqApplication) {
             visibleChannels = visibleChannels,
             epgRevision = epgRevision,
             activeCategoryFocusRequester = activeCategoryFocusRequester,
+            gridFirstItemFocusRequester = gridFirstItemFocusRequester,
             onGridFocusChanged = { isGridFocused = it },
             onChannelFocused = { focusedChannelId = it },
             onChannelClick = { channel ->
@@ -249,6 +272,7 @@ private fun LiveChannelGridColumn(
     visibleChannels: List<Channel>,
     epgRevision: Long,
     activeCategoryFocusRequester: FocusRequester,
+    gridFirstItemFocusRequester: FocusRequester,
     onGridFocusChanged: (Boolean) -> Unit,
     onChannelFocused: (String) -> Unit,
     onChannelClick: (Channel) -> Unit,
@@ -283,10 +307,12 @@ private fun LiveChannelGridColumn(
                     .onFocusChanged { onGridFocusChanged(it.hasFocus) }
                     .focusProperties { left = activeCategoryFocusRequester },
             ) {
-                items(visibleChannels, key = { "${it.id}_${it.number}" }) { channel ->
+                itemsIndexed(visibleChannels, key = { _, it -> "${it.id}_${it.number}" }) { index, channel ->
                     val nowPlayingTitle = remember(channel.id, epgRevision) {
                         channelEpgTitle(channel.id)
                     }
+                    val cardRequester = if (index == 0) gridFirstItemFocusRequester else remember { FocusRequester() }
+                    val isLeftColumn = index % 2 == 0
                     ChannelGridCard(
                         channel = channel,
                         nowPlayingTitle = nowPlayingTitle,
@@ -295,6 +321,7 @@ private fun LiveChannelGridColumn(
                             app.fullscreenFocusReturn.arm(liveGridFocusTarget(channel.id))
                             onChannelClick(channel)
                         },
+                        focusRequester = cardRequester,
                         modifier = Modifier.fullscreenFocusRestore(app, liveGridFocusTarget(channel.id)),
                     )
                 }
@@ -471,7 +498,6 @@ private fun CategoryRailItem(
             .background(bg)
             .border(1.dp, if (focused) HqColors.Accent else Color.Transparent, shape)
             .clickable { onClick() }
-            .focusable()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -503,6 +529,7 @@ private fun ChannelGridCard(
     nowPlayingTitle: String,
     onFocused: () -> Unit,
     onClick: () -> Unit,
+    focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
     val logoShape = RoundedCornerShape(8.dp)
@@ -514,6 +541,7 @@ private fun ChannelGridCard(
         contentPadding = PaddingValues(12.dp),
         sheenOnFocus = false,
         modifier = modifier
+            .focusRequester(focusRequester)
             .height(58.dp)
             .fillMaxWidth()
     ) { focused ->

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -42,7 +43,11 @@ internal fun OnNowRail(
     Text("ON NOW", style = HqType.Label.copy(letterSpacing = 1.6.sp))
     Spacer(Modifier.size(10.dp))
 
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyRow(
+        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.padding(horizontal = (-8).dp, vertical = (-6).dp)
+    ) {
         items(items, key = { (channel, _) -> channel.id }) { (channel, program) ->
             OnNowCard(
                 app = app,

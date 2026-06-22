@@ -28,7 +28,8 @@ class InstalledAppsRepository(
     private var hostActivity: Activity? = null
 
     /** True after we start a third-party app until the host resumes again. */
-    private var launchedExternalApp = false
+    var launchedExternalApp = false
+        private set
 
     /** Blocks phantom OK/click relaunches when returning from an external app. */
     private var blockLaunchUntil = 0L
@@ -69,7 +70,7 @@ class InstalledAppsRepository(
         val all = pm.queryIntentActivities(mainIntent, 0) +
             pm.queryIntentActivities(tvIntent, 0)
 
-        all.distinctBy { it.activityInfo.packageName }
+        val detected = all.distinctBy { it.activityInfo.packageName }
             .filter { it.activityInfo.packageName != context.packageName }
             .map {
                 LaunchableApp(
@@ -78,7 +79,24 @@ class InstalledAppsRepository(
                     isTvApp = it.activityInfo.packageName in tvApps,
                 )
             }
-            .sortedBy { it.label.lowercase() }
+
+        val detectedPackages = detected.map { it.packageName }.toSet()
+        val extraPackages = listOf("io.gh.reisxd.tizentube.cobalt", "io.github.reisxd.tizentube.cobalt")
+        val extraApps = extraPackages.filter { it !in detectedPackages }.mapNotNull { pkg ->
+            try {
+                val info = pm.getPackageInfo(pkg, 0)
+                val label = info.applicationInfo?.loadLabel(pm)?.toString() ?: pkg
+                LaunchableApp(
+                    packageName = pkg,
+                    label = label,
+                    isTvApp = true,
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        (detected + extraApps).sortedBy { it.label.lowercase() }
     }
 
     /**
@@ -91,23 +109,35 @@ class InstalledAppsRepository(
     fun launch(packageName: String, launcher: Context? = null): Boolean {
         if (!canLaunch()) return false
 
-        val intent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName)
+        var intent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName)
             ?: context.packageManager.getLaunchIntentForPackage(packageName)
+        if (intent == null) {
+            val mainIntent = Intent(Intent.ACTION_MAIN).apply {
+                setPackage(packageName)
+            }
+            val resolveInfos = context.packageManager.queryIntentActivities(mainIntent, 0)
+            val info = resolveInfos.firstOrNull()
+            if (info != null) {
+                intent = Intent(Intent.ACTION_MAIN).apply {
+                    setClassName(info.activityInfo.packageName, info.activityInfo.name)
+                }
+            }
+        }
         if (intent == null) {
             onLaunchError(packageName)
             return false
         }
 
-        val activity = hostActivity ?: (launcher ?: context).findActivity()
+        val targetContext = launcher ?: hostActivity ?: context
+        if (targetContext !is Activity) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        } else {
+            intent.flags = intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK.inv()
+        }
+
         return try {
-            if (activity != null) {
-                intent.flags = 0
-                activity.startActivity(intent)
-                launchedExternalApp = true
-            } else {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            }
+            targetContext.startActivity(intent)
+            launchedExternalApp = true
             true
         } catch (e: Exception) {
             launchedExternalApp = false
@@ -123,6 +153,7 @@ class InstalledAppsRepository(
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return try {
             context.startActivity(intent)
+            launchedExternalApp = true
             true
         } catch (e: Exception) {
             // Some TV builds restrict the per-app settings deep link; fall back to all-apps settings.
@@ -130,6 +161,7 @@ class InstalledAppsRepository(
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             try {
                 context.startActivity(fallback)
+                launchedExternalApp = true
                 true
             } catch (e2: Exception) {
                 onLaunchError(packageName)

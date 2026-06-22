@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
@@ -36,56 +37,105 @@ import com.livingroomhq.backdrop.GooglePhotosPickerState
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.initialFocus
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
-internal fun PlaylistSettingsPanel(
+internal fun LiveTvSettingsPanel(
     m3uUrl: String,
     onM3uUrlChange: (String) -> Unit,
-    publicPlaylists: List<PublicPlaylist>,
     statusText: String,
     isLoading: Boolean,
     isSuccess: Boolean,
     onLoadPlaylist: () -> Unit,
     onClearPlaylist: () -> Unit,
-    onPublicPlaylistSelected: (PublicPlaylist) -> Unit,
+    epgUrl: String,
+    epgStatus: String,
+    isEpgLoading: Boolean,
+    onEpgUrlChange: (String) -> Unit,
+    onLoadGuide: () -> Unit,
+    onClearGuide: () -> Unit,
+    firstFocusRequester: FocusRequester,
 ) {
-    Text("LIVE TV PLAYLIST LINK", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    Text("LIVE TV & EPG GUIDE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                "Configure an M3U IPTV playlist to stream live television channels. Enter an HTTP link below.",
-                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
-            )
-            GlassTextField(
-                value = m3uUrl,
-                onValueChange = onM3uUrlChange,
-                placeholder = "Enter M3U link...",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .initialFocus(),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                SettingsActionButton(
-                    label = if (isLoading) "Loading..." else "Load Playlist",
-                    color = HqColors.Accent,
-                    onClick = onLoadPlaylist,
-                    enabled = !isLoading,
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("IPTV Playlist URL", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text(
+                    "Configure an M3U IPTV playlist link to stream live television channels.",
+                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary),
                 )
-                SettingsActionButton(
-                    label = "Clear Playlist",
-                    color = HqColors.Critical,
-                    onClick = onClearPlaylist,
-                    enabled = !isLoading,
-                    leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp)) },
+                GlassTextField(
+                    value = m3uUrl,
+                    onValueChange = onM3uUrlChange,
+                    placeholder = "Enter M3U link...",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .initialFocus(firstFocusRequester),
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    SettingsActionButton(
+                        label = if (isLoading) "Loading..." else "Load Playlist",
+                        color = HqColors.Accent,
+                        onClick = onLoadPlaylist,
+                        enabled = !isLoading,
+                    )
+                    SettingsActionButton(
+                        label = "Clear Playlist",
+                        color = HqColors.Critical,
+                        onClick = onClearPlaylist,
+                        enabled = !isLoading,
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp)) },
+                    )
+                }
+                PlaylistStatus(statusText = statusText, isLoading = isLoading, isSuccess = isSuccess)
             }
-            PlaylistStatus(statusText = statusText, isLoading = isLoading, isSuccess = isSuccess)
+            
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("XMLTV Guide URL", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text(
+                    "Add an XMLTV guide URL to overlay now/next programme info.",
+                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary),
+                )
+                GlassTextField(
+                    value = epgUrl,
+                    onValueChange = onEpgUrlChange,
+                    placeholder = "Enter XMLTV (.xml) link...",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    SettingsActionButton(
+                        label = if (isEpgLoading) "Loading..." else "Load Guide",
+                        color = HqColors.Accent,
+                        onClick = onLoadGuide,
+                        enabled = !isEpgLoading,
+                    )
+                    SettingsActionButton(
+                        label = "Clear Guide",
+                        color = HqColors.Critical,
+                        onClick = onClearGuide,
+                        enabled = !isEpgLoading,
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = HqColors.Critical, modifier = Modifier.size(16.dp)) },
+                    )
+                }
+                if (epgStatus.isNotEmpty()) {
+                    Text(epgStatus, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                }
+            }
         }
     }
+}
 
+@Composable
+internal fun SamplePlaylistsPanel(
+    publicPlaylists: List<PublicPlaylist>,
+    onPublicPlaylistSelected: (PublicPlaylist) -> Unit,
+    isLoading: Boolean,
+) {
     Text("POPULAR SAMPLE PLAYLISTS (QUICK TEST)", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         publicPlaylists.forEach { playlist ->
@@ -106,50 +156,6 @@ internal fun PlaylistSettingsPanel(
                     Text(playlist.name, style = HqType.Body.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp))
                     Text("Click to Load", style = HqType.Label.copy(color = HqColors.Accent, fontSize = 11.sp))
                 }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun EpgSettingsPanel(
-    epgUrl: String,
-    epgStatus: String,
-    isLoading: Boolean,
-    onEpgUrlChange: (String) -> Unit,
-    onLoadGuide: () -> Unit,
-    onClearGuide: () -> Unit,
-) {
-    Spacer(Modifier.height(4.dp))
-    Text("EPG GUIDE (XMLTV)", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
-    GlassPanel(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                "Add an XMLTV guide URL to overlay now/next programme info. Matched to channels by tvg-id.",
-                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
-            )
-            GlassTextField(
-                value = epgUrl,
-                onValueChange = onEpgUrlChange,
-                placeholder = "Enter XMLTV (.xml) link...",
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                SettingsActionButton(
-                    label = if (isLoading) "Loading..." else "Load Guide",
-                    color = HqColors.Accent,
-                    onClick = onLoadGuide,
-                    enabled = !isLoading,
-                )
-                SettingsActionButton(
-                    label = "Clear",
-                    color = HqColors.Critical,
-                    onClick = onClearGuide,
-                    enabled = !isLoading,
-                )
-            }
-            if (epgStatus.isNotEmpty()) {
-                Text(epgStatus, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
             }
         }
     }
@@ -333,11 +339,13 @@ private fun SettingsActionButton(
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
     FocusableGlassCard(
-        onClick = onClick,
-        modifier = Modifier.height(44.dp),
+        onClick = { if (enabled) onClick() },
+        modifier = Modifier
+            .height(44.dp)
+            .alpha(if (enabled) 1f else 0.5f),
         cornerRadius = 8.dp,
         contentPadding = PaddingValues(horizontal = 16.dp),
-        enabled = enabled,
+        enabled = true,
     ) { focused ->
         Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -405,18 +413,38 @@ private fun AppearanceRow(
 }
 
 @Composable
-internal fun SystemSettingsPanel(
+internal fun DeviceCareAndSystemPanel(
+    maintenanceStatus: String,
+    isMaintenanceBusy: Boolean,
+    onRunMaintenance: () -> Unit,
     onLaunchDeviceSettings: () -> Unit,
     onLaunchAppManager: () -> Unit,
 ) {
-    Spacer(Modifier.height(4.dp))
-    Text("SYSTEM SETTINGS", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    Text("DEVICE MAINTENANCE & SYSTEM", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                "Access Android system settings, Wi-Fi, bluetooth controllers, display, and application settings.",
-                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Automatic Maintenance", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text(
+                    "• Electronic program guide (EPG) refreshes automatically every 12 hours.\n" +
+                    "• Expired EPG programs are pruned daily.\n" +
+                    "• Ambient Google Photos cache is kept capped under 1 GB.",
+                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary, lineHeight = 16.sp),
+                )
+                Spacer(Modifier.height(4.dp))
+                SettingsActionButton(
+                    label = if (isMaintenanceBusy) "Running Maintenance..." else "Run Maintenance Now",
+                    color = HqColors.Accent,
+                    onClick = onRunMaintenance,
+                    enabled = !isMaintenanceBusy,
+                )
+                if (maintenanceStatus.isNotEmpty()) {
+                    Text(maintenanceStatus, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                }
+            }
+            
+            Spacer(Modifier.height(4.dp))
+            Text("Android System Options", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
                     label = "Device Settings",

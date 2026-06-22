@@ -23,4 +23,9 @@ object HqDimens {
 }
 
 /** Applies the title-safe inset every zone shares. */
-fun Modifier.zonePadding(): Modifier = padding(HqDimens.ScreenPadding)
+fun Modifier.zonePadding(): Modifier = padding(
+    start = HqDimens.SafeHorizontal + 68.dp,
+    end = HqDimens.SafeHorizontal,
+    top = HqDimens.SafeVertical,
+    bottom = HqDimens.SafeVertical
+)

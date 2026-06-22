@@ -36,12 +36,12 @@ interface IptvDao {
 
     @Query(
         """
-        SELECT * FROM programs
+        SELECT channelId, title, startMillis, endMillis FROM programs
         WHERE endMillis > :now AND startMillis < :windowEnd
         ORDER BY startMillis ASC
         """,
     )
-    suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramEntity>
+    suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramBrief>
 
     @Query(
         """
@@ -56,6 +56,19 @@ interface IptvDao {
         windowEnd: Long,
     ): List<ProgramEntity>
 
+    @Query(
+        """
+        SELECT * FROM programs
+        WHERE channelId IN (:channelIds) AND endMillis > :now AND startMillis < :windowEnd
+        ORDER BY startMillis ASC
+        """
+    )
+    suspend fun getProgramsForChannelsInWindow(
+        channelIds: List<String>,
+        now: Long,
+        windowEnd: Long,
+    ): List<ProgramEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPrograms(programs: List<ProgramEntity>)
 
@@ -64,6 +77,9 @@ interface IptvDao {
 
     @Query("DELETE FROM programs WHERE channelId = :channelId")
     suspend fun deleteProgramsForChannel(channelId: String)
+
+    @Query("DELETE FROM programs WHERE endMillis < :threshold")
+    suspend fun pruneOldPrograms(threshold: Long)
 
     @Transaction
     suspend fun replaceChannels(channels: List<ChannelEntity>) {

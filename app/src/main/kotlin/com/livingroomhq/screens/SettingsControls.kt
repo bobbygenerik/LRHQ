@@ -25,9 +25,18 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
@@ -43,6 +52,11 @@ internal fun GlassTextField(
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(8.dp)
+    val focusManager = LocalFocusManager.current
+
+    var textFieldValue by remember(value) {
+        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
+    }
 
     Box(
         modifier = modifier
@@ -53,16 +67,37 @@ internal fun GlassTextField(
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = textFieldValue,
+            onValueChange = { newValue ->
+                textFieldValue = newValue
+                if (newValue.text != value) {
+                    onValueChange(newValue.text)
+                }
+            },
             textStyle = HqType.Body.copy(color = HqColors.TextPrimary, fontSize = 14.sp),
             cursorBrush = SolidColor(HqColors.Accent),
             singleLine = singleLine,
-            // URL entry on a TV keyboard: surface the URI layout + a Done action.
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             modifier = Modifier
                 .fillMaxWidth()
-                .focusable(),
+                .focusable()
+                .onPreviewKeyEvent { event ->
+                    if (event.key == Key.DirectionLeft && event.type == KeyEventType.KeyDown) {
+                        val isCursorAtStart = textFieldValue.selection.collapsed && textFieldValue.selection.start == 0
+                        if (isCursorAtStart) {
+                            try {
+                                focusManager.moveFocus(FocusDirection.Left)
+                                true
+                            } catch (e: Exception) {
+                                false
+                            }
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                },
             decorationBox = { innerTextField ->
                 if (value.isEmpty()) {
                     Text(placeholder, style = HqType.Body.copy(color = HqColors.TextTertiary, fontSize = 14.sp))

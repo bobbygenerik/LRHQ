@@ -48,7 +48,11 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.components.initialFocus
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.ui.UiMessages
@@ -60,11 +64,13 @@ import java.net.NetworkInterface
  * and is actionable: OK opens the matching Android settings screen, so a
  * focusable card always does something.
  */
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun CommandCenterScreen(app: HqApplication) {
     val context = LocalContext.current
     val stats by remember { app.systemMonitor.stats() }
         .collectAsState(initial = null)
+    val firstCardFocusRequester = remember { FocusRequester() }
 
     val localIp = remember { getLocalIpAddress() }
     val tailscaleIp = remember { getTailscaleIpAddress() }
@@ -81,6 +87,7 @@ fun CommandCenterScreen(app: HqApplication) {
         Modifier
             .fillMaxSize()
             .zonePadding()
+            .focusProperties { enter = { firstCardFocusRequester } }
     ) {
         Text("Command Center", style = HqType.Title)
         Spacer(Modifier.height(16.dp))
@@ -89,7 +96,12 @@ fun CommandCenterScreen(app: HqApplication) {
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 36.dp),
+            contentPadding = PaddingValues(
+                start = HqDimens.GridEdgeInset,
+                end = HqDimens.GridEdgeInset,
+                top = HqDimens.GridEdgeInset,
+                bottom = 36.dp,
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             // 1. System — model + live CPU.
@@ -100,7 +112,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     icon = Icons.Default.Computer,
                     description = "System, ${deviceModel}, CPU ${cpu.toInt()} percent",
                     onClick = { open(Settings.ACTION_SETTINGS) },
-                    modifier = Modifier.initialFocus(),
+                    modifier = Modifier.initialFocus(firstCardFocusRequester),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(deviceModel, style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold), maxLines = 1)

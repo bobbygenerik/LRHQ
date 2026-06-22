@@ -61,6 +61,10 @@ class LauncherNavController {
         lastInteractionAt = SystemClock.elapsedRealtime()
     }
 
+    fun resetIdleTimer() {
+        lastInteractionAt = SystemClock.elapsedRealtime()
+    }
+
     private companion object {
         const val AMBIENT_WAKE_GRACE_MS = 1_200L
     }

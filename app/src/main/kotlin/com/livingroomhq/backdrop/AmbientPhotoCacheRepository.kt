@@ -117,7 +117,7 @@ class AmbientPhotoCacheRepository(
         }
     }
 
-    private fun importPickedPhotosAdditive(sources: List<AmbientPhotoCacheSource>): AmbientPhotoCacheStats {
+    private suspend fun importPickedPhotosAdditive(sources: List<AmbientPhotoCacheSource>): AmbientPhotoCacheStats {
         var imported = 0
         var failed = 0
         sources.forEach { source ->
@@ -139,7 +139,7 @@ class AmbientPhotoCacheRepository(
         return _stats.value
     }
 
-    private fun importPickedPhotosSynced(sources: List<AmbientPhotoCacheSource>): AmbientPhotoCacheStats {
+    private suspend fun importPickedPhotosSynced(sources: List<AmbientPhotoCacheSource>): AmbientPhotoCacheStats {
         val stagingDir = File(cacheDir, ".staging").apply {
             mkdirs()
             listFiles()?.forEach { file -> if (file.isFile) file.delete() }
@@ -225,11 +225,11 @@ class AmbientPhotoCacheRepository(
             ?.sortedBy { it.name }
             .orEmpty()
 
-    private fun trimToCacheLimit() {
+    suspend fun trimToCacheLimit() = withContext(dispatcher) {
         var files = cachedFiles()
         var totalBytes = files.sumOf { it.length() }
         files.sortedBy { it.lastModified() }.forEach { file ->
-            if (totalBytes <= maxCacheBytes) return
+            if (totalBytes <= maxCacheBytes) return@withContext
             totalBytes -= file.length()
             file.delete()
         }

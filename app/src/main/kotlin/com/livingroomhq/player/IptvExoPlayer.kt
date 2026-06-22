@@ -11,6 +11,8 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.extractor.DefaultExtractorsFactory
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import com.livingroomhq.core.data.model.Channel
 
 /** Shared ExoPlayer setup for IPTV streams (redirects + HLS). */
@@ -44,6 +46,11 @@ object IptvExoPlayer {
                             // Live HLS can go quiet between segments; avoid mid-play read timeouts.
                             .setReadTimeoutMs(60_000),
                     ),
+                    DefaultExtractorsFactory()
+                        .setTsExtractorFlags(
+                            DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
+                            DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
+                        )
                 ),
             )
             .build()
@@ -73,17 +80,17 @@ object IptvExoPlayer {
             .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
             .build()
         player.volume = 0f
-    }
-
-    fun configureForFullscreen(player: ExoPlayer) {
-        player.setAudioAttributes(mediaAudioAttributes(), /* handleAudioFocus= */ true)
-        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-            .clearVideoSizeConstraints()
-            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
-            .build()
-        player.volume = 1f
-        player.playWhenReady = true
-    }
+     }
+ 
+     fun configureForFullscreen(player: ExoPlayer) {
+         player.setAudioAttributes(mediaAudioAttributes(), /* handleAudioFocus= */ true)
+         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+             .clearVideoSizeConstraints()
+             .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+             .build()
+         player.volume = 1f
+         player.playWhenReady = true
+     }
 
     /**
      * Enable audio once HLS exposes an audio track. HLS live manifests refresh often;

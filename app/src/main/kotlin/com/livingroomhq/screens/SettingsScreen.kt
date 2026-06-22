@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,11 +22,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.ConfirmDialog
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
+import com.livingroomhq.core.ui.theme.HqDimens
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +42,7 @@ private sealed interface ConfirmRequest {
     data object ClearCache : ConfirmRequest
 }
 
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsScreen(
     app: HqApplication,
@@ -59,6 +66,9 @@ fun SettingsScreen(
     var isSuccess by remember { mutableStateOf(false) }
 
     var confirmDialog by remember { mutableStateOf<ConfirmRequest?>(null) }
+    var maintenanceStatus by remember { mutableStateOf("") }
+    var maintenanceBusy by remember { mutableStateOf(false) }
+    val firstItemFocusRequester = remember { FocusRequester() }
 
     BackHandler(enabled = confirmDialog != null) { confirmDialog = null }
 
@@ -70,11 +80,19 @@ fun SettingsScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .focusProperties { enter = { firstItemFocusRequester } }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .zonePadding()
+                .padding(
+                    start = HqDimens.SafeHorizontal + 68.dp,
+                    end = HqDimens.SafeHorizontal,
+                    top = HqDimens.SafeVertical
+                )
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
@@ -84,17 +102,16 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 Column(modifier = Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    PlaylistSettingsPanel(
+                    LiveTvSettingsPanel(
                         m3uUrl = m3uUrl,
                         onM3uUrlChange = { m3uUrl = it },
-                        publicPlaylists = publicPlaylists,
                         statusText = statusText,
                         isLoading = isLoading,
                         isSuccess = isSuccess,
                         onLoadPlaylist = {
                             if (m3uUrl.trim().isEmpty()) {
                                 statusText = "Please enter a playlist URL"
-                                return@PlaylistSettingsPanel
+                                return@LiveTvSettingsPanel
                             }
                             coroutineScope.launch {
                                 isLoading = true
@@ -115,35 +132,14 @@ fun SettingsScreen(
                         onClearPlaylist = {
                             confirmDialog = ConfirmRequest.ClearPlaylist
                         },
-                        onPublicPlaylistSelected = { playlist ->
-                            m3uUrl = playlist.url
-                            coroutineScope.launch {
-                                isLoading = true
-                                isSuccess = false
-                                statusText = "Loading ${playlist.name}..."
-                                runCatching { app.channels.loadM3u(playlist.url) }
-                                    .onSuccess {
-                                        isLoading = false
-                                        isSuccess = true
-                                        statusText = "${playlist.name} loaded successfully!"
-                                    }
-                                    .onFailure { err ->
-                                        isLoading = false
-                                        statusText = "Failed: ${err.localizedMessage}"
-                                    }
-                            }
-                        },
-                    )
-
-                    EpgSettingsPanel(
                         epgUrl = epgUrl,
                         epgStatus = epgStatus,
-                        isLoading = epgLoading,
+                        isEpgLoading = epgLoading,
                         onEpgUrlChange = { epgUrl = it },
                         onLoadGuide = {
                             if (epgUrl.trim().isEmpty()) {
                                 epgStatus = "Please enter a guide URL"
-                                return@EpgSettingsPanel
+                                return@LiveTvSettingsPanel
                             }
                             coroutineScope.launch {
                                 epgLoading = true
@@ -162,6 +158,30 @@ fun SettingsScreen(
                         onClearGuide = {
                             confirmDialog = ConfirmRequest.ClearGuide
                         },
+                        firstFocusRequester = firstItemFocusRequester,
+                    )
+
+                    SamplePlaylistsPanel(
+                        publicPlaylists = publicPlaylists,
+                        onPublicPlaylistSelected = { playlist ->
+                            m3uUrl = playlist.url
+                            coroutineScope.launch {
+                                isLoading = true
+                                isSuccess = false
+                                statusText = "Loading ${playlist.name}..."
+                                runCatching { app.channels.loadM3u(playlist.url) }
+                                    .onSuccess {
+                                        isLoading = false
+                                        isSuccess = true
+                                        statusText = "${playlist.name} loaded successfully!"
+                                    }
+                                    .onFailure { err ->
+                                        isLoading = false
+                                        statusText = "Failed: ${err.localizedMessage}"
+                                    }
+                            }
+                        },
+                        isLoading = isLoading,
                     )
                 }
 
@@ -192,7 +212,27 @@ fun SettingsScreen(
                             confirmDialog = ConfirmRequest.ClearCache
                         },
                     )
-                    SystemSettingsPanel(
+                    DeviceCareAndSystemPanel(
+                        maintenanceStatus = maintenanceStatus,
+                        isMaintenanceBusy = maintenanceBusy,
+                        onRunMaintenance = {
+                            coroutineScope.launch {
+                                maintenanceBusy = true
+                                maintenanceStatus = "Running device maintenance..."
+                                runCatching {
+                                    app.channels.runMaintenance()
+                                    app.ambientPhotoCache.trimToCacheLimit()
+                                }
+                                    .onSuccess {
+                                        maintenanceBusy = false
+                                        maintenanceStatus = "Maintenance completed: Pruned old programs. Cache size optimized."
+                                    }
+                                    .onFailure {
+                                        maintenanceBusy = false
+                                        maintenanceStatus = "Maintenance failed: ${it.localizedMessage}"
+                                    }
+                            }
+                        },
                         onLaunchDeviceSettings = {
                             context.launchSettingsIntent(
                                 Intent(Settings.ACTION_SETTINGS),
@@ -208,6 +248,7 @@ fun SettingsScreen(
                     )
                 }
             }
+            Spacer(Modifier.height(HqDimens.SafeVertical))
         }
 
         when (val req = confirmDialog) {

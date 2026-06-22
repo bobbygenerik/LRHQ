@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.livingroomhq.components.SidebarCollapsedWidth
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.core.data.model.Channel
@@ -64,50 +65,23 @@ internal fun HomeHeroContent(
     nowDescription: String?,
     progress: Float?,
     nextTitle: String?,
-    isLivePreview: Boolean,
-    heroFocused: Boolean,
+    overlayAlpha: Float,
     backdrop: @Composable () -> Unit,
 ) {
-    var overlaysVisible by remember { mutableStateOf(true) }
-
-    LaunchedEffect(isLivePreview, channel?.id, heroFocused) {
-        if (!isLivePreview) {
-            overlaysVisible = true
-            return@LaunchedEffect
-        }
-        overlaysVisible = true
-        if (heroFocused) return@LaunchedEffect
-        delay(HERO_LIVE_OVERLAY_IDLE_MS)
-        if (!heroFocused) overlaysVisible = false
-    }
-
-    val overlayAlpha by animateFloatAsState(
-        targetValue = if (!isLivePreview || overlaysVisible) 1f else 0f,
-        animationSpec = tween(500),
-        label = "heroOverlayAlpha",
-    )
-
     Box(Modifier.fillMaxSize()) {
         backdrop()
 
         Box(Modifier.fillMaxSize().alpha(overlayAlpha)) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color(0x99000000),
-                            0.28f to Color(0x33000000),
-                            0.55f to Color.Transparent,
-                            1f to Color(0xE605070D),
-                        ),
-                    ),
-            )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                    .padding(
+                        start = 40.dp,
+                        end = 40.dp,
+                        top = 28.dp,
+                        bottom = 28.dp
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
@@ -121,7 +95,12 @@ internal fun HomeHeroContent(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 28.dp),
+                    .padding(
+                        start = 40.dp,
+                        end = 40.dp,
+                        top = 28.dp,
+                        bottom = 28.dp
+                    ),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 NowPlayingSummary(
@@ -147,13 +126,13 @@ private fun LiveBadge() {
         Modifier
             .clip(RoundedCornerShape(4.dp))
             .background(Color(0xFFE53E3E))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         Text(
             "LIVE",
             style = HqType.Label.copy(
                 color = Color.White,
-                fontSize = 10.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
                 shadow = heroTextShadow(),
@@ -252,8 +231,8 @@ private fun UpNextPanel(nextTitle: String) {
         Modifier
             .width(200.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0x33FFFFFF))
-            .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(10.dp))
+            .background(Color(0x990A0D14))
+            .border(1.dp, Color(0x2BFFFFFF), RoundedCornerShape(10.dp))
             .padding(12.dp),
     ) {
         Text("NEXT", style = HqType.Label.copy(color = Color.White.copy(alpha = 0.6f), fontSize = 9.sp))

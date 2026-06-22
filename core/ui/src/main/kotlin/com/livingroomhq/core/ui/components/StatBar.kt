@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
@@ -54,7 +55,13 @@ fun StatBar(
         modifier = modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
+                val severityText = when {
+                    progress > 0.9f -> "Critical"
+                    progress > 0.75f -> "Warning"
+                    else -> "Normal"
+                }
                 progressBarRangeInfo = ProgressBarRangeInfo(progress.coerceIn(0f, 1f), 0f..1f)
+                contentDescription = "$label: $value ($severityText)"
             },
     ) {
         Row {

@@ -22,10 +22,10 @@ class XmltvParserTest {
         </tv>
     """.trimIndent()
 
-    private fun parseXml(xmlString: String): Map<String, List<Program>> {
+    private fun parseXml(xmlString: String): Map<String, List<Program>> = kotlinx.coroutines.runBlocking {
         val list = mutableListOf<Program>()
         XmltvParser.parse(xmlString.byteInputStream()) { list.add(it) }
-        return list.groupBy { it.channelId }.mapValues { (_, progs) -> progs.sortedBy { it.startMillis } }
+        list.groupBy { it.channelId }.mapValues { (_, progs) -> progs.sortedBy { it.startMillis } }
     }
 
     @Test

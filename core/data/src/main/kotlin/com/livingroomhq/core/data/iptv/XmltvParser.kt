@@ -29,10 +29,10 @@ object XmltvParser {
         }
     }
 
-    fun parse(
+    suspend fun parse(
         inputStream: InputStream,
         onChannelParsed: (id: String, displayNames: List<String>) -> Unit = { _, _ -> },
-        onProgramParsed: (Program) -> Unit,
+        onProgramParsed: suspend (Program) -> Unit,
     ) {
         try {
             val factory = XmlPullParserFactory.newInstance().apply {

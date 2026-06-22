@@ -4,6 +4,9 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +28,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,7 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -78,6 +91,17 @@ fun Sidebar(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val width by animateDpAsState(if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH, label = "sidebarWidth")
+    val scrimAlpha by animateFloatAsState(if (expanded) 0.6f else 0f, label = "scrimAlpha")
+
+    val scrimBrush = remember(expanded) {
+        Brush.horizontalGradient(
+            colors = listOf(
+                Color.Black.copy(alpha = if (expanded) 0.85f else 0.45f),
+                Color.Black.copy(alpha = if (expanded) 0.45f else 0.15f),
+                Color.Transparent
+            )
+        )
+    }
 
     val navItems = listOf(
         NavigationItem("Home", Icons.Default.Home, Zone.HOME),
@@ -87,60 +111,57 @@ fun Sidebar(
         NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
     )
 
-    Column(
+    Box(
         modifier = modifier
-            .focusGroup()
-            .onFocusChanged { expanded = it.hasFocus }
-            .width(width)
-            .background(Color(0xFF04060A))
-            .padding(vertical = 28.dp, horizontal = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .fillMaxSize()
+            .drawBehind {
+                if (scrimAlpha > 0f) {
+                    drawRect(color = Color.Black.copy(alpha = scrimAlpha))
+                }
+            }
     ) {
-        // Brand mark: emblem always, wordmark only when expanded.
-        Row(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(width)
+                .background(scrimBrush)
+                .focusGroup()
+                .onFocusChanged { expanded = it.hasFocus }
+                .padding(vertical = 24.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.lrhq_mark_transparent),
-                contentDescription = stringResource(R.string.app_name),
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(48.dp),
-            )
-            if (expanded) {
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Clip,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+
+            val itemFocusRequesters = remember(navItems) {
+                navItems.associate { it.zone to FocusRequester() }
+            }
+            LaunchedEffect(expanded, currentZone) {
+                if (!expanded) return@LaunchedEffect
+                withFrameNanos { }
+                runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
+            }
+
+            navItems.forEach { item ->
+                SidebarItem(
+                    title = item.title,
+                    icon = item.icon,
+                    active = currentZone == item.zone,
+                    expanded = expanded,
+                    onClick = { onZoneSelected(item.zone) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(itemFocusRequesters.getValue(item.zone)),
                 )
             }
         }
-        Spacer(Modifier.height(10.dp))
-
-        val itemFocusRequesters = remember(navItems) {
-            navItems.associate { it.zone to FocusRequester() }
-        }
-        LaunchedEffect(expanded, currentZone) {
-            if (!expanded) return@LaunchedEffect
-            withFrameNanos { }
-            runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
-        }
-
-        navItems.forEach { item ->
-            SidebarItem(
-                title = item.title,
-                icon = item.icon,
-                active = currentZone == item.zone,
-                expanded = expanded,
-                onClick = { onZoneSelected(item.zone) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(itemFocusRequesters.getValue(item.zone)),
-            )
-        }
+    }
     }
 }
 
@@ -155,7 +176,7 @@ private fun SidebarItem(
 ) {
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
-        targetValue = if (active) 1.08f else 1f,
+        targetValue = if (focused) 1.08f else 1f,
         label = "sidebarItemScale",
     )
 
@@ -171,11 +192,7 @@ private fun SidebarItem(
             .clickable { onClick() }
             .focusable()
             .height(40.dp)
-            .padding(horizontal = 10.dp),
-        contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier.graphicsLayer {
+            .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
                 transformOrigin = if (expanded) {
@@ -184,9 +201,41 @@ private fun SidebarItem(
                     TransformOrigin(0.5f, 0.5f)
                 }
             },
+        contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
+    ) {
+        if (focused) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .width(3.dp)
+                    .height(20.dp)
+                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp))
+            )
+        }
+
+        Row(
+            modifier = Modifier.padding(start = if (expanded) 14.dp else 0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = title, tint = contentColor, modifier = Modifier.size(20.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(20.dp)
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = Color.Black.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .offset(y = 2.dp)
+                )
+                Icon(
+                    icon,
+                    contentDescription = title,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             if (expanded) {
                 Spacer(Modifier.width(14.dp))
                 Text(
@@ -194,6 +243,11 @@ private fun SidebarItem(
                     style = HqType.Body.copy(
                         color = contentColor,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.85f),
+                            offset = Offset(0f, 2f),
+                            blurRadius = 8f
+                        )
                     ),
                     maxLines = 1,
                     softWrap = false,

@@ -16,11 +16,11 @@ import com.livingroomhq.navigation.LauncherFocusTarget
 fun Modifier.fullscreenFocusRestore(
     app: HqApplication,
     target: LauncherFocusTarget,
+    requester: FocusRequester = remember { FocusRequester() },
 ): Modifier {
-    val requester = remember { FocusRequester() }
     val event by app.fullscreenFocusReturn.returnEvent.collectAsState()
 
-    LaunchedEffect(event.sequence, event.target) {
+    LaunchedEffect(event.sequence, event.target, requester) {
         if (event.target != target || event.sequence == 0L) return@LaunchedEffect
         withFrameNanos { }
         if (runCatching { requester.requestFocus() }.isSuccess) {

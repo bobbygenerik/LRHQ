@@ -11,6 +11,8 @@ object ChannelPlayer {
 
     fun launch(context: Context, channel: Channel) {
         if (channel.streamUrl.isBlank()) return
+        val app = context.applicationContext as? com.livingroomhq.HqApplication
+        app?.livePreviewEngine?.fullscreenActive = true
         context.startActivity(
             Intent(context, ChannelPlayerActivity::class.java).apply {
                 putExtra(EXTRA_CHANNEL_ID, channel.id)

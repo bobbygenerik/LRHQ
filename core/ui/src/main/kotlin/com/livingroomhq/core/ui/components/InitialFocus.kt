@@ -23,9 +23,8 @@ import androidx.compose.ui.focus.focusRequester
  * `ViewRootImpl.performTraversals`, causing a crash/freeze on Shield TV.
  */
 @Composable
-fun Modifier.initialFocus(): Modifier {
-    val requester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
+fun Modifier.initialFocus(requester: FocusRequester = remember { FocusRequester() }): Modifier {
+    LaunchedEffect(requester) {
         // Wait for the first frame so the node is attached and laid out.
         withFrameNanos { }
         runCatching { requester.requestFocus() }

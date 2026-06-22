@@ -66,6 +66,7 @@ fun FocusableGlassCard(
         }
         else -> {
             Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+                .focusable(interactionSource = interactionSource)
         }
     }
 
@@ -80,8 +81,7 @@ fun FocusableGlassCard(
                 }
             }
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
-            .then(activation)
-            .then(if (enabled) Modifier.focusable(interactionSource = interactionSource) else Modifier),
+            .then(activation),
         focused = focused && enabled,
         cornerRadius = cornerRadius,
         contentPadding = contentPadding,

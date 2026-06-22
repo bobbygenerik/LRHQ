@@ -139,6 +139,7 @@ class GooglePhotosPickerClient(
                 error = null,
             )
         }.onFailure { error ->
+            error.printStackTrace()
             _state.value = _state.value.copy(
                 isBusy = false,
                 status = if (sync) {
@@ -154,6 +155,11 @@ class GooglePhotosPickerClient(
     private fun humanizePickerError(error: Throwable): String {
         val message = error.message.orEmpty()
         return when {
+            message.contains("client_secret", ignoreCase = true) ||
+                message.contains("missing required parameter", ignoreCase = true) ->
+                "Google requires a client secret for this OAuth client type. " +
+                    "Even for TV clients, Google Cloud Console provides a client secret. " +
+                    "Please copy the client secret from Google Cloud Console and add it to googlePhotos.clientSecret in local.properties."
             message.contains("Invalid device flow scope", ignoreCase = true) ||
                 message.contains("invalid_scope", ignoreCase = true) ->
                 "This TV OAuth client can only request profile during sign-in. " +
@@ -241,7 +247,7 @@ class GooglePhotosPickerClient(
                 put("device_code", device.deviceCode)
                 put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
             }
-            val response = postFormResult("https://oauth2.googleapis.com/token", params)
+            val response = postFormResult("https://oauth2.googleapis.com/token", params, throwOnError = false)
             val error = response.optString("error")
             when {
                 response.has("access_token") -> {
@@ -348,7 +354,7 @@ class GooglePhotosPickerClient(
         return json
     }
 
-    private fun postFormResult(url: String, params: Map<String, String>): JSONObject {
+    private fun postFormResult(url: String, params: Map<String, String>, throwOnError: Boolean = true): JSONObject {
         val body = params.entries.joinToString("&") { "${it.key.urlEncode()}=${it.value.urlEncode()}" }
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
@@ -358,7 +364,7 @@ class GooglePhotosPickerClient(
             setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
         }
         connection.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
-        return connection.readJson()
+        return connection.readJson(throwOnError)
     }
 
     private fun postJson(url: String, accessToken: String, body: JSONObject): JSONObject {
@@ -384,19 +390,19 @@ class GooglePhotosPickerClient(
         return connection.readJson()
     }
 
-    private fun HttpURLConnection.readJson(): JSONObject {
+    private fun HttpURLConnection.readJson(throwOnError: Boolean = true): JSONObject {
         val stream = if (responseCode in 200..299) inputStream else errorStream
         val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-        if (responseCode !in 200..299) {
+        val json = if (text.isBlank()) JSONObject() else JSONObject(text)
+        if (throwOnError && responseCode !in 200..299) {
             val message = runCatching {
-                val json = JSONObject(text)
                 json.optJSONObject("error")?.optString("message")
                     ?: json.optString("error_description")
                     ?: json.optString("error")
             }.getOrNull()?.takeIf { it.isNotBlank() }
             error(message ?: "HTTP $responseCode")
         }
-        return if (text.isBlank()) JSONObject() else JSONObject(text)
+        return json
     }
 }
 

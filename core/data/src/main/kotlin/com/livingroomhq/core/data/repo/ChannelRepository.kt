@@ -20,4 +20,7 @@ interface ChannelRepository {
     suspend fun loadM3u(playlistUrl: String)
     suspend fun loadXmltv(epgUrl: String)
     suspend fun clearXmltv()
+    suspend fun runMaintenance()
+    suspend fun fetchEpgDetails(channelId: String)
+    suspend fun prefetchEpgForChannels(channelIds: List<String>)
 }

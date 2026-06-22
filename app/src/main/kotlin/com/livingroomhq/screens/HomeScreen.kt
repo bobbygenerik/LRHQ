@@ -1,8 +1,10 @@
 package com.livingroomhq.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -13,9 +15,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.core.ui.theme.HqType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,8 +52,13 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
+import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.fullscreenFocusRestore
+import androidx.tv.material3.Text
 import com.livingroomhq.core.ui.components.initialFocus
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherNavController
@@ -53,6 +76,7 @@ private val HERO_BACKDROP_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "avif
  * Home is the IPTV-first landing zone: a full-bleed live hero with EPG context
  * and a compact recent-channel rail beneath it.
  */
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun HomeScreen(
     app: HqApplication,
@@ -93,89 +117,180 @@ fun HomeScreen(
             .take(20)
     }
 
-    val scrollState = rememberScrollState()
-    LaunchedEffect(Unit) {
-        scrollState.scrollTo(0)
+    val lazyListState = rememberLazyListState()
+    val density = LocalDensity.current
+    val isScrolledDown by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 ||
+                lazyListState.firstVisibleItemScrollOffset > with(density) { 20.dp.toPx() }
+        }
+    }
+    val isHeroFullyCovered by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
+    val showCompactTopBar by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0 ||
+                lazyListState.firstVisibleItemScrollOffset > with(density) { 260.dp.toPx() }
+        }
     }
 
-    Column(
+    var heroFocused by remember { mutableStateOf(false) }
+    val heroFocusRequester = remember { FocusRequester() }
+    val recentRowFirstFocusRequester = remember { FocusRequester() }
+    val heroLivePreview = !isHeroFullyCovered && customSettings.showLivePreview && current != null
+    val backdropSources = remember(
+        current?.id,
+        heroLivePreview,
+        heroBackdrops,
+    ) {
+        BackdropProvider.forHome(
+            channel = current,
+            heroLivePreview = heroLivePreview,
+            heroBackdrops = heroBackdrops,
+        )
+    }
+
+    val backdropAlpha = 1f
+
+    LaunchedEffect(isScrolledDown, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset) {
+        android.util.Log.d("LRHQ_SCROLL", "isScrolledDown: $isScrolledDown, index: ${lazyListState.firstVisibleItemIndex}, offset: ${lazyListState.firstVisibleItemScrollOffset}")
+    }
+
+    var overlaysVisible by remember { mutableStateOf(true) }
+    LaunchedEffect(heroLivePreview, current?.id, nav.lastInteractionAt) {
+        overlaysVisible = true
+        if (!heroLivePreview) return@LaunchedEffect
+        delay(6_000L) // HERO_LIVE_OVERLAY_IDLE_MS
+        overlaysVisible = false
+    }
+
+    val overlayAlpha by animateFloatAsState(
+        targetValue = if (!heroLivePreview || overlaysVisible) 1f else 0f,
+        animationSpec = tween(500),
+        label = "heroOverlayAlpha",
+    )
+
+    val railsBackgroundBrush = remember(density) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.Transparent,
+                Color.Black.copy(alpha = 0.95f),
+                Color.Black
+            ),
+            startY = 0f,
+            endY = with(density) { 120.dp.toPx() }
+        )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState),
     ) {
-        HomeHero(
-            app = app,
-            requestInitialFocus = true,
-            focusedAction = {
-                if (current != null) {
-                    app.fullscreenFocusReturn.arm(homeHeroFocusTarget())
-                    ChannelPlayer.launch(context, current)
-                } else {
-                    nav.goTo(Zone.LIVE)
-                }
-            },
-        ) { heroFocused ->
-            val heroLivePreview = heroFocused && customSettings.showLivePreview && current != null
-            val backdropSources = remember(
-                current?.id,
-                heroLivePreview,
-                heroBackdrops,
-            ) {
-                BackdropProvider.forHome(
-                    channel = current,
-                    heroLivePreview = heroLivePreview,
-                    heroBackdrops = heroBackdrops,
-                )
-            }
-            HomeHeroContent(
-                channel = current,
-                clockTime = clockTime,
-                clockDate = clockDate,
-                temperatureF = weather?.temperatureF,
-                weatherCondition = weather?.condition,
-                showWeather = customSettings.showWeather,
-                nowTitle = nowProgram?.title,
-                nowDescription = nowProgram?.description,
-                progress = nowProgram?.progressAt(System.currentTimeMillis()),
-                nextTitle = nextProgram?.title,
-                isLivePreview = heroLivePreview,
-                heroFocused = heroFocused,
-                backdrop = {
-                    HeroBackdrop(
-                        sources = backdropSources,
-                        modifier = Modifier.fillMaxSize(),
-                        cycle = !heroLivePreview,
-                        applyBlur = !heroFocused,
+        HeroBackdrop(
+            sources = backdropSources,
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(backdropAlpha),
+            cycle = !heroLivePreview,
+            applyBlur = !heroFocused,
+        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = SidebarCollapsedWidth)
+                .focusProperties { enter = { heroFocusRequester } },
+            state = lazyListState,
+        ) {
+            item {
+                HomeHero(
+                    app = app,
+                    focusRequester = heroFocusRequester,
+                    requestInitialFocus = true,
+                    downFocusRequester = recentRowFirstFocusRequester,
+                    focusedAction = {
+                        if (current != null) {
+                            app.fullscreenFocusReturn.arm(homeHeroFocusTarget())
+                            ChannelPlayer.launch(context, current)
+                        } else {
+                            nav.goTo(Zone.LIVE)
+                        }
+                    },
+                    heroFocused = heroFocused,
+                    onFocusChanged = { heroFocused = it },
+                ) {
+                    HomeHeroContent(
+                        channel = current,
+                        clockTime = clockTime,
+                        clockDate = clockDate,
+                        temperatureF = weather?.temperatureF,
+                        weatherCondition = weather?.condition,
+                        showWeather = customSettings.showWeather,
+                        nowTitle = nowProgram?.title,
+                        nowDescription = nowProgram?.description,
+                        progress = nowProgram?.progressAt(System.currentTimeMillis()),
+                        nextTitle = nextProgram?.title,
+                        overlayAlpha = overlayAlpha,
+                        backdrop = {},
                     )
-                },
-            )
+                }
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Transparent)
+                        .padding(
+                            start = 40.dp,
+                            end = 40.dp,
+                            top = 28.dp,
+                            bottom = 28.dp
+                        )
+                ) {
+                    RecentChannelsRow(
+                        app = app,
+                        channels = channels,
+                        recents = recents,
+                        firstItemFocusRequester = recentRowFirstFocusRequester,
+                        onChannelSelected = { channel ->
+                            app.channels.markWatched(channel.id)
+                            app.fullscreenFocusReturn.arm(homeRecentFocusTarget(channel.id))
+                            ChannelPlayer.launch(context, channel)
+                        },
+                    )
+
+                    if (onNow.isNotEmpty()) {
+                        Spacer(Modifier.height(28.dp))
+                        OnNowRail(
+                            app = app,
+                            items = onNow,
+                            nowMillis = nowMillis,
+                            onChannelSelected = { channel ->
+                                app.channels.markWatched(channel.id)
+                                app.fullscreenFocusReturn.arm(homeOnNowFocusTarget(channel.id))
+                                ChannelPlayer.launch(context, channel)
+                            },
+                        )
+                    }
+                }
+            }
         }
 
-        Column(modifier = Modifier.padding(horizontal = 40.dp, vertical = 28.dp)) {
-            RecentChannelsRow(
-                app = app,
-                channels = channels,
-                recents = recents,
-                onChannelSelected = { channel ->
-                    app.channels.markWatched(channel.id)
-                    app.fullscreenFocusReturn.arm(homeRecentFocusTarget(channel.id))
-                    ChannelPlayer.launch(context, channel)
-                },
+        AnimatedVisibility(
+            visible = showCompactTopBar,
+            enter = fadeIn() + slideInVertically { -it },
+            exit = fadeOut() + slideOutVertically { -it },
+            modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            CompactTopBar(
+                channel = current,
+                nowTitle = nowProgram?.title,
+                nextTitle = nextProgram?.title,
+                modifier = Modifier.padding(start = SidebarCollapsedWidth)
             )
-
-            if (onNow.isNotEmpty()) {
-                Spacer(Modifier.height(28.dp))
-                OnNowRail(
-                    app = app,
-                    items = onNow,
-                    nowMillis = nowMillis,
-                    onChannelSelected = { channel ->
-                        app.channels.markWatched(channel.id)
-                        app.fullscreenFocusReturn.arm(homeOnNowFocusTarget(channel.id))
-                        ChannelPlayer.launch(context, channel)
-                    },
-                )
-            }
         }
     }
 }
@@ -183,52 +298,28 @@ fun HomeScreen(
 @Composable
 private fun HomeHero(
     app: HqApplication,
+    focusRequester: FocusRequester,
     requestInitialFocus: Boolean,
+    downFocusRequester: FocusRequester,
     focusedAction: () -> Unit,
-    content: @Composable (heroFocused: Boolean) -> Unit,
+    heroFocused: Boolean,
+    onFocusChanged: (Boolean) -> Unit,
+    content: @Composable () -> Unit,
 ) {
-    var heroFocused by remember { mutableStateOf(false) }
-    val borderColor by animateColorAsState(
-        targetValue = if (heroFocused) HqColors.Accent else Color.Transparent,
-        animationSpec = tween(180),
-        label = "heroBorder",
-    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(360.dp)
-            .fullscreenFocusRestore(app, homeHeroFocusTarget())
-            .onFocusChanged { heroFocused = it.isFocused }
-            .clickable { focusedAction() }
-            .then(if (requestInitialFocus) Modifier.initialFocus() else Modifier),
+            .height(500.dp)
+            .focusProperties { down = downFocusRequester }
+            .fullscreenFocusRestore(app, homeHeroFocusTarget(), focusRequester)
+            .onFocusChanged { onFocusChanged(it.isFocused) }
+            .clickable(
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                indication = null
+            ) { focusedAction() }
+            .then(if (requestInitialFocus) Modifier.initialFocus(focusRequester) else Modifier),
     ) {
-        content(heroFocused)
-        if (heroFocused) {
-            Box(
-                Modifier
-                    .align(Alignment.TopStart)
-                    .fillMaxWidth()
-                    .height(96.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Black.copy(alpha = 0.55f),
-                            1f to Color.Transparent,
-                        )
-                    )
-            )
-            Box(
-                Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .background(HqColors.Accent),
-            )
-        }
-        Box(
-            Modifier
-                .matchParentSize()
-                .border(2.dp, borderColor, RoundedCornerShape(0.dp)),
-        )
+        content()
     }
 }
 
@@ -263,3 +354,98 @@ private fun bundledHeroBackdrops(context: android.content.Context): List<Ambient
         .map { name ->
             AmbientPhoto(url = "file:///android_asset/$HERO_BACKDROP_ASSET_DIR/$name")
         }
+
+@Composable
+private fun CompactTopBar(
+    channel: Channel?,
+    nowTitle: String?,
+    nextTitle: String?,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Black,
+                        Color.Transparent
+                    )
+                )
+            )
+            .padding(horizontal = 40.dp, vertical = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(HqColors.Accent)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    "NOW PLAYING",
+                    style = HqType.Label.copy(
+                        color = Color.Black,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(
+                    channel?.name ?: "No Live TV",
+                    style = HqType.Body.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    maxLines = 1,
+                )
+                if (nowTitle != null) {
+                    Text(
+                        nowTitle,
+                        style = HqType.Label.copy(
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 12.sp
+                        ),
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+
+        if (nextTitle != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0x990A0D14))
+                    .border(1.dp, Color(0x2BFFFFFF), RoundedCornerShape(10.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    "NEXT: ",
+                    style = HqType.Label.copy(
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    nextTitle,
+                    style = HqType.Label.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp
+                    ),
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}

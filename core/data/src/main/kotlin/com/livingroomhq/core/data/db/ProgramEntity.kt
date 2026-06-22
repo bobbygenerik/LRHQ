@@ -42,3 +42,19 @@ data class ProgramEntity(
         )
     }
 }
+
+data class ProgramBrief(
+    val channelId: String,
+    val title: String,
+    val startMillis: Long,
+    val endMillis: Long,
+) {
+    fun toModel(): Program = Program(
+        channelId = channelId,
+        title = title,
+        description = "",
+        startMillis = startMillis,
+        endMillis = endMillis,
+        artworkUrl = null,
+    )
+}

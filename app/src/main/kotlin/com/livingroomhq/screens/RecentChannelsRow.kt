@@ -33,6 +33,8 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.components.fullscreenFocusRestore
 import coil.compose.AsyncImage
 import com.livingroomhq.core.data.model.Channel
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
@@ -43,6 +45,7 @@ internal fun RecentChannelsRow(
     channels: List<Channel>,
     recents: List<Channel>,
     requestInitialFocus: Boolean = false,
+    firstItemFocusRequester: FocusRequester? = null,
     onChannelSelected: (Channel) -> Unit,
 ) {
     SectionHeader("RECENT CHANNELS")
@@ -59,6 +62,7 @@ internal fun RecentChannelsRow(
                     onClick = { onChannelSelected(channel) },
                     modifier = Modifier
                         .fullscreenFocusRestore(app, homeRecentFocusTarget(channel.id))
+                        .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
                         .then(if (requestInitialFocus && index == 0) Modifier.initialFocus() else Modifier),
                 )
             }

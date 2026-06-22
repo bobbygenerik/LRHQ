@@ -69,7 +69,7 @@ object BackdropProvider {
     ): List<BackdropSource> {
         return when {
             heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
-            else -> heroBackdrops.distinctBy { it.url }.map { BackdropSource.Artwork(it.url) }
+            else -> emptyList()
         }
     }
 

@@ -4,6 +4,7 @@ import com.livingroomhq.core.data.db.ChannelEntity
 import com.livingroomhq.core.data.db.GuideChannelEntity
 import com.livingroomhq.core.data.db.IptvDao
 import com.livingroomhq.core.data.db.ProgramEntity
+import com.livingroomhq.core.data.db.ProgramBrief
 import com.livingroomhq.core.data.persist.InMemoryPrefsStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -405,8 +406,9 @@ class FakeIptvDao : IptvDao {
     override suspend fun getActivePrograms(now: Long): List<ProgramEntity> =
         programsList.filter { it.endMillis > now }
 
-    override suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramEntity> =
+    override suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramBrief> =
         programsList.filter { it.endMillis > now && it.startMillis < windowEnd }
+            .map { ProgramBrief(it.channelId, it.title, it.startMillis, it.endMillis) }
 
     override suspend fun getProgramsForChannelInWindow(
         channelId: String,
@@ -414,6 +416,14 @@ class FakeIptvDao : IptvDao {
         windowEnd: Long,
     ): List<ProgramEntity> =
         programsList.filter { it.channelId == channelId && it.endMillis > now && it.startMillis < windowEnd }
+            .sortedBy { it.startMillis }
+
+    override suspend fun getProgramsForChannelsInWindow(
+        channelIds: List<String>,
+        now: Long,
+        windowEnd: Long,
+    ): List<ProgramEntity> =
+        programsList.filter { it.channelId in channelIds && it.endMillis > now && it.startMillis < windowEnd }
             .sortedBy { it.startMillis }
 
     override suspend fun insertPrograms(programs: List<ProgramEntity>) {
@@ -426,6 +436,10 @@ class FakeIptvDao : IptvDao {
 
     override suspend fun deleteProgramsForChannel(channelId: String) {
         programsList.removeAll { it.channelId == channelId }
+    }
+
+    override suspend fun pruneOldPrograms(threshold: Long) {
+        programsList.removeAll { it.endMillis < threshold }
     }
 
     override suspend fun getAllGuideChannels(): List<GuideChannelEntity> = guideChannelsList.toList()
