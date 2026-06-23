@@ -28,6 +28,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.screens.PreviewLoadingPlaceholder
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 
@@ -89,7 +90,9 @@ fun LivePreview(
     }
 
     Box(modifier.background(HqColors.Slate)) {
-        if (previewReady) {
+        if (!previewReady) {
+            PreviewLoadingPlaceholder(channel = channel, modifier = Modifier.fillMaxSize())
+        } else {
             AndroidView(
                 factory = { textureView },
                 modifier = Modifier.fillMaxSize(),

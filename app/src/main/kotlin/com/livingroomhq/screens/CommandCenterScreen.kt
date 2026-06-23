@@ -81,6 +81,8 @@ fun CommandCenterScreen(app: HqApplication) {
         }.getOrNull() ?: "—"
     }
 
+    val statsReady = stats != null
+
     fun open(action: String, data: Uri? = null) = context.openSettings(action, data)
 
     Column(
@@ -115,8 +117,12 @@ fun CommandCenterScreen(app: HqApplication) {
                     modifier = Modifier.initialFocus(firstCardFocusRequester),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(deviceModel, style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold), maxLines = 1)
-                        StatBar("CPU", "${cpu.toInt()}%", cpu / 100f)
+                        Text(
+                            if (statsReady) deviceModel else "Collecting…",
+                            style = HqType.CardTitle,
+                            maxLines = 1,
+                        )
+                        StatBar("CPU", if (statsReady) "${cpu.toInt()}%" else "…", if (statsReady) cpu / 100f else 0.25f)
                     }
                 }
             }
@@ -133,9 +139,12 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("RAM", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
-                        StatBar("Used", "${pct.times(100).toInt()}%", pct)
-                        Text("$used MB of $total MB", style = HqType.Label.copy(color = HqColors.TextSecondary, fontSize = 11.sp))
+                        Text("RAM", style = HqType.CardTitle)
+                        StatBar("Used", if (statsReady) "${pct.times(100).toInt()}%" else "…", if (statsReady) pct else 0.25f)
+                        Text(
+                            if (statsReady) "$used MB of $total MB" else "Reading memory…",
+                            style = HqType.CardCaption,
+                        )
                     }
                 }
             }
@@ -154,9 +163,12 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_INTERNAL_STORAGE_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Internal Storage", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
-                        StatBar("Used", "${(usedPct * 100).toInt()}%", usedPct)
-                        Text("$freeGb GB free of $totalGb GB", style = HqType.Label.copy(color = HqColors.TextSecondary, fontSize = 11.sp))
+                        Text("Internal Storage", style = HqType.CardTitle)
+                        StatBar("Used", if (statsReady) "${(usedPct * 100).toInt()}%" else "…", if (statsReady) usedPct else 0.25f)
+                        Text(
+                            if (statsReady) "$freeGb GB free of $totalGb GB" else "Reading storage…",
+                            style = HqType.CardCaption,
+                        )
                     }
                 }
             }
@@ -172,7 +184,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_WIFI_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Home Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Text("Home Network", style = HqType.CardTitle)
                         StatusRow("LOCAL IP", localIp, HqColors.TextPrimary)
                         StatusRow("THROUGHPUT", "↓ $down · ↑ $up KB/s", HqColors.TextSecondary)
                     }
@@ -189,11 +201,11 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_VPN_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Private Tunnel", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Text("Private Tunnel", style = HqType.CardTitle)
                         StatusRow("STATUS", if (vpnActive) "Active" else "Off", if (vpnActive) HqColors.Positive else HqColors.TextTertiary)
                         Text(
                             if (vpnActive) "A VPN transport is carrying traffic." else "No VPN transport detected.",
-                            style = HqType.Label.copy(color = HqColors.TextTertiary, fontSize = 11.sp),
+                            style = HqType.CardCaption,
                             maxLines = 2,
                         )
                     }
@@ -210,7 +222,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Mesh Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Text("Mesh Network", style = HqType.Headline)
                         StatusRow("STATUS", if (connected) "Connected" else "Not detected", if (connected) HqColors.Positive else HqColors.TextTertiary)
                         StatusRow("TAIL IP", tailscaleIp ?: "—", HqColors.TextPrimary)
                     }
@@ -227,8 +239,11 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Session", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
-                        Text(formatUptime(uptime), style = HqType.Stat.copy(fontSize = 22.sp))
+                        Text("Session", style = HqType.CardTitle)
+                        Text(
+                            if (statsReady) formatUptime(uptime) else "Collecting…",
+                            style = HqType.Stat,
+                        )
                     }
                 }
             }
@@ -242,7 +257,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     onClick = { open(Settings.ACTION_DEVICE_INFO_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Platform", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Text("Platform", style = HqType.CardTitle)
                         StatusRow("VERSION", "Android ${Build.VERSION.RELEASE}", HqColors.TextPrimary)
                         StatusRow("API / PATCH", "${Build.VERSION.SDK_INT} · ${Build.VERSION.SECURITY_PATCH}", HqColors.TextSecondary)
                     }
@@ -263,7 +278,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("LivingRoom HQ", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Text("LivingRoom HQ", style = HqType.CardTitle)
                         StatusRow("VERSION", appVersion, HqColors.TextPrimary)
                         StatusRow("MODEL", deviceModel, HqColors.TextSecondary)
                     }

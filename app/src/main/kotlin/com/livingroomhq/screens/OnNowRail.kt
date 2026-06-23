@@ -19,9 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.fullscreenFocusRestore
@@ -29,6 +27,7 @@ import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
@@ -40,13 +39,13 @@ internal fun OnNowRail(
 ) {
     if (items.isEmpty()) return
 
-    Text("ON NOW", style = HqType.Label.copy(letterSpacing = 1.6.sp))
+    Text("On now", style = HqType.SectionLabel)
     Spacer(Modifier.size(10.dp))
 
     LazyRow(
         contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(horizontal = (-8).dp, vertical = (-6).dp)
+        modifier = Modifier.padding(horizontal = (-8).dp, vertical = (-6).dp),
     ) {
         items(items, key = { (channel, _) -> channel.id }) { (channel, program) ->
             OnNowCard(
@@ -74,7 +73,7 @@ private fun OnNowCard(
             .width(200.dp)
             .height(124.dp)
             .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),
-        cornerRadius = 12.dp,
+        cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(14.dp),
         sheenOnFocus = false,
     ) { focused ->
@@ -85,20 +84,16 @@ private fun OnNowCard(
             Column {
                 Text(
                     channel.name,
-                    style = HqType.Label.copy(
+                    style = HqType.CardCaption.copy(
                         color = if (focused) HqColors.Accent else HqColors.TextTertiary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
                     ),
                     maxLines = 1,
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
                     program.title,
-                    style = HqType.Body.copy(
+                    style = HqType.CardTitle.copy(
                         color = if (focused) HqColors.TextPrimary else HqColors.TextSecondary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
                     ),
                     maxLines = 2,
                 )
@@ -124,7 +119,7 @@ private fun OnNowCard(
                 Spacer(Modifier.size(6.dp))
                 Text(
                     timeLeftLabel(program, nowMillis),
-                    style = HqType.Label.copy(color = HqColors.TextTertiary, fontSize = 11.sp),
+                    style = HqType.CardCaption,
                     maxLines = 1,
                 )
             }

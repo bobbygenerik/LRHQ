@@ -27,9 +27,9 @@ import androidx.compose.ui.focus.focusProperties
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.ConfirmDialog
 import com.livingroomhq.core.ui.theme.CustomSettings
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
-import com.livingroomhq.core.ui.theme.HqDimens
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
@@ -88,11 +88,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    start = HqDimens.SafeHorizontal + 68.dp,
-                    end = HqDimens.SafeHorizontal,
-                    top = HqDimens.SafeVertical
-                )
+                .zonePadding()
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {

@@ -59,17 +59,19 @@ object AmbientBackdrops {
 object BackdropProvider {
 
     /**
-     * Home hero backdrop: live preview only while focused; otherwise only the
-     * bundled hero backdrop images. No programme art, media art, Unsplash, or logos.
+     * Home hero backdrop: live preview when active; bundled stills when preview
+     * is idle, disabled, or ambient has taken over.
      */
     fun forHome(
         channel: Channel?,
         heroLivePreview: Boolean,
         heroBackdrops: List<AmbientPhoto>,
     ): List<BackdropSource> {
-        return when {
-            heroLivePreview && channel != null -> listOf(BackdropSource.Live(channel))
-            else -> emptyList()
+        if (heroLivePreview && channel != null) {
+            return listOf(BackdropSource.Live(channel))
+        }
+        return heroBackdrops.map { photo ->
+            BackdropSource.Artwork(photo.url, photo.photographer, photo.profileUrl)
         }
     }
 

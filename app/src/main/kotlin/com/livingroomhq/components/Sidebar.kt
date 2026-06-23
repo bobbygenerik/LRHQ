@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.R
+import com.livingroomhq.core.ui.components.tvFocusBorder
+import com.livingroomhq.core.ui.components.tvFocusScale
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.Zone
@@ -87,9 +89,11 @@ private val EXPANDED_WIDTH = 196.dp
 fun Sidebar(
     currentZone: Zone,
     onZoneSelected: (Zone) -> Unit,
+    onExpandedChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    LaunchedEffect(expanded) { onExpandedChanged(expanded) }
     val width by animateDpAsState(if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH, label = "sidebarWidth")
     val scrimAlpha by animateFloatAsState(if (expanded) 0.6f else 0f, label = "scrimAlpha")
 
@@ -175,10 +179,6 @@ private fun SidebarItem(
     modifier: Modifier = Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (focused) 1.08f else 1f,
-        label = "sidebarItemScale",
-    )
 
     val contentColor = when {
         active -> HqColors.Accent
@@ -191,10 +191,9 @@ private fun SidebarItem(
             .onFocusChanged { focused = it.isFocused }
             .clickable { onClick() }
             .focusable()
+            .tvFocusScale(focused)
             .height(40.dp)
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
                 transformOrigin = if (expanded) {
                     TransformOrigin(0f, 0.5f)
                 } else {

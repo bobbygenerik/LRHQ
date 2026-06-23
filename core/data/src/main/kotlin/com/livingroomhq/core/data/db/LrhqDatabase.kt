@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChannelEntity::class, ProgramEntity::class, GuideChannelEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class LrhqDatabase : RoomDatabase() {
@@ -38,13 +38,26 @@ abstract class LrhqDatabase : RoomDatabase() {
             }
         }
 
+        /** Backfill guide channel ids from persisted programmes after guide_channels shipped. */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO guide_channels (id, displayNames)
+                    SELECT DISTINCT channelId, channelId FROM programs
+                    WHERE channelId IS NOT NULL AND channelId != ''
+                    """.trimIndent(),
+                )
+            }
+        }
+
         fun build(context: Context): LrhqDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
                 LrhqDatabase::class.java,
                 "lrhq_launcher.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
     }
 }

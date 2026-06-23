@@ -74,7 +74,7 @@ internal fun GlassTextField(
                     onValueChange(newValue.text)
                 }
             },
-            textStyle = HqType.Body.copy(color = HqColors.TextPrimary, fontSize = 14.sp),
+            textStyle = HqType.Body.copy(color = HqColors.TextPrimary),
             cursorBrush = SolidColor(HqColors.Accent),
             singleLine = singleLine,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
@@ -100,7 +100,7 @@ internal fun GlassTextField(
                 },
             decorationBox = { innerTextField ->
                 if (value.isEmpty()) {
-                    Text(placeholder, style = HqType.Body.copy(color = HqColors.TextTertiary, fontSize = 14.sp))
+                    Text(placeholder, style = HqType.Body.copy(color = HqColors.TextTertiary))
                 }
                 innerTextField()
             },
@@ -143,13 +143,12 @@ internal fun CustomButtonToggle(
                     )
                     .clickable { onSelected(option) }
                     .focusable()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = option,
                     style = HqType.Label.copy(
                         color = if (isSelected) Color.Black else HqColors.TextPrimary,
-                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                     ),
                 )

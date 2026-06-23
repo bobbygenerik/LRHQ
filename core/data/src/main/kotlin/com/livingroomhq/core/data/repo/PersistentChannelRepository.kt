@@ -114,12 +114,7 @@ class PersistentChannelRepository(
         val memoryCachePrograms = mutableListOf<Program>()
         val guideAliases = mutableMapOf<String, Set<String>>()
         val guideDisplayNames = mutableMapOf<String, List<String>>()
-        val chunk = mutableListOf<ProgramEntity>()
-        val chunkSize = 5000
-        var totalProgramsParsed = 0
-
-        // Clear existing programs in Room database
-        iptvDao.clearPrograms()
+        val parsedPrograms = mutableListOf<ProgramEntity>()
 
         withContext(workDispatcher) {
             XmltvParser.parse(
@@ -129,24 +124,22 @@ class PersistentChannelRepository(
                     guideAliases[id] = guideAliasKeys(id, displayNames)
                 },
                 onProgramParsed = { program ->
-                    chunk.add(ProgramEntity.fromModel(program))
+                    parsedPrograms.add(ProgramEntity.fromModel(program))
                     if (program.endMillis > now && program.startMillis < windowEnd) {
                         memoryCachePrograms.add(program)
                     }
-                    if (chunk.size >= chunkSize) {
-                        iptvDao.insertPrograms(chunk)
-                        totalProgramsParsed += chunk.size
-                        chunk.clear()
-                    }
                 },
             )
-            if (chunk.isNotEmpty()) {
+        }
+        require(parsedPrograms.isNotEmpty()) { "No programmes found in guide" }
+
+        withContext(workDispatcher) {
+            iptvDao.clearPrograms()
+            val chunkSize = 5000
+            parsedPrograms.chunked(chunkSize).forEach { chunk ->
                 iptvDao.insertPrograms(chunk)
-                totalProgramsParsed += chunk.size
-                chunk.clear()
             }
         }
-        require(totalProgramsParsed > 0) { "No programmes found in guide" }
         ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, memoryCachePrograms.map { it.channelId })
         iptvDao.replaceGuideChannels(
             guideDisplayNames.map { (id, names) ->
@@ -359,6 +352,11 @@ class PersistentChannelRepository(
                 val guideDisplayNames = iptvDao.getAllGuideChannels()
                     .associate { entity -> entity.id to entity.displayNameList() }
                     .toMutableMap()
+                if (guideDisplayNames.isEmpty()) {
+                    iptvDao.getDistinctProgramChannelIds().forEach { channelId ->
+                        guideDisplayNames.putIfAbsent(channelId, listOf(channelId))
+                    }
+                }
                 val guideAliases = guideDisplayNames.mapValues { (id, names) ->
                     guideAliasKeys(id, names)
                 }.toMutableMap()

@@ -60,22 +60,27 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.ModalGlassPanel
+import com.livingroomhq.core.ui.components.ModalTitle
 import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
+import com.livingroomhq.core.ui.components.EmptyStatePanel
+import com.livingroomhq.navigation.LauncherNavController
+import com.livingroomhq.navigation.Zone
 import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val COLUMNS = 4
+private const val COLUMNS = 5
 private const val ARM_LAUNCH_MS = 2_500L
 
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun ToolsScreen(app: HqApplication) {
+fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
@@ -194,14 +199,13 @@ fun ToolsScreen(app: HqApplication) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No installed applications found", style = HqType.Body)
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Install apps from the Play Store, or use App Manager in Settings to review installed packages.",
-                            style = HqType.Label.copy(color = HqColors.TextTertiary),
-                        )
-                    }
+                    EmptyStatePanel(
+                        title = "No apps found",
+                        message = "Install apps from the Play Store, then return here to launch and organize them.",
+                        icon = Icons.Default.Apps,
+                        actionLabel = "Open Settings",
+                        onAction = { nav.goTo(Zone.SETTINGS) },
+                    )
                 }
             } else {
                 LazyVerticalGrid(
@@ -296,12 +300,12 @@ private fun AppCard(
 ) {
     val cardModifier = Modifier
         .fillMaxWidth()
-        .height(72.dp)
+        .height(148.dp)
         .onFocusChanged { if (!it.isFocused) onDisarm() }
         .then(
             when {
-                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(8.dp))
-                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(HqDimens.CornerMd))
+                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(HqDimens.CornerMd))
                 else -> Modifier
             },
         )
@@ -312,18 +316,19 @@ private fun AppCard(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = cardModifier,
-        cornerRadius = 8.dp,
+        cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(12.dp),
         sheenOnFocus = false,
     ) { focused ->
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize(),
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(HqDimens.CornerMd))
                     .background(HqColors.IconWell),
                 contentAlignment = Alignment.Center,
             ) {
@@ -343,39 +348,31 @@ private fun AppCard(
                         imageVector = Icons.Default.Apps,
                         contentDescription = null,
                         tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(32.dp),
                     )
                 }
             }
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = entry.label,
-                    style = HqType.Body.copy(
-                        color = HqColors.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                    ),
-                    maxLines = 1,
-                )
-                Text(
-                    text = when {
-                        isArmed -> "PRESS OK AGAIN"
-                        entry.isTvApp -> "TV APP"
-                        else -> "MOBILE APP"
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = entry.label,
+                style = HqType.CardTitle,
+                maxLines = 2,
+            )
+            Text(
+                text = when {
+                    isArmed -> "Press OK again"
+                    entry.isTvApp -> "TV app"
+                    else -> "Mobile app"
+                },
+                style = HqType.CardCaption.copy(
+                    color = when {
+                        isArmed -> HqColors.Accent
+                        entry.isTvApp -> HqColors.Accent
+                        else -> HqColors.TextSecondary
                     },
-                    style = HqType.Label.copy(
-                        color = when {
-                            isArmed -> HqColors.Accent
-                            entry.isTvApp -> HqColors.Accent
-                            else -> HqColors.TextSecondary
-                        },
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    maxLines = 1,
-                )
-            }
+                ),
+                maxLines = 1,
+            )
         }
     }
 }
@@ -406,16 +403,9 @@ private fun AppActionMenu(
             },
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            modifier = Modifier.width(280.dp).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = label,
-                style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-            )
-            Spacer(Modifier.height(4.dp))
+        ModalGlassPanel(modifier = Modifier.width(320.dp)) {
+            ModalTitle(label)
+            Spacer(Modifier.height(8.dp))
             MenuRow("Open", Modifier.focusRequester(firstFocus), onOpen)
             MenuRow("App settings", onClick = onSettings)
             MenuRow("Move", onClick = onMove)
@@ -441,10 +431,8 @@ private fun MenuRow(
         ) {
             Text(
                 text = label,
-                style = HqType.Body.copy(
+                style = HqType.CardTitle.copy(
                     color = if (focused) HqColors.Accent else HqColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
                 ),
                 maxLines = 1,
             )

@@ -442,6 +442,9 @@ class FakeIptvDao : IptvDao {
         programsList.removeAll { it.endMillis < threshold }
     }
 
+    override suspend fun getDistinctProgramChannelIds(): List<String> =
+        programsList.map { it.channelId }.distinct()
+
     override suspend fun getAllGuideChannels(): List<GuideChannelEntity> = guideChannelsList.toList()
 
     override suspend fun insertGuideChannels(channels: List<GuideChannelEntity>) {

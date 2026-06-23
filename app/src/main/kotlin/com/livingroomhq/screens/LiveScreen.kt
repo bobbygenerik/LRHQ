@@ -56,6 +56,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.livingroomhq.core.ui.components.EmptyStatePanel
+import com.livingroomhq.core.ui.components.tvFocusBorder
+import com.livingroomhq.core.ui.components.tvFocusScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -74,10 +77,13 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
+import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherFocusTarget
+import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.LivePreview
+import com.livingroomhq.player.rememberLivePreviewActive
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -88,8 +94,10 @@ private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
 
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun LiveScreen(app: HqApplication) {
+fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     val context = LocalContext.current
+    val customSettings = LocalCustomSettings.current
+    val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
     val epgRevision by app.channels.epgRevision.collectAsState()
@@ -131,30 +139,16 @@ fun LiveScreen(app: HqApplication) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(48.dp),
-            contentAlignment = Alignment.Center
+                .zonePadding(),
+            contentAlignment = Alignment.Center,
         ) {
-            GlassPanel(
-                modifier = Modifier
-                    .width(480.dp)
-                    .height(260.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(Icons.Default.Tv, contentDescription = null, modifier = Modifier.size(48.dp), tint = HqColors.Accent)
-                    Spacer(Modifier.height(16.dp))
-                    Text("No Playlist Configured", style = HqType.Headline)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Please go to the Settings tab on the left to configure a valid M3U playlist URL.",
-                        style = HqType.Body,
-                        color = HqColors.TextSecondary
-                    )
-                }
-            }
+            EmptyStatePanel(
+                title = "No playlist configured",
+                message = "Add an M3U playlist in Settings to browse live channels and program guides.",
+                icon = Icons.Default.Tv,
+                actionLabel = "Go to Settings",
+                onAction = { nav.goTo(Zone.SETTINGS) },
+            )
         }
         return
     }
@@ -226,6 +220,7 @@ fun LiveScreen(app: HqApplication) {
 
         LiveChannelGridColumn(
             app = app,
+            nav = nav,
             categories = categories,
             selectedCategoryId = selectedCategoryId,
             visibleChannels = visibleChannels,
@@ -250,6 +245,7 @@ fun LiveScreen(app: HqApplication) {
 
         LivePreviewColumn(
             previewChannel = previewChannel,
+            streamActive = previewActive,
             app = app,
             onLaunchPreview = previewChannel?.let { channel ->
                 {
@@ -267,6 +263,7 @@ fun LiveScreen(app: HqApplication) {
 @Composable
 private fun LiveChannelGridColumn(
     app: HqApplication,
+    nav: LauncherNavController,
     categories: List<CategoryItem>,
     selectedCategoryId: String?,
     visibleChannels: List<Channel>,
@@ -285,7 +282,13 @@ private fun LiveChannelGridColumn(
         Spacer(Modifier.height(16.dp))
         if (visibleChannels.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No channels found in this category", style = HqType.Body)
+                EmptyStatePanel(
+                    title = "No channels here",
+                    message = "This category is empty. Try another filter or load a playlist with more channels.",
+                    icon = Icons.Default.Tv,
+                    actionLabel = "Go to Settings",
+                    onAction = { nav.goTo(Zone.SETTINGS) },
+                )
             }
         } else {
             val gridState = remember(selectedCategoryId) { androidx.compose.foundation.lazy.grid.LazyGridState() }
@@ -333,11 +336,14 @@ private fun LiveChannelGridColumn(
 @Composable
 private fun LivePreviewColumn(
     previewChannel: Channel?,
+    streamActive: Boolean,
     app: HqApplication,
     onLaunchPreview: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val previewShape = RoundedCornerShape(HqDimens.CornerMd)
+    var previewFocused by remember { mutableStateOf(false) }
     val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
     var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(previewChannel?.id) {
@@ -353,7 +359,9 @@ private fun LivePreviewColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(previewShape)
+                    .onFocusChanged { previewFocused = it.isFocused }
+                    .tvFocusBorder(previewFocused && previewChannel != null, previewShape)
                     .background(Color.Black)
                     .then(
                         previewChannel?.let { channel ->
@@ -371,6 +379,13 @@ private fun LivePreviewColumn(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("Select a channel", style = HqType.Body.copy(color = HqColors.TextSecondary))
                     }
+                } else if (!streamActive) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            previewChannel.name,
+                            style = HqType.Body.copy(color = HqColors.TextSecondary),
+                        )
+                    }
                 } else {
                     LivePreview(
                         channel = previewChannel,
@@ -380,6 +395,18 @@ private fun LivePreviewColumn(
                         maxVideoWidth = 854,
                         maxVideoHeight = 480,
                     )
+                }
+                if (previewFocused && previewChannel != null && streamActive) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(HqColors.Accent)
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                    ) {
+                        Text("Watch", style = HqType.CardTitle.copy(color = Color.Black, fontWeight = FontWeight.Bold))
+                    }
                 }
             }
 
@@ -393,24 +420,24 @@ private fun LivePreviewColumn(
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Text(
-                        text = "NOW PLAYING",
-                        style = HqType.Label.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold)
+                        text = "Now playing",
+                        style = HqType.HeroSection,
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = previewChannel?.name ?: "No channel selected",
-                        style = HqType.Headline.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        style = HqType.Headline.copy(fontWeight = FontWeight.Bold),
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = now?.title ?: "No Program Data",
-                        style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        text = now?.title ?: "No program data",
+                        style = HqType.CardTitle,
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = now?.description ?: "No EPG summary available for this stream. Load standard XMLTV guides to overlay TV schedules.",
-                        style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
-                        maxLines = 3
+                        text = now?.description ?: "Load an XMLTV guide in Settings to overlay TV schedules.",
+                        style = HqType.CardCaption,
+                        maxLines = 3,
                     )
                     
                     if (now != null) {
@@ -451,7 +478,7 @@ private fun LivePreviewColumn(
                         Spacer(Modifier.height(12.dp))
                         Text(
                             text = "UP NEXT: ${it.title}",
-                            style = HqType.Label.copy(color = HqColors.TextTertiary, fontSize = 11.sp),
+                            style = HqType.CardCaption.copy(color = HqColors.TextTertiary),
                             maxLines = 1
                         )
                     }
@@ -494,10 +521,12 @@ private fun CategoryRailItem(
     Box(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
+            .tvFocusScale(focused)
             .clip(shape)
             .background(bg)
-            .border(1.dp, if (focused) HqColors.Accent else Color.Transparent, shape)
+            .tvFocusBorder(focused, shape)
             .clickable { onClick() }
+            .focusable()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -512,10 +541,9 @@ private fun CategoryRailItem(
             Spacer(Modifier.width(10.dp))
             Text(
                 text = label,
-                style = HqType.Body.copy(
+                style = HqType.CardTitle.copy(
                     color = contentColor,
-                    fontSize = 13.sp,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                 ),
                 maxLines = 1
             )
@@ -542,7 +570,7 @@ private fun ChannelGridCard(
         sheenOnFocus = false,
         modifier = modifier
             .focusRequester(focusRequester)
-            .height(58.dp)
+            .height(72.dp)
             .fillMaxWidth()
     ) { focused ->
         BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -551,7 +579,7 @@ private fun ChannelGridCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(44.dp)
                         .clip(logoShape)
                         .background(Color(0x1AFFFFFF)),
                     contentAlignment = Alignment.Center
@@ -578,21 +606,14 @@ private fun ChannelGridCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = channel.name,
-                        style = HqType.Body.copy(
-                            color = HqColors.TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        ),
-                        maxLines = 1
+                        style = HqType.CardTitle,
+                        maxLines = 1,
                     )
                     if (showProgramInfo) {
                         Text(
                             text = nowPlayingTitle,
-                            style = HqType.Label.copy(
-                                color = HqColors.TextSecondary,
-                                fontSize = 11.sp
-                            ),
-                            maxLines = 1
+                            style = HqType.CardCaption,
+                            maxLines = 1,
                         )
                     }
                 }

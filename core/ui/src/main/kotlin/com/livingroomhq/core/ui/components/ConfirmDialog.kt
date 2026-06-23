@@ -64,27 +64,10 @@ fun ConfirmDialog(
             },
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            modifier = Modifier
-                .width(360.dp)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = title,
-                style = HqType.Headline.copy(
-                    color = HqColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                ),
-            )
-            Text(
-                text = message,
-                style = HqType.Body.copy(
-                    color = HqColors.TextSecondary,
-                    fontSize = 13.sp,
-                ),
-            )
-            Spacer(Modifier.height(4.dp))
+        ModalGlassPanel(modifier = Modifier.width(400.dp)) {
+            ModalTitle(title)
+            ModalMessage(message)
+            Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FocusableGlassCard(
                     onClick = onConfirm,

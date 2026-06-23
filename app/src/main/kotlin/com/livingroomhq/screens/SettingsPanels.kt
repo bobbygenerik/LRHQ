@@ -36,6 +36,7 @@ import com.livingroomhq.backdrop.AmbientPhotoCacheStats
 import com.livingroomhq.backdrop.GooglePhotosPickerState
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
+import com.livingroomhq.core.ui.components.LoadingRow
 import com.livingroomhq.core.ui.components.initialFocus
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -64,10 +65,10 @@ internal fun LiveTvSettingsPanel(
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("IPTV Playlist URL", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text("IPTV Playlist URL", style = HqType.CardTitle)
                 Text(
                     "Configure an M3U IPTV playlist link to stream live television channels.",
-                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary),
+                    style = HqType.CardCaption,
                 )
                 GlassTextField(
                     value = m3uUrl,
@@ -96,10 +97,10 @@ internal fun LiveTvSettingsPanel(
             }
             
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("XMLTV Guide URL", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text("XMLTV Guide URL", style = HqType.CardTitle)
                 Text(
                     "Add an XMLTV guide URL to overlay now/next programme info.",
-                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary),
+                    style = HqType.CardCaption,
                 )
                 GlassTextField(
                     value = epgUrl,
@@ -123,7 +124,11 @@ internal fun LiveTvSettingsPanel(
                     )
                 }
                 if (epgStatus.isNotEmpty()) {
-                    Text(epgStatus, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                    if (isEpgLoading) {
+                        LoadingRow(epgStatus)
+                    } else {
+                        Text(epgStatus, style = HqType.Body.copy(color = HqColors.TextPrimary))
+                    }
                 }
             }
         }
@@ -153,8 +158,8 @@ internal fun SamplePlaylistsPanel(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(playlist.name, style = HqType.Body.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp))
-                    Text("Click to Load", style = HqType.Label.copy(color = HqColors.Accent, fontSize = 11.sp))
+                    Text(playlist.name, style = HqType.CardTitle)
+                    Text("Press OK to load", style = HqType.CardCaption.copy(color = HqColors.Accent))
                 }
             }
         }
@@ -289,7 +294,7 @@ internal fun AppearanceSettingsPanel(
     settings: CustomSettings,
     onSettingsChanged: (CustomSettings) -> Unit,
 ) {
-    Text("LAUNCHER APPEARANCE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    Text("DISPLAY & BEHAVIOR", style = HqType.SectionLabel)
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             AppearanceRow("Accent Color") {
@@ -313,6 +318,31 @@ internal fun AppearanceSettingsPanel(
                     onSelected = { onSettingsChanged(settings.copy(showWeather = it == "On")) },
                 )
             }
+            AppearanceRow("Sound effects") {
+                CustomButtonToggle(
+                    options = listOf("On", "Off"),
+                    selected = if (settings.soundEffects) "On" else "Off",
+                    onSelected = { onSettingsChanged(settings.copy(soundEffects = it == "On")) },
+                )
+            }
+            AppearanceRow("Ambient idle") {
+                CustomButtonToggle(
+                    options = listOf("3 min", "5 min", "10 min"),
+                    selected = when (settings.idleTimeSeconds) {
+                        180 -> "3 min"
+                        600 -> "10 min"
+                        else -> "5 min"
+                    },
+                    onSelected = { choice ->
+                        val seconds = when (choice) {
+                            "3 min" -> 180
+                            "10 min" -> 600
+                            else -> 300
+                        }
+                        onSettingsChanged(settings.copy(idleTimeSeconds = seconds))
+                    },
+                )
+            }
             AppearanceRow("Animations") {
                 CustomButtonToggle(
                     options = listOf("Full", "Reduced"),
@@ -324,7 +354,7 @@ internal fun AppearanceSettingsPanel(
             }
             Text(
                 "Reduced motion shortens transitions and disables the glass sheen sweep.",
-                style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+                style = HqType.CardCaption,
             )
         }
     }
@@ -339,13 +369,13 @@ private fun SettingsActionButton(
     leadingIcon: (@Composable () -> Unit)? = null,
 ) {
     FocusableGlassCard(
-        onClick = { if (enabled) onClick() },
+        onClick = onClick,
         modifier = Modifier
             .height(44.dp)
-            .alpha(if (enabled) 1f else 0.5f),
+            .alpha(if (enabled) 1f else 0.45f),
         cornerRadius = 8.dp,
         contentPadding = PaddingValues(horizontal = 16.dp),
-        enabled = true,
+        enabled = enabled,
     ) { focused ->
         Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -372,6 +402,10 @@ private fun PlaylistStatus(
     isSuccess: Boolean,
 ) {
     if (statusText.isEmpty()) return
+    if (isLoading) {
+        LoadingRow(statusText, icon = Icons.Default.CloudDownload)
+        return
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -379,21 +413,13 @@ private fun PlaylistStatus(
             .padding(vertical = 4.dp),
     ) {
         Icon(
-            imageVector = when {
-                isLoading -> Icons.Default.CloudDownload
-                isSuccess -> Icons.Default.CheckCircle
-                else -> Icons.Default.Error
-            },
+            imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Error,
             contentDescription = null,
-            tint = when {
-                isLoading -> HqColors.Accent
-                isSuccess -> HqColors.Success
-                else -> HqColors.Critical
-            },
+            tint = if (isSuccess) HqColors.Success else HqColors.Critical,
             modifier = Modifier.size(16.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text(statusText, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+        Text(statusText, style = HqType.Body.copy(color = HqColors.TextPrimary))
     }
 }
 

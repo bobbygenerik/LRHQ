@@ -16,11 +16,23 @@ object HqDimens {
     val SafeHorizontal = 40.dp
     val SafeVertical = 36.dp
 
+    val CornerSm = 8.dp
+    val CornerMd = 12.dp
+    val CornerLg = 22.dp
+
     /** Breathing room inside grids/rows so focus-scaled edge cards don't clip. */
     val GridEdgeInset = 6.dp
 
     val ScreenPadding = PaddingValues(horizontal = SafeHorizontal, vertical = SafeVertical)
 }
+
+/** Content inset after the collapsed sidebar rail. */
+fun Modifier.homeZonePadding(): Modifier = padding(
+    start = HqDimens.SafeHorizontal,
+    end = HqDimens.SafeHorizontal,
+    top = HqDimens.SafeVertical,
+    bottom = HqDimens.SafeVertical,
+)
 
 /** Applies the title-safe inset every zone shares. */
 fun Modifier.zonePadding(): Modifier = padding(

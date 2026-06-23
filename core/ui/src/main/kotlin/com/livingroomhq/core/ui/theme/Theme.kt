@@ -85,17 +85,42 @@ private val defaultTextShadow = Shadow(
 )
 
 /**
- * 10-foot typography, tuned for a dense, premium dashboard rather than oversized
- * cards. Sizes are deliberately restrained — the reference UI reads small and
- * crisp from the couch; weight and tracking carry the hierarchy, not bulk.
+ * 10-foot typography. Body is sized for couch distance; use the named styles
+ * below instead of ad-hoc `.copy(fontSize = …)` in screens.
  */
 object HqType {
     val Display = TextStyle(fontSize = 46.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, letterSpacing = (-1).sp, shadow = defaultTextShadow)
     val Title = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, shadow = defaultTextShadow)
     val Headline = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.Medium, color = HqColors.TextPrimary, shadow = defaultTextShadow)
-    val Body = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary, shadow = defaultTextShadow)
-    val Label = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp, shadow = defaultTextShadow)
+    val Body = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, color = HqColors.TextSecondary, shadow = defaultTextShadow)
+    val Label = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = HqColors.TextTertiary, letterSpacing = 1.2.sp, shadow = defaultTextShadow)
     val Stat = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = HqColors.TextPrimary, shadow = defaultTextShadow)
+
+    /** Rail / section headers ("Recent channels", "On now"). */
+    val SectionLabel = Label.copy(letterSpacing = 1.6.sp, fontWeight = FontWeight.Bold)
+
+    /** Primary line on cards and list rows. */
+    val CardTitle = Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.SemiBold)
+
+    /** Secondary line on cards (EPG title, app type). */
+    val CardCaption = Label.copy(color = HqColors.TextSecondary, letterSpacing = 0.8.sp)
+
+    /** Hero overlay section tags ("Now playing", "Up next"). */
+    val HeroSection = Label.copy(
+        color = HqColors.Accent,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.4.sp,
+    )
+
+    /** Muted hero section tag (e.g. up next). */
+    val HeroSectionMuted = Label.copy(
+        color = HqColors.TextSecondary,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.4.sp,
+    )
+
+    /** Compact badge text (LIVE pill, scrolled top bar). */
+    val Badge = Label.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
 }
 
 data class HqTheme(

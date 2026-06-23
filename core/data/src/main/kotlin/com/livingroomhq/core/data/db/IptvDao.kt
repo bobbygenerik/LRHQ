@@ -81,6 +81,9 @@ interface IptvDao {
     @Query("DELETE FROM programs WHERE endMillis < :threshold")
     suspend fun pruneOldPrograms(threshold: Long)
 
+    @Query("SELECT DISTINCT channelId FROM programs WHERE channelId != ''")
+    suspend fun getDistinctProgramChannelIds(): List<String>
+
     @Transaction
     suspend fun replaceChannels(channels: List<ChannelEntity>) {
         clearChannels()

@@ -60,11 +60,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
+import com.livingroomhq.core.ui.theme.homeZonePadding
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
+import com.livingroomhq.player.rememberLivePreviewActive
 import kotlinx.coroutines.delay
 import java.util.Date
 import java.util.Locale
@@ -140,7 +143,8 @@ fun HomeScreen(
     var heroFocused by remember { mutableStateOf(false) }
     val heroFocusRequester = remember { FocusRequester() }
     val recentRowFirstFocusRequester = remember { FocusRequester() }
-    val heroLivePreview = !isHeroFullyCovered && customSettings.showLivePreview && current != null
+    val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
+    val heroLivePreview = !isHeroFullyCovered && previewActive && current != null
     val backdropSources = remember(
         current?.id,
         heroLivePreview,
@@ -155,10 +159,6 @@ fun HomeScreen(
 
     val backdropAlpha = 1f
 
-    LaunchedEffect(isScrolledDown, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset) {
-        android.util.Log.d("LRHQ_SCROLL", "isScrolledDown: $isScrolledDown, index: ${lazyListState.firstVisibleItemIndex}, offset: ${lazyListState.firstVisibleItemScrollOffset}")
-    }
-
     var overlaysVisible by remember { mutableStateOf(true) }
     LaunchedEffect(heroLivePreview, current?.id, nav.lastInteractionAt) {
         overlaysVisible = true
@@ -172,18 +172,6 @@ fun HomeScreen(
         animationSpec = tween(500),
         label = "heroOverlayAlpha",
     )
-
-    val railsBackgroundBrush = remember(density) {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color.Transparent,
-                Color.Black.copy(alpha = 0.95f),
-                Color.Black
-            ),
-            startY = 0f,
-            endY = with(density) { 120.dp.toPx() }
-        )
-    }
 
     Box(
         modifier = Modifier
@@ -233,6 +221,7 @@ fun HomeScreen(
                         progress = nowProgram?.progressAt(System.currentTimeMillis()),
                         nextTitle = nextProgram?.title,
                         overlayAlpha = overlayAlpha,
+                        onSetupLiveTv = { nav.goTo(Zone.SETTINGS) },
                         backdrop = {},
                     )
                 }
@@ -243,12 +232,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.Transparent)
-                        .padding(
-                            start = 40.dp,
-                            end = 40.dp,
-                            top = 28.dp,
-                            bottom = 28.dp
-                        )
+                        .homeZonePadding(),
                 ) {
                     RecentChannelsRow(
                         app = app,
@@ -306,6 +290,7 @@ private fun HomeHero(
     onFocusChanged: (Boolean) -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val watchShape = RoundedCornerShape(20.dp)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -315,11 +300,33 @@ private fun HomeHero(
             .onFocusChanged { onFocusChanged(it.isFocused) }
             .clickable(
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                indication = null
+                indication = null,
             ) { focusedAction() }
             .then(if (requestInitialFocus) Modifier.initialFocus(focusRequester) else Modifier),
     ) {
         content()
+
+        if (heroFocused) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .padding(6.dp)
+                    .border(2.dp, HqColors.Accent, RoundedCornerShape(HqDimens.CornerMd)),
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 108.dp)
+                    .clip(watchShape)
+                    .background(HqColors.Accent)
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    "Watch",
+                    style = HqType.CardTitle.copy(color = Color.Black, fontWeight = FontWeight.Bold),
+                )
+            }
+        }
     }
 }
 
@@ -373,7 +380,7 @@ private fun CompactTopBar(
                     )
                 )
             )
-            .padding(horizontal = 40.dp, vertical = 20.dp),
+            .padding(horizontal = HqDimens.SafeHorizontal, vertical = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -385,33 +392,24 @@ private fun CompactTopBar(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
-                    "NOW PLAYING",
-                    style = HqType.Label.copy(
+                    "Now playing",
+                    style = HqType.Badge.copy(
                         color = Color.Black,
-                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.5.sp
-                    )
+                    ),
                 )
             }
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
                     channel?.name ?: "No Live TV",
-                    style = HqType.Body.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    ),
+                    style = HqType.CardTitle.copy(color = Color.White),
                     maxLines = 1,
                 )
                 if (nowTitle != null) {
                     Text(
                         nowTitle,
-                        style = HqType.Label.copy(
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 12.sp
-                        ),
+                        style = HqType.CardCaption.copy(color = Color.White.copy(alpha = 0.8f)),
                         maxLines = 1,
                     )
                 }
@@ -421,30 +419,26 @@ private fun CompactTopBar(
         if (nextTitle != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0x990A0D14))
-                    .border(1.dp, Color(0x2BFFFFFF), RoundedCornerShape(10.dp))
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                modifier = Modifier.padding(start = 16.dp),
             ) {
-                Text(
-                    "NEXT: ",
-                    style = HqType.Label.copy(
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold
+                Box(
+                    Modifier
+                        .width(1.dp)
+                        .height(36.dp)
+                        .background(Color.White.copy(alpha = 0.22f)),
+                )
+                Spacer(Modifier.width(16.dp))
+                Column {
+                    Text(
+                        "Up next",
+                        style = HqType.HeroSectionMuted.copy(color = Color.White.copy(alpha = 0.55f)),
                     )
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    nextTitle,
-                    style = HqType.Label.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 12.sp
-                    ),
-                    maxLines = 1,
-                )
+                    Text(
+                        nextTitle,
+                        style = HqType.CardTitle.copy(color = Color.White),
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
