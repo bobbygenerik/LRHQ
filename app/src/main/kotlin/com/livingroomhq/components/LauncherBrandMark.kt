@@ -14,7 +14,7 @@ import com.livingroomhq.R
 fun LauncherBrandMark(modifier: Modifier = Modifier) {
     Box(modifier) {
         Image(
-            painter = painterResource(R.mipmap.ic_launcher),
+            painter = painterResource(R.drawable.ic_launcher_foreground),
             contentDescription = "LivingRoom HQ",
             modifier = Modifier.size(36.dp),
         )
