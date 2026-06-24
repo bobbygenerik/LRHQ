@@ -9076,7 +9076,7 @@
       "label": ".insertPrograms()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L429",
+      "source_location": "L430",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_insertprograms",
       "community": 17,
@@ -9086,7 +9086,7 @@
       "label": ".clearPrograms()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L433",
+      "source_location": "L434",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_clearprograms",
       "community": 17,
@@ -9096,7 +9096,7 @@
       "label": ".deleteProgramsForChannel()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L437",
+      "source_location": "L438",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_deleteprogramsforchannel",
       "community": 17,
@@ -9106,7 +9106,7 @@
       "label": ".pruneOldPrograms()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L441",
+      "source_location": "L442",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_pruneoldprograms",
       "community": 17,
@@ -9116,7 +9116,7 @@
       "label": ".getDistinctProgramChannelIds()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L445",
+      "source_location": "L446",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_getdistinctprogramchannelids",
       "community": 17,
@@ -9126,7 +9126,7 @@
       "label": ".getAllGuideChannels()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L448",
+      "source_location": "L449",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_getallguidechannels",
       "community": 17,
@@ -9136,7 +9136,7 @@
       "label": "GuideChannelEntity",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L448",
+      "source_location": "L449",
       "_origin": "ast",
       "id": "core_data_src_test_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepositorytest_kt_guidechannelentity",
       "community": 17,
@@ -9146,7 +9146,7 @@
       "label": ".insertGuideChannels()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L450",
+      "source_location": "L451",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_insertguidechannels",
       "community": 17,
@@ -9156,7 +9156,7 @@
       "label": ".clearGuideChannels()",
       "file_type": "code",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
-      "source_location": "L455",
+      "source_location": "L456",
       "_origin": "ast",
       "id": "repo_persistentchannelrepositorytest_fakeiptvdao_clearguidechannels",
       "community": 17,
@@ -21383,6 +21383,17 @@
       "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_db_iptvdao_kt_programbrief"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/main/kotlin/com/livingroomhq/core/data/db/IptvDao.kt",
+      "source_location": "L59",
+      "weight": 1.0,
+      "context": "generic_arg",
+      "source": "db_iptvdao_iptvdao_getprogramsforchannelsinwindow",
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_db_iptvdao_kt_programbrief",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -28826,6 +28837,17 @@
     },
     {
       "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
+      "source_location": "L421",
+      "weight": 1.0,
+      "source": "repo_persistentchannelrepositorytest_fakeiptvdao_getprogramsforchannelsinwindow",
+      "target": "core_data_src_test_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepositorytest_kt_programbrief",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L371",
@@ -30517,5 +30539,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "e8ec20d02a4c5dcaabce2611c41cf7f3462b330b"
+  "built_at_commit": "78bead4527f378f02f9fb903ecad17088ab7e873"
 }

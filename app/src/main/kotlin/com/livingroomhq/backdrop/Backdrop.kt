@@ -67,7 +67,6 @@ object BackdropProvider {
         channel: Channel?,
         heroLivePreview: Boolean,
         heroBackdrops: List<AmbientPhoto>,
-        previewIdleStopped: Boolean = false,
     ): List<BackdropSource> {
         if (heroLivePreview && channel != null) {
             return listOf(BackdropSource.Live(channel))

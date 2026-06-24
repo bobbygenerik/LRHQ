@@ -1,16 +1,16 @@
 # Graph Report - LRHQ  (2026-06-24)
 
 ## Corpus Check
-- 97 files · ~966,166 words
+- 97 files · ~966,045 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1050 nodes · 1858 edges · 61 communities (50 shown, 11 thin omitted)
+- 1049 nodes · 1855 edges · 61 communities (50 shown, 11 thin omitted)
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 132 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `78bead45`
+- Built from commit: `a08b5c37`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -110,8 +110,8 @@
 ## Communities (61 total, 11 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
-Cohesion: 0.11
-Nodes (29): Boolean, Channel, Float, ImageVector, Int, Modifier, Shadow, String (+21 more)
+Cohesion: 0.10
+Nodes (30): Boolean, Channel, Float, ImageVector, Int, Modifier, Shadow, String (+22 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.38
@@ -119,11 +119,11 @@ Nodes (6): tvFocusBorder(), tvFocusScale(), Boolean, Dp, Modifier, Shape
 
 ### Community 2 - "IPTV Channels & EPG"
 Cohesion: 0.06
-Nodes (47): LauncherPrefsStore, Modifier, Boolean, LauncherNavController, AmbientPhoto, android, Boolean, Channel (+39 more)
+Nodes (46): LauncherPrefsStore, Modifier, Boolean, LauncherNavController, AmbientPhoto, android, Boolean, Channel (+38 more)
 
 ### Community 3 - "Widget Plugin Contract"
-Cohesion: 0.13
-Nodes (12): Long, Channel, Int, List, Long, Map, Pair, Program (+4 more)
+Cohesion: 0.09
+Nodes (21): Float, Long, Channel, Int, List, Long, Map, Pair (+13 more)
 
 ### Community 4 - "Data Models & Installed Apps"
 Cohesion: 0.09
@@ -226,8 +226,8 @@ Cohesion: 0.16
 Nodes (10): Boolean, Channel, Context, ExoPlayer, Int, MediaItem, String, Tracks (+2 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.12
-Nodes (25): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, Channel, DownloadJob (+17 more)
+Cohesion: 0.18
+Nodes (17): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, AmbientInfoRepository, httpGet() (+9 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.22
@@ -270,8 +270,8 @@ Cohesion: 0.43
 Nodes (4): Program, fromModel(), ProgramBrief, ProgramEntity
 
 ### Community 48 - "Community 48"
-Cohesion: 0.15
-Nodes (11): ActivityManager, Float, Boolean, Float, Flow, Long, Pair, SystemStats (+3 more)
+Cohesion: 0.17
+Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, Command Center Dashboard, SystemMonitor (+1 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.50
@@ -290,7 +290,7 @@ Cohesion: 0.50
 Nodes (3): initialFocus(), FocusRequester, Modifier
 
 ## Knowledge Gaps
-- **266 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+261 more)
+- **268 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+263 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -298,9 +298,9 @@ Nodes (3): initialFocus(), FocusRequester, Modifier
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `HqApplication` connect `Main Activity Key Handling` to `System Monitoring`, `Community 12`, `Community 37`?**
-  _High betweenness centrality (0.215) - this node is a cross-community bridge._
-- **Why does `StatBar()` connect `Command Center Dashboard` to `Community 35`, `Community 28`, `System Monitoring`, `Community 23`?**
-  _High betweenness centrality (0.184) - this node is a cross-community bridge._
+  _High betweenness centrality (0.214) - this node is a cross-community bridge._
+- **Why does `StatBar()` connect `Command Center Dashboard` to `Community 28`, `System Monitoring`, `Community 23`?**
+  _High betweenness centrality (0.190) - this node is a cross-community bridge._
 - **Why does `PersistentChannelRepository` connect `Data Models & Installed Apps` to `Main Activity Key Handling`, `Tools Screen`?**
   _High betweenness centrality (0.177) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist leaves channels empty`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
@@ -310,4 +310,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 17 inferred relationships involving `FocusableGlassCard()` (e.g. with `ConfirmDialog()` and `EmptyStatePanel()`) actually correct?**
   _`FocusableGlassCard()` has 17 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
-  _271 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _273 weakly-connected nodes found - possible documentation gaps or missing edges._

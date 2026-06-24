@@ -1126,7 +1126,7 @@
       "label": ".forAmbient()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/backdrop/Backdrop.kt",
-      "source_location": "L78",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "backdrop_backdrop_backdropprovider_forambient",
       "community": 8,
@@ -1136,7 +1136,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/backdrop/Backdrop.kt",
-      "source_location": "L78",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_backdrop_backdrop_kt_string",
       "community": 8,
@@ -1146,7 +1146,7 @@
       "label": ".artwork()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/backdrop/Backdrop.kt",
-      "source_location": "L83",
+      "source_location": "L82",
       "_origin": "ast",
       "id": "backdrop_backdrop_backdropprovider_artwork",
       "community": 8,
@@ -3006,7 +3006,7 @@
       "label": "rememberLivePreviewActive()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L24",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "player_livepreviewpolicy_rememberlivepreviewactive",
       "community": 2,
@@ -3016,7 +3016,7 @@
       "label": "LauncherNavController",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L24",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_livepreviewpolicy_kt_launchernavcontroller",
       "community": 2,
@@ -3026,21 +3026,11 @@
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L24",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_livepreviewpolicy_kt_boolean",
       "community": 2,
       "norm_label": "boolean"
-    },
-    {
-      "label": "rememberPreviewIdleTimedOut()",
-      "file_type": "code",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L34",
-      "_origin": "ast",
-      "id": "player_livepreviewpolicy_rememberpreviewidletimedout",
-      "community": 2,
-      "norm_label": "rememberpreviewidletimedout()"
     },
     {
       "label": "AmbientScreen.kt",
@@ -3476,7 +3466,7 @@
       "label": "HomeHero()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L321",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "screens_homescreen_homehero",
       "community": 2,
@@ -3486,7 +3476,7 @@
       "label": "Modifier",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L321",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_modifier",
       "community": 2,
@@ -3496,7 +3486,7 @@
       "label": "FocusRequester",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L321",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_focusrequester",
       "community": 2,
@@ -3506,7 +3496,7 @@
       "label": "Boolean",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L321",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_boolean",
       "community": 2,
@@ -3516,7 +3506,7 @@
       "label": "homeHeroFocusTarget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L352",
+      "source_location": "L349",
       "_origin": "ast",
       "id": "screens_homescreen_homeherofocustarget",
       "community": 2,
@@ -3526,7 +3516,7 @@
       "label": "LauncherFocusTarget",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L352",
+      "source_location": "L349",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_launcherfocustarget",
       "community": 2,
@@ -3536,7 +3526,7 @@
       "label": "homeRecentFocusTarget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L355",
+      "source_location": "L352",
       "_origin": "ast",
       "id": "screens_homescreen_homerecentfocustarget",
       "community": 2,
@@ -3546,7 +3536,7 @@
       "label": "String",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L355",
+      "source_location": "L352",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_string",
       "community": 2,
@@ -3556,7 +3546,7 @@
       "label": "homeOnNowFocusTarget()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L358",
+      "source_location": "L355",
       "_origin": "ast",
       "id": "screens_homescreen_homeonnowfocustarget",
       "community": 2,
@@ -3566,7 +3556,7 @@
       "label": "timeNow()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L361",
+      "source_location": "L358",
       "_origin": "ast",
       "id": "screens_homescreen_timenow",
       "community": 2,
@@ -3576,7 +3566,7 @@
       "label": "android",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L361",
+      "source_location": "L358",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_android",
       "community": 2,
@@ -3586,7 +3576,7 @@
       "label": "dateNow()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L367",
+      "source_location": "L364",
       "_origin": "ast",
       "id": "screens_homescreen_datenow",
       "community": 2,
@@ -3596,7 +3586,7 @@
       "label": "bundledHeroBackdrops()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L372",
+      "source_location": "L369",
       "_origin": "ast",
       "id": "screens_homescreen_bundledherobackdrops",
       "community": 2,
@@ -3606,7 +3596,7 @@
       "label": "List",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L372",
+      "source_location": "L369",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_list",
       "community": 2,
@@ -3616,7 +3606,7 @@
       "label": "AmbientPhoto",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L372",
+      "source_location": "L369",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_ambientphoto",
       "community": 2,
@@ -3626,7 +3616,7 @@
       "label": "CompactTopBar()",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L384",
+      "source_location": "L381",
       "_origin": "ast",
       "id": "screens_homescreen_compacttopbar",
       "community": 2,
@@ -3636,7 +3626,7 @@
       "label": "Channel",
       "file_type": "code",
       "source_file": "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt",
-      "source_location": "L384",
+      "source_location": "L381",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_screens_homescreen_kt_channel",
       "community": 2,
@@ -5939,7 +5929,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "model_models",
-      "community": 35,
+      "community": 3,
       "norm_label": "models.kt"
     },
     {
@@ -5949,7 +5939,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "model_models_channel",
-      "community": 35,
+      "community": 3,
       "norm_label": "channel"
     },
     {
@@ -5989,7 +5979,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_model_models_kt_float",
-      "community": 48,
+      "community": 3,
       "norm_label": "float"
     },
     {
@@ -5999,7 +5989,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "model_models_mediatype",
-      "community": 35,
+      "community": 3,
       "norm_label": "mediatype"
     },
     {
@@ -6009,7 +5999,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "model_models_mediaitem",
-      "community": 35,
+      "community": 3,
       "norm_label": "mediaitem"
     },
     {
@@ -6019,7 +6009,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "model_models_systemstats",
-      "community": 48,
+      "community": 3,
       "norm_label": "systemstats"
     },
     {
@@ -6029,7 +6019,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "model_models_weathercondition",
-      "community": 35,
+      "community": 3,
       "norm_label": "weathercondition"
     },
     {
@@ -6039,7 +6029,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "model_models_weather",
-      "community": 35,
+      "community": 3,
       "norm_label": "weather"
     },
     {
@@ -6059,7 +6049,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "model_models_servicehealth",
-      "community": 35,
+      "community": 3,
       "norm_label": "servicehealth"
     },
     {
@@ -6069,7 +6059,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "model_models_servicestatus",
-      "community": 35,
+      "community": 3,
       "norm_label": "servicestatus"
     },
     {
@@ -6079,7 +6069,7 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "model_models_downloadjob",
-      "community": 35,
+      "community": 0,
       "norm_label": "downloadjob"
     },
     {
@@ -16095,16 +16085,6 @@
       "target": "player_livepreviewpolicy_rememberlivepreviewactive"
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "player_livepreviewpolicy",
-      "target": "player_livepreviewpolicy_rememberpreviewidletimedout"
-    },
-    {
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
@@ -16147,28 +16127,6 @@
       "weight": 1.0,
       "source": "screens_livescreen_livescreen",
       "target": "player_livepreviewpolicy_rememberlivepreviewactive"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "player_livepreviewpolicy_rememberpreviewidletimedout",
-      "target": "app_src_main_kotlin_com_livingroomhq_player_livepreviewpolicy_kt_launchernavcontroller"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "app/src/main/kotlin/com/livingroomhq/player/LivePreviewPolicy.kt",
-      "source_location": "L34",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "player_livepreviewpolicy_rememberpreviewidletimedout",
-      "target": "app_src_main_kotlin_com_livingroomhq_player_livepreviewpolicy_kt_boolean"
     },
     {
       "relation": "contains",
@@ -21389,9 +21347,9 @@
       "source_location": "L59",
       "weight": 1.0,
       "context": "generic_arg",
+      "confidence_score": 1.0,
       "source": "db_iptvdao_iptvdao_getprogramsforchannelsinwindow",
-      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_db_iptvdao_kt_programbrief",
-      "confidence_score": 1.0
+      "target": "core_data_src_main_kotlin_com_livingroomhq_core_data_db_iptvdao_kt_programbrief"
     },
     {
       "relation": "calls",
@@ -28842,9 +28800,9 @@
       "source_file": "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt",
       "source_location": "L421",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repo_persistentchannelrepositorytest_fakeiptvdao_getprogramsforchannelsinwindow",
-      "target": "core_data_src_test_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepositorytest_kt_programbrief",
-      "confidence_score": 1.0
+      "target": "core_data_src_test_kotlin_com_livingroomhq_core_data_repo_persistentchannelrepositorytest_kt_programbrief"
     },
     {
       "relation": "references",
@@ -30539,5 +30497,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "78bead4527f378f02f9fb903ecad17088ab7e873"
+  "built_at_commit": "a08b5c37113a0d2ecb3069f0ba6c34dee78bb1c0"
 }

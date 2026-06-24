@@ -1,16 +1,16 @@
 # Graph Report - LRHQ  (2026-06-24)
 
 ## Corpus Check
-- 97 files · ~966,156 words
+- 97 files · ~966,166 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1050 nodes · 1856 edges · 61 communities (50 shown, 11 thin omitted)
+- 1050 nodes · 1858 edges · 61 communities (50 shown, 11 thin omitted)
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 132 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e8ec20d0`
+- Built from commit: `78bead45`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -290,7 +290,7 @@ Cohesion: 0.50
 Nodes (3): initialFocus(), FocusRequester, Modifier
 
 ## Knowledge Gaps
-- **268 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+263 more)
+- **266 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+261 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -310,4 +310,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 17 inferred relationships involving `FocusableGlassCard()` (e.g. with `ConfirmDialog()` and `EmptyStatePanel()`) actually correct?**
   _`FocusableGlassCard()` has 17 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
-  _273 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _271 weakly-connected nodes found - possible documentation gaps or missing edges._

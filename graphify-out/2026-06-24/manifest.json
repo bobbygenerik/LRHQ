@@ -10,7 +10,7 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/MainActivity.kt": {
-    "mtime": 1782274414.9597824,
+    "mtime": 1782305704.1547296,
     "ast_hash": "660980583c54385179523b0771adf1aa",
     "semantic_hash": ""
   },
@@ -40,12 +40,12 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeScreen.kt": {
-    "mtime": 1782305476.2138958,
+    "mtime": 1782305704.1507294,
     "ast_hash": "2a3cff9d1036f033bd2760f8b48bb5ae",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/LiveScreen.kt": {
-    "mtime": 1782278531.9713652,
+    "mtime": 1782305704.1607296,
     "ast_hash": "0aaa2581b54bc907e437377160d4d226",
     "semantic_hash": ""
   },
@@ -80,7 +80,7 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/ChannelRepository.kt": {
-    "mtime": 1782274414.954782,
+    "mtime": 1782305704.1547296,
     "ast_hash": "69cd0584166c4ddc1e13ae9e7f955291",
     "semantic_hash": ""
   },
@@ -175,7 +175,7 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/ui/UiMessages.kt": {
-    "mtime": 1782274414.9607823,
+    "mtime": 1782305704.1547296,
     "ast_hash": "fed7876dd9017e4b814557b3cfc6989a",
     "semantic_hash": ""
   },
@@ -205,7 +205,7 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepository.kt": {
-    "mtime": 1782278488.3047233,
+    "mtime": 1782305704.1547296,
     "ast_hash": "b7ccb7fa5864c35f5df1b4ad607affe6",
     "semantic_hash": ""
   },
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "core/data/src/test/kotlin/com/livingroomhq/core/data/repo/PersistentChannelRepositoryTest.kt": {
-    "mtime": 1782187532.3635917,
-    "ast_hash": "c7aa9eed154aed6d2715b2f8877399c4",
+    "mtime": 1782307215.7808042,
+    "ast_hash": "279cd3af3f48d5d402d45363a9e10842",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-06-12-launcher-completion.md": {
@@ -235,7 +235,7 @@
     "semantic_hash": "92259ae9832d56bd83005ea62fccecac"
   },
   "app/src/main/kotlin/com/livingroomhq/components/Sidebar.kt": {
-    "mtime": 1782274414.9597824,
+    "mtime": 1782305704.1547296,
     "ast_hash": "aa9b1419a46c225b006ac8963e3b8bff",
     "semantic_hash": ""
   },
@@ -275,7 +275,7 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/backdrop/Backdrop.kt": {
-    "mtime": 1782281032.8784773,
+    "mtime": 1782305704.1547296,
     "ast_hash": "69adff79b1b8712f7d2ffff1cfede1f2",
     "semantic_hash": ""
   },
@@ -330,12 +330,12 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/HomeHero.kt": {
-    "mtime": 1782274414.954782,
+    "mtime": 1782305704.1517293,
     "ast_hash": "f4c6fcc504b5b854b0539f5a8ff1eae2",
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/RecentChannelsRow.kt": {
-    "mtime": 1782280012.5060961,
+    "mtime": 1782305704.1507294,
     "ast_hash": "99f5932d6107c230b560c75d72550b1d",
     "semantic_hash": ""
   },
@@ -360,8 +360,8 @@
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/IptvDao.kt": {
-    "mtime": 1782187470.2316437,
-    "ast_hash": "be376cec7b97f96a8731671c09b1af95",
+    "mtime": 1782307211.5170765,
+    "ast_hash": "b0ba28faf92f7eed15b3e01c5c458e9b",
     "semantic_hash": ""
   },
   "core/data/src/main/kotlin/com/livingroomhq/core/data/db/LrhqDatabase.kt": {
@@ -455,7 +455,7 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/screens/OnNowRail.kt": {
-    "mtime": 1782274414.9597824,
+    "mtime": 1782305704.1547296,
     "ast_hash": "e2eb101ffd0053e49b0f83b679960080",
     "semantic_hash": ""
   },
@@ -560,7 +560,7 @@
     "semantic_hash": ""
   },
   "app/src/main/kotlin/com/livingroomhq/components/LauncherBrandMark.kt": {
-    "mtime": 1782274414.956782,
+    "mtime": 1782305704.1547296,
     "ast_hash": "2c397f40e328dab1b103b89bddd9c7b1",
     "semantic_hash": ""
   },
