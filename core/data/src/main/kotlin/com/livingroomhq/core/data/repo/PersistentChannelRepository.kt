@@ -29,6 +29,9 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.GZIPInputStream
 
+/** Max channels to resolve/prefetch per Live TV visit — avoids freezing on huge playlists. */
+private const val EPG_PREFETCH_CHANNEL_CAP = 48
+
 /**
  * [ChannelRepository] with persisted favorites, recents, playlist and EPG.
  * Stores data in Room Database [IptvDao] for offline startup.
@@ -59,13 +62,25 @@ class PersistentChannelRepository(
             .map { list -> list.map { it.toModel() } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+    override val groups: StateFlow<List<String>> =
+        channels
+            .map { list ->
+                list.map { it.group }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+            }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    override val channelsByGroup: StateFlow<Map<String, List<Channel>>> =
+        channels
+            .map { list -> list.groupBy { channel -> channel.group.ifEmpty { "Other" } } }
+            .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
     override val recents: StateFlow<List<Channel>> =
         combine(channels, prefs.recents) { list, ids ->
-            ids.mapNotNull { id -> list.firstOrNull { it.id == id } }
+            val byId = list.associateBy { it.id }
+            ids.mapNotNull(byId::get)
         }.stateIn(scope, SharingStarted.Eagerly, emptyList())
-
-    override fun groups(): List<String> =
-        channels.value.map { it.group }.distinct()
 
     override fun epgNowNext(channelId: String): Pair<Program?, Program?> {
         val programs = programsForChannel(channelId)
@@ -92,11 +107,9 @@ class PersistentChannelRepository(
         }
     }
 
-    override suspend fun loadM3u(playlistUrl: String) {
-        val parsed = withContext(workDispatcher) {
-            val stream = fetchPlaylistStream(playlistUrl)
-            M3uParser.parse(stream)
-        }
+    override suspend fun loadM3u(playlistUrl: String) = withContext(workDispatcher) {
+        val stream = fetchPlaylistStream(playlistUrl)
+        val parsed = M3uParser.parse(stream)
         if (parsed.isNotEmpty()) {
             val favs = prefs.favorites.first()
             val entities = parsed.map { channel ->
@@ -108,7 +121,7 @@ class PersistentChannelRepository(
         }
     }
 
-    override suspend fun loadXmltv(epgUrl: String) {
+    override suspend fun loadXmltv(epgUrl: String) = withContext(workDispatcher) {
         val now = nowMillis()
         val windowEnd = epgMemoryWindowEnd(now)
         val memoryCachePrograms = mutableListOf<Program>()
@@ -116,29 +129,25 @@ class PersistentChannelRepository(
         val guideDisplayNames = mutableMapOf<String, List<String>>()
         val parsedPrograms = mutableListOf<ProgramEntity>()
 
-        withContext(workDispatcher) {
-            XmltvParser.parse(
-                inputStream = fetchPlaylistStream(epgUrl),
-                onChannelParsed = { id, displayNames ->
-                    guideDisplayNames[id] = displayNames
-                    guideAliases[id] = guideAliasKeys(id, displayNames)
-                },
-                onProgramParsed = { program ->
-                    parsedPrograms.add(ProgramEntity.fromModel(program))
-                    if (program.endMillis > now && program.startMillis < windowEnd) {
-                        memoryCachePrograms.add(program)
-                    }
-                },
-            )
-        }
+        XmltvParser.parse(
+            inputStream = fetchPlaylistStream(epgUrl),
+            onChannelParsed = { id, displayNames ->
+                guideDisplayNames[id] = displayNames
+                guideAliases[id] = guideAliasKeys(id, displayNames)
+            },
+            onProgramParsed = { program ->
+                parsedPrograms.add(ProgramEntity.fromModel(program))
+                if (program.endMillis > now && program.startMillis < windowEnd) {
+                    memoryCachePrograms.add(program)
+                }
+            },
+        )
         require(parsedPrograms.isNotEmpty()) { "No programmes found in guide" }
 
-        withContext(workDispatcher) {
-            iptvDao.clearPrograms()
-            val chunkSize = 5000
-            parsedPrograms.chunked(chunkSize).forEach { chunk ->
-                iptvDao.insertPrograms(chunk)
-            }
+        iptvDao.clearPrograms()
+        val chunkSize = 5000
+        parsedPrograms.chunked(chunkSize).forEach { chunk ->
+            iptvDao.insertPrograms(chunk)
         }
         ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, memoryCachePrograms.map { it.channelId })
         iptvDao.replaceGuideChannels(
@@ -186,12 +195,19 @@ class PersistentChannelRepository(
                     epgMemoryWindowEnd(now),
                 ).map { it.toModel() }
                 if (programs.isNotEmpty()) {
-                    loadedEpg.value = loadedEpg.value.toMutableMap().apply {
-                        put(guideChannelId, programs.sortedBy { it.startMillis })
+                    val sortedPrograms = programs.sortedBy { it.startMillis }
+                    val currentEpg = loadedEpg.value
+                    if (currentEpg[guideChannelId] != sortedPrograms) {
+                        loadedEpg.value = currentEpg.toMutableMap().apply {
+                            put(guideChannelId, sortedPrograms)
+                        }
+                        resolvedGuideChannelIds[playlistChannelId] = guideChannelId
+                        unmappedGuideChannels.remove(playlistChannelId)
+                        _epgRevision.value++
+                    } else {
+                        resolvedGuideChannelIds[playlistChannelId] = guideChannelId
+                        unmappedGuideChannels.remove(playlistChannelId)
                     }
-                    resolvedGuideChannelIds[playlistChannelId] = guideChannelId
-                    unmappedGuideChannels.remove(playlistChannelId)
-                    _epgRevision.value++
                 } else {
                     unmappedGuideChannels.add(playlistChannelId)
                 }
@@ -249,7 +265,7 @@ class PersistentChannelRepository(
         dbFallbackRequested.clear()
     }
 
-    override suspend fun clearXmltv() {
+    override suspend fun clearXmltv() = withContext(workDispatcher) {
         iptvDao.clearPrograms()
         iptvDao.clearGuideChannels()
         loadedEpg.value = emptyMap()
@@ -279,69 +295,104 @@ class PersistentChannelRepository(
             ).map { it.toModel() }
         }
         if (programs.isNotEmpty()) {
-            loadedEpg.value = loadedEpg.value.toMutableMap().apply {
-                put(resolvedId, programs.sortedBy { it.startMillis })
+            val sortedPrograms = programs.sortedBy { it.startMillis }
+            val currentEpg = loadedEpg.value
+            if (currentEpg[resolvedId] != sortedPrograms) {
+                loadedEpg.value = currentEpg.toMutableMap().apply {
+                    put(resolvedId, sortedPrograms)
+                }
+                _epgRevision.value++
             }
-            _epgRevision.value++
         }
     }
 
     override suspend fun prefetchEpgForChannels(channelIds: List<String>) {
-        val guideChannelIds = channelIds.mapNotNull { channelId ->
-            if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return@mapNotNull null
-            resolvedGuideChannelIds[channelId]?.let { return@mapNotNull it }
-            
-            val channel = channels.value.firstOrNull { it.id == channelId } ?: return@mapNotNull null
-            val aliases = channel.matchAliases()
-            
-            aliases.firstNotNullOfOrNull { alias -> loadedEpgAliasIndex.value[alias] }?.let { matchedGuideId ->
-                resolvedGuideChannelIds[channelId] = matchedGuideId
-                return@mapNotNull matchedGuideId
-            }
-            
-            val matchedGuideId = loadedEpgAliases.value.entries.firstOrNull { (guideChannelId, guideAliases) ->
-                guideChannelId.guideMatchKeys().any { it.matchesAnyAlias(aliases) } ||
-                    guideAliases.any { it.matchesAnyAlias(aliases) }
-            }?.key
-            
-            if (matchedGuideId == null) {
+        if (channelIds.isEmpty()) return
+        val cappedIds = channelIds.take(EPG_PREFETCH_CHANNEL_CAP)
+        withContext(workDispatcher) {
+            val channelsSnapshot = channels.value
+            val indexSnapshot = loadedEpgAliasIndex.value
+            val guideChannelIds = cappedIds.mapNotNull { channelId ->
+                if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return@mapNotNull null
+                resolvedGuideChannelIds[channelId]?.let { return@mapNotNull it }
+
+                val channel = channelsSnapshot.firstOrNull { it.id == channelId } ?: return@mapNotNull null
+                val aliases = channel.matchAliases()
+
+                aliases.firstNotNullOfOrNull { alias -> indexSnapshot[alias] }?.let { matchedGuideId ->
+                    resolvedGuideChannelIds[channelId] = matchedGuideId
+                    return@mapNotNull matchedGuideId
+                }
+
                 unresolvedGuideChannelIds += channelId
                 null
-            } else {
-                resolvedGuideChannelIds[channelId] = matchedGuideId
-                matchedGuideId
-            }
-        }.distinct()
-        
-        if (guideChannelIds.isEmpty()) return
-        
-        withContext(workDispatcher) {
+            }.distinct()
+
+            if (guideChannelIds.isEmpty()) return@withContext
+
             runCatching {
                 val now = nowMillis()
                 val programs = iptvDao.getProgramsForChannelsInWindow(
                     guideChannelIds,
                     now,
-                    epgMemoryWindowEnd(now)
+                    epgMemoryWindowEnd(now),
                 ).map { it.toModel() }
-                
+
                 val grouped = groupProgramsByChannel(programs)
-                
+
                 val missingGuideIds = guideChannelIds.filter { it !in grouped }
                 if (missingGuideIds.isNotEmpty()) {
-                    channelIds.forEach { channelId ->
+                    cappedIds.forEach { channelId ->
                         val resolved = resolvedGuideChannelIds[channelId]
                         if (resolved in missingGuideIds) {
                             unmappedGuideChannels.add(channelId)
                         }
                     }
                 }
-                
-                loadedEpg.value = loadedEpg.value.toMutableMap().apply {
-                    putAll(grouped)
+
+                if (grouped.isNotEmpty()) {
+                    var changed = false
+                    val currentEpg = loadedEpg.value
+                    for ((channelId, progs) in grouped) {
+                        if (currentEpg[channelId] != progs) {
+                            changed = true
+                            break
+                        }
+                    }
+                    if (changed) {
+                        loadedEpg.value = currentEpg.toMutableMap().apply {
+                            putAll(grouped)
+                        }
+                        _epgRevision.value++
+                    }
                 }
-                _epgRevision.value++
             }
         }
+    }
+
+    override suspend fun computeOnNowRail(
+        excludeChannelId: String?,
+        resultLimit: Int,
+    ): List<Pair<Channel, Program>> = withContext(workDispatcher) {
+        val channelList = channels.value
+        if (channelList.isEmpty()) return@withContext emptyList()
+        val recentList = recents.value
+        val seen = LinkedHashSet<String>(resultLimit * 2)
+        val candidates = ArrayList<Channel>(minOf(40, channelList.size))
+        channelList.forEach { channel ->
+            if (channel.isFavorite && seen.add(channel.id)) candidates.add(channel)
+        }
+        recentList.forEach { channel -> if (seen.add(channel.id)) candidates.add(channel) }
+        for (channel in channelList) {
+            if (candidates.size >= 40) break
+            if (seen.add(channel.id)) candidates.add(channel)
+        }
+        candidates
+            .asSequence()
+            .filter { it.id != excludeChannelId }
+            .mapNotNull { channel -> epgNowNext(channel.id).first?.let { channel to it } }
+            .take(resultLimit)
+            .toList()
     }
 
     /** Re-applies the persisted playlist and EPG guide with background retry loop. */
@@ -384,7 +435,7 @@ class PersistentChannelRepository(
         }
 
         // Collect playlist URL and reload/clear accordingly
-        scope.launch {
+        scope.launch(workDispatcher) {
             prefs.playlistUrl.collectLatest { url ->
                 if (url == null) {
                     iptvDao.clearChannels()
@@ -404,7 +455,7 @@ class PersistentChannelRepository(
         }
 
         // Collect EPG URL and reload/clear accordingly
-        scope.launch {
+        scope.launch(workDispatcher) {
             prefs.epgUrl.collectLatest { url ->
                 if (url == null) {
                     clearXmltv()

@@ -1,16 +1,16 @@
-# Graph Report - LRHQ  (2026-06-22)
+# Graph Report - LRHQ  (2026-06-24)
 
 ## Corpus Check
-- 90 files · ~964,499 words
+- 97 files · ~966,105 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 990 nodes · 1760 edges · 58 communities (49 shown, 9 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 112 edges (avg confidence: 0.8)
+- 1050 nodes · 1856 edges · 61 communities (50 shown, 11 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 132 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a52fafb0`
+- Built from commit: `185f8e9a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -62,6 +62,9 @@
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
 - [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 57|Community 57]]
@@ -70,16 +73,16 @@
 - [[_COMMUNITY_Community 66|Community 66]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `PersistentChannelRepository` - 28 edges
-2. `FakeIptvDao` - 26 edges
-3. `HomeScreen()` - 25 edges
-4. `HqApplication` - 24 edges
-5. `FocusableGlassCard()` - 24 edges
-6. `InMemoryPrefsStore` - 23 edges
-7. `AmbientPhotoCacheRepository` - 22 edges
-8. `GooglePhotosPickerClient` - 22 edges
-9. `IptvDao` - 22 edges
-10. `DataStorePrefsStore` - 21 edges
+1. `PersistentChannelRepository` - 30 edges
+2. `FakeIptvDao` - 27 edges
+3. `HomeScreen()` - 26 edges
+4. `FocusableGlassCard()` - 26 edges
+5. `HqApplication` - 24 edges
+6. `IptvDao` - 23 edges
+7. `InMemoryPrefsStore` - 23 edges
+8. `GlassPanel()` - 23 edges
+9. `AmbientPhotoCacheRepository` - 22 edges
+10. `GooglePhotosPickerClient` - 22 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `OLED-Dark Glassmorphism Design System` --conceptually_related_to--> `FocusableGlassCard()`  [INFERRED]
@@ -104,27 +107,27 @@
 - **Widget Plugin Contract and Registry** — widget_widgetplugin_widgetplugin, widget_widgetplugin_widgetstate, widget_widgetplugin_widgetstat, widget_widgetregistry_widgetregistry [EXTRACTED 1.00]
 - **Demo Repository Implementations Behind Stable Interfaces** — repo_ambientinforepository_demoambientinforepository, repo_channelrepository_demochannelrepository, repo_mediarepository_demomediarepository, readme_demo_repository_pattern [INFERRED 0.95]
 
-## Communities (58 total, 9 thin omitted)
+## Communities (61 total, 11 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
-Cohesion: 0.24
-Nodes (16): Boolean, Channel, Float, ImageVector, Int, Modifier, Shadow, String (+8 more)
+Cohesion: 0.11
+Nodes (29): Boolean, Channel, Float, ImageVector, Int, Modifier, Shadow, String (+21 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.13
-Nodes (18): Modifier, WidgetPlugin, WidgetState, Brush, StatBar(), DefaultWidgetBody(), WidgetCard(), Color (+10 more)
+Cohesion: 0.38
+Nodes (6): tvFocusBorder(), tvFocusScale(), Boolean, Dp, Modifier, Shape
 
 ### Community 2 - "IPTV Channels & EPG"
-Cohesion: 0.08
-Nodes (40): AmbientPhoto, android, Boolean, Channel, FocusRequester, HqApplication, LauncherFocusTarget, LauncherNavController (+32 more)
+Cohesion: 0.06
+Nodes (47): LauncherPrefsStore, Modifier, Boolean, LauncherNavController, AmbientPhoto, android, Boolean, Channel (+39 more)
 
 ### Community 3 - "Widget Plugin Contract"
-Cohesion: 0.08
-Nodes (19): Float, Long, Channel, List, Long, Pair, Program, StateFlow (+11 more)
+Cohesion: 0.13
+Nodes (12): Long, Channel, Int, List, Long, Map, Pair, Program (+4 more)
 
 ### Community 4 - "Data Models & Installed Apps"
 Cohesion: 0.09
-Nodes (35): Iterable, List, Long, Map, Program, String, Boolean, Channel (+27 more)
+Nodes (36): Iterable, List, Long, Map, Program, String, Boolean, Channel (+28 more)
 
 ### Community 5 - "System Monitoring"
 Cohesion: 0.09
@@ -147,8 +150,8 @@ Cohesion: 0.22
 Nodes (9): Boolean, Int, List, MediaItem, MediaType, StateFlow, String, LocalMediaRepository (+1 more)
 
 ### Community 10 - "App Composition Root"
-Cohesion: 0.05
-Nodes (56): AmbientPhotoCacheStats, LauncherPrefsStore, Modifier, Boolean, List, Modifier, String, Boolean (+48 more)
+Cohesion: 0.06
+Nodes (46): AmbientPhotoCacheStats, Boolean, List, Modifier, String, Boolean, Color, Composable (+38 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.26
@@ -183,8 +186,8 @@ Cohesion: 0.15
 Nodes (16): AmbientPhotoCacheSource, Boolean, List, Long, Map, StateFlow, String, DeviceCodeResponse (+8 more)
 
 ### Community 23 - "Community 23"
-Cohesion: 0.15
-Nodes (16): Boolean, HqApplication, LaunchableApp, List, Modifier, String, Float, MediaType (+8 more)
+Cohesion: 0.06
+Nodes (40): Modifier, WidgetPlugin, WidgetState, Boolean, HqApplication, LaunchableApp, LauncherNavController, List (+32 more)
 
 ### Community 24 - "Community 24"
 Cohesion: 0.23
@@ -199,8 +202,8 @@ Cohesion: 0.29
 Nodes (6): Channel, InputStream, List, MutableSet, String, M3uParser
 
 ### Community 28 - "Community 28"
-Cohesion: 0.11
-Nodes (30): Boolean, Channel, Int, Long, Modifier, String, android, Boolean (+22 more)
+Cohesion: 0.07
+Nodes (42): Boolean, Channel, Int, Long, Modifier, String, android, Boolean (+34 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.14
@@ -223,8 +226,8 @@ Cohesion: 0.16
 Nodes (10): Boolean, Channel, Context, ExoPlayer, Int, MediaItem, String, Tracks (+2 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.18
-Nodes (17): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, AmbientInfoRepository, httpGet() (+9 more)
+Cohesion: 0.12
+Nodes (25): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, Channel, DownloadJob (+17 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.22
@@ -232,7 +235,7 @@ Nodes (5): List, Map, Program, String, XmltvParserTest
 
 ### Community 37 - "Community 37"
 Cohesion: 0.06
-Nodes (27): Boolean, ImageVector, Modifier, String, Zone, Boolean, Bundle, Int (+19 more)
+Nodes (29): Modifier, Boolean, ImageVector, Modifier, String, Zone, Boolean, Bundle (+21 more)
 
 ### Community 38 - "Community 38"
 Cohesion: 0.25
@@ -267,8 +270,12 @@ Cohesion: 0.43
 Nodes (4): Program, fromModel(), ProgramBrief, ProgramEntity
 
 ### Community 48 - "Community 48"
-Cohesion: 0.17
-Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, Command Center Dashboard, SystemMonitor (+1 more)
+Cohesion: 0.15
+Nodes (11): ActivityManager, Float, Boolean, Float, Flow, Long, Pair, SystemStats (+3 more)
+
+### Community 54 - "Community 54"
+Cohesion: 0.50
+Nodes (3): Conversation & Actions, Device installs (hard rule), graphify
 
 ### Community 55 - "Community 55"
 Cohesion: 0.33
@@ -276,31 +283,31 @@ Nodes (5): FocusRequester, HqApplication, LauncherFocusTarget, Modifier, fullscr
 
 ### Community 65 - "Community 65"
 Cohesion: 0.50
-Nodes (3): Modifier, HqDimens, zonePadding()
+Nodes (4): Modifier, homeZonePadding(), HqDimens, zonePadding()
 
 ### Community 66 - "Community 66"
 Cohesion: 0.50
 Nodes (3): initialFocus(), FocusRequester, Modifier
 
 ## Knowledge Gaps
-- **253 isolated node(s):** `LauncherPrefsStore`, `LrhqDatabase`, `ChannelRepository`, `MediaRepository`, `AmbientInfoRepository` (+248 more)
+- **268 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+263 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `HqApplication` connect `Main Activity Key Handling` to `System Monitoring`, `Community 12`, `Community 37`?**
-  _High betweenness centrality (0.222) - this node is a cross-community bridge._
-- **Why does `StatBar()` connect `Community 1` to `Community 28`, `System Monitoring`?**
-  _High betweenness centrality (0.194) - this node is a cross-community bridge._
+  _High betweenness centrality (0.215) - this node is a cross-community bridge._
+- **Why does `StatBar()` connect `Command Center Dashboard` to `Community 35`, `Community 28`, `System Monitoring`, `Community 23`?**
+  _High betweenness centrality (0.184) - this node is a cross-community bridge._
 - **Why does `PersistentChannelRepository` connect `Data Models & Installed Apps` to `Main Activity Key Handling`, `Tools Screen`?**
-  _High betweenness centrality (0.183) - this node is a cross-community bridge._
+  _High betweenness centrality (0.177) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist leaves channels empty`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
   _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 12 inferred relationships involving `HomeScreen()` (e.g. with `.onCreate()` and `AmbientScreen()`) actually correct?**
-  _`HomeScreen()` has 12 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 15 inferred relationships involving `FocusableGlassCard()` (e.g. with `ConfirmDialog()` and `WidgetCard()`) actually correct?**
-  _`FocusableGlassCard()` has 15 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `LauncherPrefsStore`, `LrhqDatabase`, `ChannelRepository` to the rest of the system?**
-  _258 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Are the 13 inferred relationships involving `HomeScreen()` (e.g. with `.onCreate()` and `AmbientScreen()`) actually correct?**
+  _`HomeScreen()` has 13 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 17 inferred relationships involving `FocusableGlassCard()` (e.g. with `ConfirmDialog()` and `EmptyStatePanel()`) actually correct?**
+  _`FocusableGlassCard()` has 17 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
+  _273 weakly-connected nodes found - possible documentation gaps or missing edges._

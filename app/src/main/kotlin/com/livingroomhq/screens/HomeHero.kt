@@ -1,7 +1,6 @@
 package com.livingroomhq.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,6 +44,9 @@ import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
+
+private val HeroMetaShape = RoundedCornerShape(10.dp)
+private val HeroMetaTint = Color(0x66081018)
 
 @Composable
 internal fun HomeHeroContent(
@@ -89,12 +93,17 @@ internal fun HomeHeroContent(
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .fillMaxWidth()
                     .padding(
                         start = HqDimens.SafeHorizontal,
                         end = HqDimens.SafeHorizontal,
                         bottom = HqDimens.SafeVertical,
-                    ),
+                    )
+                    .wrapContentWidth()
+                    .widthIn(max = 680.dp)
+                    .clip(HeroMetaShape)
+                    .background(HeroMetaTint)
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+                    .height(IntrinsicSize.Min),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 NowPlayingSummary(
@@ -103,21 +112,21 @@ internal fun HomeHeroContent(
                     nowDescription = nowDescription,
                     progress = progress,
                     onSetupLiveTv = onSetupLiveTv,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.widthIn(max = 380.dp),
                 )
 
                 if (nextTitle != null) {
-                    Spacer(Modifier.width(24.dp))
+                    Spacer(Modifier.width(12.dp))
                     Box(
                         Modifier
+                            .fillMaxHeight()
                             .width(1.dp)
-                            .height(72.dp)
-                            .background(Color.White.copy(alpha = 0.22f)),
+                            .background(Color.White.copy(alpha = 0.2f)),
                     )
-                    Spacer(Modifier.width(24.dp))
+                    Spacer(Modifier.width(12.dp))
                     UpNextSummary(
                         nextTitle = nextTitle,
-                        modifier = Modifier.widthIn(max = 300.dp),
+                        modifier = Modifier.widthIn(max = 240.dp),
                     )
                 }
             }
@@ -236,12 +245,19 @@ private fun UpNextSummary(nextTitle: String, modifier: Modifier = Modifier) {
     Column(modifier) {
         Text(
             "UP NEXT",
-            style = HqType.HeroSectionMuted.copy(color = Color.White.copy(alpha = 0.55f), shadow = heroTextShadow()),
+            style = HqType.HeroSectionMuted.copy(
+                color = Color.White.copy(alpha = 0.72f),
+                shadow = heroTextShadow(),
+            ),
         )
         Spacer(Modifier.height(4.dp))
         Text(
             nextTitle,
-            style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Medium, shadow = heroTextShadow()),
+            style = HqType.Body.copy(
+                color = Color.White.copy(alpha = 0.95f),
+                fontWeight = FontWeight.SemiBold,
+                shadow = heroTextShadow(),
+            ),
             maxLines = 2,
         )
     }
@@ -255,5 +271,6 @@ private fun weatherIcon(condition: WeatherCondition?): ImageVector = when (condi
     WeatherCondition.PARTLY_CLOUDY, WeatherCondition.CLOUDY, null -> Icons.Default.Cloud
 }
 
+/** Slightly stronger than default so labels stay readable on bright live video. */
 private fun heroTextShadow(): Shadow =
-    Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 2f), blurRadius = 8f)
+    Shadow(color = Color.Black.copy(alpha = 0.92f), offset = Offset(0f, 2f), blurRadius = 12f)

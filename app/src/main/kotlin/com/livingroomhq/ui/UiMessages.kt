@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -43,7 +41,7 @@ private val ToastShape = RoundedCornerShape(28.dp)
 private val ToastFill = Color(0xF010141C)
 private const val TOAST_DISMISS_MS = 4_000L
 
-/** High-contrast TV toast pinned bottom-center; auto-dismisses after four seconds. */
+/** High-contrast TV toast centered on screen; auto-dismisses after four seconds. */
 @Composable
 fun MessageOverlay(modifier: Modifier = Modifier) {
     val message by UiMessages.current.collectAsState()
@@ -58,13 +56,13 @@ fun MessageOverlay(modifier: Modifier = Modifier) {
     Box(
         modifier
             .fillMaxSize()
-            .padding(start = 56.dp, end = 56.dp, bottom = 72.dp),
-        contentAlignment = Alignment.BottomCenter,
+            .padding(horizontal = 72.dp),
+        contentAlignment = Alignment.Center,
     ) {
         AnimatedVisibility(
             visible = message != null,
-            enter = slideInVertically(animationSpec = tween(220)) { it } + fadeIn(tween(220)),
-            exit = slideOutVertically(animationSpec = tween(180)) { it / 2 } + fadeOut(tween(180)),
+            enter = fadeIn(tween(220)),
+            exit = fadeOut(tween(180)),
         ) {
             Box(
                 modifier = Modifier

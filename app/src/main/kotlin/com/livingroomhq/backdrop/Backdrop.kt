@@ -59,8 +59,9 @@ object AmbientBackdrops {
 object BackdropProvider {
 
     /**
-     * Home hero backdrop: live preview when active; bundled stills when preview
-     * is idle, disabled, or ambient has taken over.
+     * Home hero backdrop: live preview when active; when preview is idle-stopped
+     * but Live TV is configured, a contained channel logo on black; bundled stills
+     * only when there is no channel or live preview is disabled in settings.
      */
     fun forHome(
         channel: Channel?,

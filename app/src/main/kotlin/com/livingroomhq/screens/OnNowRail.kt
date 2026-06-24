@@ -43,9 +43,7 @@ internal fun OnNowRail(
     Spacer(Modifier.size(10.dp))
 
     LazyRow(
-        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(horizontal = (-8).dp, vertical = (-6).dp),
     ) {
         items(items, key = { (channel, _) -> channel.id }) { (channel, program) ->
             OnNowCard(

@@ -19,22 +19,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
-import com.livingroomhq.components.LauncherBrandMark
 import com.livingroomhq.components.Sidebar
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.core.ui.theme.CustomSettings
-import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherNavController
@@ -96,7 +92,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             val controller = remember { nav }
             val coroutineScope = rememberCoroutineScope()
-            var sidebarExpanded by remember { mutableStateOf(false) }
 
             val themeState by app.prefs.theme.collectAsState(initial = "Dark")
             val accentColorState by app.prefs.accentColor.collectAsState(initial = "Green")
@@ -188,15 +183,7 @@ class MainActivity : ComponentActivity() {
                         Sidebar(
                             currentZone = controller.underlyingZone,
                             onZoneSelected = { zone -> controller.goTo(zone) },
-                            onExpandedChanged = { sidebarExpanded = it },
                             modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                    if (!sidebarExpanded && controller.zone != Zone.AMBIENT) {
-                        LauncherBrandMark(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(start = 16.dp, top = HqDimens.SafeVertical),
                         )
                     }
                     AnimatedVisibility(

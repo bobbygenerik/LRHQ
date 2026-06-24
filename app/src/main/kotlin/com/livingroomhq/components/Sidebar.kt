@@ -124,48 +124,53 @@ fun Sidebar(
                 }
             }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(width)
                 .background(scrimBrush)
                 .focusGroup()
-                .onFocusChanged { expanded = it.hasFocus }
-                .padding(vertical = 24.dp),
-            verticalArrangement = Arrangement.Center,
+                .onFocusChanged { expanded = it.hasFocus },
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-
-            val itemFocusRequesters = remember(navItems) {
-                navItems.associate { it.zone to FocusRequester() }
-            }
-            LaunchedEffect(expanded, currentZone) {
-                if (!expanded) return@LaunchedEffect
-                withFrameNanos { }
-                runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
-            }
-
-            navItems.forEach { item ->
-                SidebarItem(
-                    title = item.title,
-                    icon = item.icon,
-                    active = currentZone == item.zone,
-                    expanded = expanded,
-                    onClick = { onZoneSelected(item.zone) },
+            if (!expanded) {
+                LauncherBrandMark(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(itemFocusRequesters.getValue(item.zone)),
+                        .align(Alignment.TopCenter)
+                        .padding(top = 20.dp),
                 )
             }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val itemFocusRequesters = remember(navItems) {
+                    navItems.associate { it.zone to FocusRequester() }
+                }
+                LaunchedEffect(expanded, currentZone) {
+                    if (!expanded) return@LaunchedEffect
+                    withFrameNanos { }
+                    runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
+                }
+
+                navItems.forEach { item ->
+                    SidebarItem(
+                        title = item.title,
+                        icon = item.icon,
+                        active = currentZone == item.zone,
+                        expanded = expanded,
+                        onClick = { onZoneSelected(item.zone) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(itemFocusRequesters.getValue(item.zone)),
+                    )
+                }
+            }
         }
-    }
     }
 }
 
@@ -218,7 +223,7 @@ private fun SidebarItem(
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             ) {
                 Icon(
                     icon,
@@ -226,13 +231,13 @@ private fun SidebarItem(
                     tint = Color.Black.copy(alpha = 0.85f),
                     modifier = Modifier
                         .size(20.dp)
-                        .offset(y = 2.dp)
+                        .offset(y = 2.dp),
                 )
                 Icon(
                     icon,
                     contentDescription = title,
                     tint = contentColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
             if (expanded) {

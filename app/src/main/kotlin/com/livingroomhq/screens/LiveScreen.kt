@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,17 +101,25 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
+    val groups by app.channels.groups.collectAsState()
+    val channelsByGroup by app.channels.channelsByGroup.collectAsState()
     val epgRevision by app.channels.epgRevision.collectAsState()
     var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
     var focusedChannelId by remember { mutableStateOf<String?>(null) }
     var previewChannelId by remember { mutableStateOf<String?>(null) }
     
     val activeCategoryFocusRequester = remember { FocusRequester() }
-    val gridFirstItemFocusRequester = remember { FocusRequester() }
     var isGridFocused by remember { mutableStateOf(false) }
 
     BackHandler(enabled = isGridFocused) {
         activeCategoryFocusRequester.requestFocus()
+    }
+
+    LaunchedEffect(channels.isNotEmpty()) {
+        if (channels.isNotEmpty()) {
+            withFrameNanos { }
+            runCatching { activeCategoryFocusRequester.requestFocus() }
+        }
     }
 
     // Restore the last real selection without auto-playing the first playlist entry.
@@ -154,39 +163,37 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     }
 
     // Categories
-    val categories = remember(channels) {
+    val categories = remember(groups) {
         listOf(
             CategoryItem("All Channels", Icons.Default.Tv, null),
             CategoryItem("Favorites", Icons.Default.Star, "favorites"),
-            CategoryItem("Recent", Icons.Default.History, "recent")
-        ) + app.channels.groups().map {
-            CategoryItem(it, Icons.Default.List, it)
-        }
+            CategoryItem("Recent", Icons.Default.History, "recent"),
+        ) + groups.map { CategoryItem(it, Icons.Default.List, it) }
     }
 
-    // Filtered list
-    val visibleChannels = remember(selectedCategoryId, channels, recents) {
+    val visibleChannels = remember(selectedCategoryId, channels, recents, channelsByGroup) {
         when (selectedCategoryId) {
             null -> channels
             "favorites" -> channels.filter { it.isFavorite }
             "recent" -> recents
-            else -> channels.filter { it.group == selectedCategoryId }
+            else -> channelsByGroup[selectedCategoryId].orEmpty()
         }
     }
 
     val previewChannel = channels.firstOrNull { it.id == previewChannelId }
 
-    LaunchedEffect(visibleChannels) {
-        if (visibleChannels.isNotEmpty()) {
-            runCatching { app.channels.prefetchEpgForChannels(visibleChannels.map { it.id }) }
+    LaunchedEffect(selectedCategoryId, visibleChannels.firstOrNull()?.id, visibleChannels.size) {
+        val ids = visibleChannels.take(48).map { it.id }
+        if (ids.isNotEmpty()) {
+            delay(300)
+            runCatching { app.channels.prefetchEpgForChannels(ids) }
         }
     }
 
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .zonePadding()
-            .focusProperties { enter = { activeCategoryFocusRequester } },
+            .zonePadding(),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Left column: Category Rail
@@ -211,8 +218,7 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
                         onClick = { selectedCategoryId = cat.id },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusProperties { right = gridFirstItemFocusRequester }
-                            .then(if (isActive) Modifier.initialFocus(activeCategoryFocusRequester) else Modifier),
+                            .then(if (isActive) Modifier.focusRequester(activeCategoryFocusRequester) else Modifier),
                     )
                 }
             }
@@ -226,7 +232,6 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
             visibleChannels = visibleChannels,
             epgRevision = epgRevision,
             activeCategoryFocusRequester = activeCategoryFocusRequester,
-            gridFirstItemFocusRequester = gridFirstItemFocusRequester,
             onGridFocusChanged = { isGridFocused = it },
             onChannelFocused = { focusedChannelId = it },
             onChannelClick = { channel ->
@@ -269,7 +274,6 @@ private fun LiveChannelGridColumn(
     visibleChannels: List<Channel>,
     epgRevision: Long,
     activeCategoryFocusRequester: FocusRequester,
-    gridFirstItemFocusRequester: FocusRequester,
     onGridFocusChanged: (Boolean) -> Unit,
     onChannelFocused: (String) -> Unit,
     onChannelClick: (Channel) -> Unit,
@@ -307,15 +311,13 @@ private fun LiveChannelGridColumn(
                 ),
                 modifier = Modifier
                     .fillMaxSize()
-                    .onFocusChanged { onGridFocusChanged(it.hasFocus) }
-                    .focusProperties { left = activeCategoryFocusRequester },
+                    .onFocusChanged { onGridFocusChanged(it.hasFocus) },
             ) {
                 itemsIndexed(visibleChannels, key = { _, it -> "${it.id}_${it.number}" }) { index, channel ->
                     val nowPlayingTitle = remember(channel.id, epgRevision) {
                         channelEpgTitle(channel.id)
                     }
-                    val cardRequester = if (index == 0) gridFirstItemFocusRequester else remember { FocusRequester() }
-                    val isLeftColumn = index % 2 == 0
+                    val cardRequester = remember { FocusRequester() }
                     ChannelGridCard(
                         channel = channel,
                         nowPlayingTitle = nowPlayingTitle,
@@ -325,7 +327,8 @@ private fun LiveChannelGridColumn(
                             onChannelClick(channel)
                         },
                         focusRequester = cardRequester,
-                        modifier = Modifier.fullscreenFocusRestore(app, liveGridFocusTarget(channel.id)),
+                        modifier = Modifier
+                            .fullscreenFocusRestore(app, liveGridFocusTarget(channel.id)),
                     )
                 }
             }
@@ -343,7 +346,6 @@ private fun LivePreviewColumn(
 ) {
     val context = LocalContext.current
     val previewShape = RoundedCornerShape(HqDimens.CornerMd)
-    var previewFocused by remember { mutableStateOf(false) }
     val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
     var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(previewChannel?.id) {
@@ -360,8 +362,6 @@ private fun LivePreviewColumn(
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
                     .clip(previewShape)
-                    .onFocusChanged { previewFocused = it.isFocused }
-                    .tvFocusBorder(previewFocused && previewChannel != null, previewShape)
                     .background(Color.Black)
                     .then(
                         previewChannel?.let { channel ->
@@ -395,18 +395,6 @@ private fun LivePreviewColumn(
                         maxVideoWidth = 854,
                         maxVideoHeight = 480,
                     )
-                }
-                if (previewFocused && previewChannel != null && streamActive) {
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 12.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(HqColors.Accent)
-                            .padding(horizontal = 14.dp, vertical = 6.dp),
-                    ) {
-                        Text("Watch", style = HqType.CardTitle.copy(color = Color.Black, fontWeight = FontWeight.Bold))
-                    }
                 }
             }
 

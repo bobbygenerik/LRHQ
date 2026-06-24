@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -163,8 +164,7 @@ private fun ArtworkBackdrop(
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 120.dp, vertical = 56.dp),
+                    .sizeIn(maxWidth = 320.dp, maxHeight = 320.dp),
             )
         }
         return

@@ -41,8 +41,8 @@ object HqColors {
     val Abyss = Color(0xFF05070D)
     val Slate = Color(0xFF0C1018)
 
-    val GlassFill = Color(0x0CFFFFFF) // Thinner glass fill (7.5% white)
-    val GlassFillFocused = Color(0x1AFFFFFF) // Thinner glass focus fill (10% white)
+    val GlassFill = Color(0x990C1018) // Dark translucent slate (60% alpha)
+    val GlassFillFocused = Color(0xCC0C1018) // Dark translucent slate focused (80% alpha)
     val GlassStroke = Color(0x14FFFFFF) // Hairline stroke (8% white)
     
     // Dynamic Accent color matching user customization setting
@@ -52,8 +52,8 @@ object HqColors {
     val GlassStrokeFocused: Color get() = Accent
 
     val TextPrimary = Color(0xFFF2F5FA)
-    val TextSecondary = Color(0xC2D7DEE8)
-    val TextTertiary = Color(0x99C2CBD8)
+    val TextSecondary = Color(0xFFD7DEE8) // Opaque light slate
+    val TextTertiary = Color(0xFFC2CBD8) // Opaque medium-light slate
 
     val AccentWarm = Color(0xFFFFB86B)
     // Semantic "good" state, kept distinct from the brand Accent so a green
