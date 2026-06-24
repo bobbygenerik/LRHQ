@@ -254,8 +254,9 @@ fun HomeScreen(
                         .background(Color.Transparent)
                         .homeZonePadding()
                         .onFocusChanged {
-                            if (it.hasFocus && scrollState.value < viewportHeightPx.toInt()) {
-                                scrollScope.launch { scrollState.animateScrollTo(viewportHeightPx.toInt()) }
+                            val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
+                            if (it.hasFocus && scrollState.value < targetScroll) {
+                                scrollScope.launch { scrollState.animateScrollTo(targetScroll) }
                             }
                         },
                 ) {
