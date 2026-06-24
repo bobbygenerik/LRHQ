@@ -58,7 +58,7 @@ interface IptvDao {
 
     @Query(
         """
-        SELECT * FROM programs
+        SELECT channelId, title, startMillis, endMillis FROM programs
         WHERE channelId IN (:channelIds) AND endMillis > :now AND startMillis < :windowEnd
         ORDER BY startMillis ASC
         """
@@ -67,7 +67,7 @@ interface IptvDao {
         channelIds: List<String>,
         now: Long,
         windowEnd: Long,
-    ): List<ProgramEntity>
+    ): List<ProgramBrief>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPrograms(programs: List<ProgramEntity>)

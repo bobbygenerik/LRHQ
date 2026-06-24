@@ -422,9 +422,10 @@ class FakeIptvDao : IptvDao {
         channelIds: List<String>,
         now: Long,
         windowEnd: Long,
-    ): List<ProgramEntity> =
+    ): List<ProgramBrief> =
         programsList.filter { it.channelId in channelIds && it.endMillis > now && it.startMillis < windowEnd }
             .sortedBy { it.startMillis }
+            .map { ProgramBrief(it.channelId, it.title, it.startMillis, it.endMillis) }
 
     override suspend fun insertPrograms(programs: List<ProgramEntity>) {
         programsList.addAll(programs)
