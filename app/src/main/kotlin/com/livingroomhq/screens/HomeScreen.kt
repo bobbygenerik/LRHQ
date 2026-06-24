@@ -164,16 +164,20 @@ fun HomeScreen(
 
         val heroFocusRequester = remember { FocusRequester() }
         val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
+        val previewIdleStopped = customSettings.showLivePreview && !previewActive && current != null
         val heroLivePreview = previewActive && current != null
         val backdropSources = remember(
             current?.id,
+            current?.logoUrl,
             heroLivePreview,
+            previewIdleStopped,
             heroBackdrops,
         ) {
             BackdropProvider.forHome(
                 channel = current,
                 heroLivePreview = heroLivePreview,
                 heroBackdrops = heroBackdrops,
+                previewIdleStopped = previewIdleStopped,
             )
         }
 
@@ -213,7 +217,11 @@ fun HomeScreen(
                     .verticalScroll(scrollState),
             ) {
                 HomeHero(
-                    modifier = Modifier.height(viewportHeight),
+                    modifier = Modifier
+                        .height(viewportHeight)
+                        .focusProperties {
+                            canFocus = scrollState.value < viewportHeightPx.toInt() / 2
+                        },
                     app = app,
                     focusRequester = heroFocusRequester,
                     requestInitialFocus = true,
@@ -264,6 +272,12 @@ fun HomeScreen(
                         app = app,
                         channels = channels,
                         recents = recents,
+                        onUpPressed = {
+                            scrollScope.launch {
+                                scrollState.animateScrollTo(0)
+                                heroFocusRequester.requestFocus()
+                            }
+                        },
                         onChannelSelected = { channel ->
                             app.channels.markWatched(channel.id)
                             app.fullscreenFocusReturn.arm(homeRecentFocusTarget(channel.id))

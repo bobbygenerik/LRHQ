@@ -50,7 +50,7 @@ fun HeroBackdrop(
 
     Box(
         modifier
-            .background(Color.Black)
+            .background(if (sources.isEmpty()) Color.Transparent else Color.Black)
             .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier)
     ) {
         if (sources.isEmpty()) return@Box
