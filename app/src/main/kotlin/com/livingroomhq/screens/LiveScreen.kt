@@ -28,7 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.activity.compose.BackHandler
@@ -150,7 +150,7 @@ fun LiveScreen(app: HqApplication) {
             CategoryItem("Favorites", Icons.Default.Star, "favorites"),
             CategoryItem("Recent", Icons.Default.History, "recent")
         ) + app.channels.groups().map {
-            CategoryItem(it, Icons.Default.List, it)
+            CategoryItem(it, Icons.AutoMirrored.Filled.List, it)
         }
     }
 

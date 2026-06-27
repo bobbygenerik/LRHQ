@@ -93,86 +93,6 @@
   },
   "nodes": [
     {
-      "label": "settings.json",
-      "file_type": "code",
-      "source_file": ".claude/settings.json",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "claude_settings",
-      "community": 51,
-      "norm_label": "settings.json"
-    },
-    {
-      "label": "hooks",
-      "file_type": "code",
-      "source_file": ".claude/settings.json",
-      "source_location": "L2",
-      "_origin": "ast",
-      "id": "claude_settings_hooks",
-      "community": 51,
-      "norm_label": "hooks"
-    },
-    {
-      "label": "PreToolUse",
-      "file_type": "code",
-      "source_file": ".claude/settings.json",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "claude_settings_hooks_pretooluse",
-      "community": 51,
-      "norm_label": "pretooluse"
-    },
-    {
-      "label": "hooks.json",
-      "file_type": "code",
-      "source_file": ".codex/hooks.json",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "codex_hooks",
-      "community": 52,
-      "norm_label": "hooks.json"
-    },
-    {
-      "label": "hooks",
-      "file_type": "code",
-      "source_file": ".codex/hooks.json",
-      "source_location": "L2",
-      "_origin": "ast",
-      "id": "codex_hooks_hooks",
-      "community": 52,
-      "norm_label": "hooks"
-    },
-    {
-      "label": "PreToolUse",
-      "file_type": "code",
-      "source_file": ".codex/hooks.json",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "codex_hooks_hooks_pretooluse",
-      "community": 52,
-      "norm_label": "pretooluse"
-    },
-    {
-      "label": "opencode.json",
-      "file_type": "code",
-      "source_file": ".opencode/opencode.json",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "opencode_opencode",
-      "community": 55,
-      "norm_label": "opencode.json"
-    },
-    {
-      "label": "plugin",
-      "file_type": "code",
-      "source_file": ".opencode/opencode.json",
-      "source_location": "L2",
-      "_origin": "ast",
-      "id": "opencode_opencode_plugin",
-      "community": 55,
-      "norm_label": "plugin"
-    },
-    {
       "label": "graphify.js",
       "file_type": "code",
       "source_file": ".opencode/plugins/graphify.js",
@@ -429,7 +349,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "componentactivity",
-      "community": 23,
+      "community": 30,
       "norm_label": "componentactivity"
     },
     {
@@ -1829,7 +1749,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_sidebar",
-      "community": 12,
+      "community": 23,
       "norm_label": "sidebar.kt"
     },
     {
@@ -1839,7 +1759,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "components_sidebar_navigationitem",
-      "community": 12,
+      "community": 23,
       "norm_label": "navigationitem"
     },
     {
@@ -1849,7 +1769,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "components_sidebar_sidebar",
-      "community": 12,
+      "community": 23,
       "norm_label": "sidebar()"
     },
     {
@@ -1859,7 +1779,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_zone",
-      "community": 12,
+      "community": 23,
       "norm_label": "zone"
     },
     {
@@ -1869,7 +1789,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_modifier",
-      "community": 12,
+      "community": 23,
       "norm_label": "modifier"
     },
     {
@@ -1879,7 +1799,7 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "components_sidebar_sidebaritem",
-      "community": 12,
+      "community": 23,
       "norm_label": "sidebaritem()"
     },
     {
@@ -1889,7 +1809,7 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_string",
-      "community": 12,
+      "community": 23,
       "norm_label": "string"
     },
     {
@@ -1899,7 +1819,7 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_imagevector",
-      "community": 12,
+      "community": 23,
       "norm_label": "imagevector"
     },
     {
@@ -1909,7 +1829,7 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_sidebar_kt_boolean",
-      "community": 12,
+      "community": 23,
       "norm_label": "boolean"
     },
     {
@@ -1919,7 +1839,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_widgetcard",
-      "community": 23,
+      "community": 18,
       "norm_label": "widgetcard.kt"
     },
     {
@@ -1929,7 +1849,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "components_widgetcard_widgetcard",
-      "community": 23,
+      "community": 18,
       "norm_label": "widgetcard()"
     },
     {
@@ -1939,7 +1859,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetplugin",
-      "community": 23,
+      "community": 18,
       "norm_label": "widgetplugin"
     },
     {
@@ -1949,7 +1869,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_modifier",
-      "community": 23,
+      "community": 18,
       "norm_label": "modifier"
     },
     {
@@ -1959,7 +1879,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "components_widgetcard_defaultwidgetbody",
-      "community": 23,
+      "community": 18,
       "norm_label": "defaultwidgetbody()"
     },
     {
@@ -1969,7 +1889,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_components_widgetcard_kt_widgetstate",
-      "community": 23,
+      "community": 18,
       "norm_label": "widgetstate"
     },
     {
@@ -1979,7 +1899,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "home_defaulthomebanner",
-      "community": 2,
+      "community": 10,
       "norm_label": "defaulthomebanner.kt"
     },
     {
@@ -1989,7 +1909,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "home_defaulthomebanner_defaulthomebanner",
-      "community": 2,
+      "community": 10,
       "norm_label": "defaulthomebanner()"
     },
     {
@@ -1999,7 +1919,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_launcherprefsstore",
-      "community": 2,
+      "community": 10,
       "norm_label": "launcherprefsstore"
     },
     {
@@ -2009,7 +1929,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_home_defaulthomebanner_kt_modifier",
-      "community": 2,
+      "community": 10,
       "norm_label": "modifier"
     },
     {
@@ -2369,7 +2289,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "player_channelplayeractivity",
-      "community": 23,
+      "community": 30,
       "norm_label": "channelplayeractivity.kt"
     },
     {
@@ -2379,7 +2299,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "player_channelplayeractivity_channelplayeractivity",
-      "community": 23,
+      "community": 30,
       "norm_label": "channelplayeractivity"
     },
     {
@@ -2389,7 +2309,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "player_channelplayeractivity_channelplayeractivity_oncreate",
-      "community": 23,
+      "community": 30,
       "norm_label": ".oncreate()"
     },
     {
@@ -2399,7 +2319,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_channelplayeractivity_kt_bundle",
-      "community": 23,
+      "community": 30,
       "norm_label": "bundle"
     },
     {
@@ -2409,7 +2329,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "player_channelplayeractivity_channelplayerscreen",
-      "community": 23,
+      "community": 30,
       "norm_label": "channelplayerscreen()"
     },
     {
@@ -2419,7 +2339,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_channelplayeractivity_kt_channel",
-      "community": 23,
+      "community": 30,
       "norm_label": "channel"
     },
     {
@@ -2429,7 +2349,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "app_src_main_kotlin_com_livingroomhq_player_channelplayeractivity_kt_string",
-      "community": 23,
+      "community": 30,
       "norm_label": "string"
     },
     {
@@ -4729,7 +4649,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest",
-      "community": 48,
+      "community": 18,
       "norm_label": "watchnexttest.kt"
     },
     {
@@ -4739,7 +4659,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest",
-      "community": 48,
+      "community": 18,
       "norm_label": "watchnexttest"
     },
     {
@@ -4749,7 +4669,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_item",
-      "community": 48,
+      "community": 18,
       "norm_label": ".item()"
     },
     {
@@ -4759,7 +4679,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_float",
-      "community": 48,
+      "community": 18,
       "norm_label": "float"
     },
     {
@@ -4769,7 +4689,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "app_src_test_kotlin_com_livingroomhq_tvintegration_watchnexttest_kt_mediatype",
-      "community": 48,
+      "community": 18,
       "norm_label": "mediatype"
     },
     {
@@ -4779,7 +4699,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_in_progress_item_maps_with_duration_and_position",
-      "community": 48,
+      "community": 18,
       "norm_label": ".`in-progress item maps with duration and position`()"
     },
     {
@@ -4789,7 +4709,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_unwatched_and_finished_items_are_excluded",
-      "community": 48,
+      "community": 18,
       "norm_label": ".`unwatched and finished items are excluded`()"
     },
     {
@@ -4799,7 +4719,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "tvintegration_watchnexttest_watchnexttest_music_is_excluded_from_watch_next",
-      "community": 48,
+      "community": 18,
       "norm_label": ".`music is excluded from watch next`()"
     },
     {
@@ -5699,7 +5619,7 @@
       "source_location": "L94",
       "_origin": "ast",
       "id": "model_models_downloadjob",
-      "community": 3,
+      "community": 0,
       "norm_label": "downloadjob"
     },
     {
@@ -5859,7 +5779,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "persist_launcherprefsstore",
-      "community": 61,
+      "community": 17,
       "norm_label": "launcherprefsstore.kt"
     },
     {
@@ -5869,7 +5789,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore",
-      "community": 61,
+      "community": 17,
       "norm_label": "launcherprefsstore"
     },
     {
@@ -5879,7 +5799,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_flow",
-      "community": 61,
+      "community": 17,
       "norm_label": "flow"
     },
     {
@@ -5889,7 +5809,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_set",
-      "community": 61,
+      "community": 17,
       "norm_label": "set"
     },
     {
@@ -5899,7 +5819,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_string",
-      "community": 61,
+      "community": 17,
       "norm_label": "string"
     },
     {
@@ -5909,7 +5829,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_list",
-      "community": 61,
+      "community": 17,
       "norm_label": "list"
     },
     {
@@ -5919,7 +5839,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_persist_launcherprefsstore_kt_boolean",
-      "community": 61,
+      "community": 17,
       "norm_label": "boolean"
     },
     {
@@ -5929,7 +5849,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setfavorites",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setfavorites()"
     },
     {
@@ -5939,7 +5859,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setrecents",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setrecents()"
     },
     {
@@ -5949,7 +5869,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setapporder",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setapporder()"
     },
     {
@@ -5959,7 +5879,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setplaylisturl",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setplaylisturl()"
     },
     {
@@ -5969,7 +5889,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setepgurl",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setepgurl()"
     },
     {
@@ -5979,7 +5899,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_launcherprefsstore_setdefaultpromptdismissed",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setdefaultpromptdismissed()"
     },
     {
@@ -5989,7 +5909,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore",
-      "community": 61,
+      "community": 17,
       "norm_label": "inmemoryprefsstore"
     },
     {
@@ -5999,7 +5919,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setfavorites",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setfavorites()"
     },
     {
@@ -6009,7 +5929,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setrecents",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setrecents()"
     },
     {
@@ -6019,7 +5939,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setapporder",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setapporder()"
     },
     {
@@ -6029,7 +5949,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setplaylisturl",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setplaylisturl()"
     },
     {
@@ -6039,7 +5959,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setepgurl",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setepgurl()"
     },
     {
@@ -6049,7 +5969,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "persist_launcherprefsstore_inmemoryprefsstore_setdefaultpromptdismissed",
-      "community": 61,
+      "community": 17,
       "norm_label": ".setdefaultpromptdismissed()"
     },
     {
@@ -6059,7 +5979,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "repo_ambientinforepository",
-      "community": 3,
+      "community": 12,
       "norm_label": "ambientinforepository.kt"
     },
     {
@@ -6069,7 +5989,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository",
-      "community": 3,
+      "community": 12,
       "norm_label": "ambientinforepository"
     },
     {
@@ -6079,7 +5999,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_stateflow",
-      "community": 3,
+      "community": 12,
       "norm_label": "stateflow"
     },
     {
@@ -6089,7 +6009,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "weather",
-      "community": 3,
+      "community": 12,
       "norm_label": "weather"
     },
     {
@@ -6099,7 +6019,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_list",
-      "community": 3,
+      "community": 12,
       "norm_label": "list"
     },
     {
@@ -6109,7 +6029,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "servicestatus",
-      "community": 3,
+      "community": 12,
       "norm_label": "servicestatus"
     },
     {
@@ -6119,7 +6039,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "repo_ambientinforepository_ambientinforepository_downloads",
-      "community": 3,
+      "community": 12,
       "norm_label": ".downloads()"
     },
     {
@@ -6129,7 +6049,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_flow",
-      "community": 3,
+      "community": 12,
       "norm_label": "flow"
     },
     {
@@ -6139,7 +6059,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "downloadjob",
-      "community": 3,
+      "community": 12,
       "norm_label": "downloadjob"
     },
     {
@@ -6149,7 +6069,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "repo_ambientinforepository_unconfiguredambientinforepository",
-      "community": 3,
+      "community": 12,
       "norm_label": "unconfiguredambientinforepository"
     },
     {
@@ -6159,7 +6079,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "repo_ambientinforepository_unconfiguredambientinforepository_downloads",
-      "community": 3,
+      "community": 12,
       "norm_label": ".downloads()"
     },
     {
@@ -6169,7 +6089,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "repo_ambientinforepository_realambientinforepository",
-      "community": 3,
+      "community": 12,
       "norm_label": "realambientinforepository"
     },
     {
@@ -6179,7 +6099,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "repo_ambientinforepository_realambientinforepository_downloads",
-      "community": 3,
+      "community": 12,
       "norm_label": ".downloads()"
     },
     {
@@ -6189,7 +6109,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "repo_ambientinforepository_realambientinforepository_refreshweather",
-      "community": 3,
+      "community": 12,
       "norm_label": ".refreshweather()"
     },
     {
@@ -6199,7 +6119,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "repo_ambientinforepository_realambientinforepository_detectlocation",
-      "community": 3,
+      "community": 12,
       "norm_label": ".detectlocation()"
     },
     {
@@ -6209,7 +6129,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "weatherlocation",
-      "community": 3,
+      "community": 12,
       "norm_label": "weatherlocation"
     },
     {
@@ -6219,7 +6139,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "repo_ambientinforepository_realambientinforepository_fetchweather",
-      "community": 3,
+      "community": 12,
       "norm_label": ".fetchweather()"
     },
     {
@@ -6229,7 +6149,7 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "repo_ambientinforepository_weatherlocation",
-      "community": 3,
+      "community": 12,
       "norm_label": "weatherlocation"
     },
     {
@@ -6239,7 +6159,7 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "repo_ambientinforepository_parseopenmeteoweather",
-      "community": 3,
+      "community": 12,
       "norm_label": "parseopenmeteoweather()"
     },
     {
@@ -6249,7 +6169,7 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "core_data_src_main_kotlin_com_livingroomhq_core_data_repo_ambientinforepository_kt_string",
-      "community": 3,
+      "community": 12,
       "norm_label": "string"
     },
     {
@@ -6259,7 +6179,7 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "repo_ambientinforepository_tocondition",
-      "community": 3,
+      "community": 12,
       "norm_label": "tocondition()"
     },
     {
@@ -6269,7 +6189,7 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "weathercondition",
-      "community": 3,
+      "community": 12,
       "norm_label": "weathercondition"
     },
     {
@@ -6279,7 +6199,7 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "repo_ambientinforepository_tosummary",
-      "community": 3,
+      "community": 12,
       "norm_label": "tosummary()"
     },
     {
@@ -6289,7 +6209,7 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "repo_ambientinforepository_httpget",
-      "community": 3,
+      "community": 12,
       "norm_label": "httpget()"
     },
     {
@@ -7869,7 +7789,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "persist_inmemoryprefsstoretest",
-      "community": 61,
+      "community": 17,
       "norm_label": "inmemoryprefsstoretest.kt"
     },
     {
@@ -7879,7 +7799,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest",
-      "community": 61,
+      "community": 17,
       "norm_label": "inmemoryprefsstoretest"
     },
     {
@@ -7889,7 +7809,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_defaults_are_empty",
-      "community": 61,
+      "community": 17,
       "norm_label": ".`defaults are empty`()"
     },
     {
@@ -7899,7 +7819,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "persist_inmemoryprefsstoretest_inmemoryprefsstoretest_writes_are_observable",
-      "community": 61,
+      "community": 17,
       "norm_label": ".`writes are observable`()"
     },
     {
@@ -8479,7 +8399,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_confirmdialog",
-      "community": 23,
+      "community": 10,
       "norm_label": "confirmdialog.kt"
     },
     {
@@ -8489,7 +8409,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "components_confirmdialog_confirmdialog",
-      "community": 23,
+      "community": 10,
       "norm_label": "confirmdialog()"
     },
     {
@@ -8499,7 +8419,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_confirmdialog_kt_string",
-      "community": 23,
+      "community": 10,
       "norm_label": "string"
     },
     {
@@ -8509,7 +8429,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_confirmdialog_kt_modifier",
-      "community": 23,
+      "community": 10,
       "norm_label": "modifier"
     },
     {
@@ -8519,7 +8439,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_focusableglasscard",
-      "community": 23,
+      "community": 10,
       "norm_label": "focusableglasscard.kt"
     },
     {
@@ -8529,7 +8449,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "components_focusableglasscard_focusableglasscard",
-      "community": 23,
+      "community": 10,
       "norm_label": "focusableglasscard()"
     },
     {
@@ -8539,7 +8459,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_modifier",
-      "community": 23,
+      "community": 10,
       "norm_label": "modifier"
     },
     {
@@ -8549,7 +8469,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_dp",
-      "community": 23,
+      "community": 10,
       "norm_label": "dp"
     },
     {
@@ -8559,7 +8479,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_paddingvalues",
-      "community": 23,
+      "community": 10,
       "norm_label": "paddingvalues"
     },
     {
@@ -8569,7 +8489,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_unit",
-      "community": 23,
+      "community": 10,
       "norm_label": "unit"
     },
     {
@@ -8579,7 +8499,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "core_ui_src_main_kotlin_com_livingroomhq_core_ui_components_focusableglasscard_kt_boolean",
-      "community": 23,
+      "community": 10,
       "norm_label": "boolean"
     },
     {
@@ -8589,7 +8509,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "components_focusableglasscard_dpadpressable",
-      "community": 23,
+      "community": 10,
       "norm_label": "dpadpressable()"
     },
     {
@@ -8599,7 +8519,7 @@
       "source_location": "L124",
       "_origin": "ast",
       "id": "components_focusableglasscard_isokkey",
-      "community": 23,
+      "community": 10,
       "norm_label": "isokkey()"
     },
     {
@@ -9495,56 +9415,6 @@
     }
   ],
   "links": [
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".claude/settings.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "claude_settings",
-      "target": "claude_settings_hooks"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".claude/settings.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "claude_settings_hooks",
-      "target": "claude_settings_hooks_pretooluse"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".codex/hooks.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "codex_hooks",
-      "target": "codex_hooks_hooks"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".codex/hooks.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "codex_hooks_hooks",
-      "target": "codex_hooks_hooks_pretooluse"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".opencode/opencode.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "opencode_opencode",
-      "target": "opencode_opencode_plugin"
-    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -27274,5 +27144,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "4c666c7c897069f39290e0a5c5c87bb5104bdd19"
+  "built_at_commit": "9adc9117368b59c7db4f7e001f4783389ee9f385"
 }
