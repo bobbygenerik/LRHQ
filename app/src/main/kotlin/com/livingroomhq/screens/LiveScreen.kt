@@ -23,21 +23,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,7 +39,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,9 +50,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.livingroomhq.core.ui.components.EmptyStatePanel
-import com.livingroomhq.core.ui.components.tvFocusBorder
-import com.livingroomhq.core.ui.components.tvFocusScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -72,19 +62,16 @@ import com.livingroomhq.components.fullscreenFocusRestore
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
-import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
-import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.core.ui.theme.zonePadding
-import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.LivePreview
 import com.livingroomhq.player.rememberLivePreviewActive
+import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -93,17 +80,14 @@ import java.util.Locale
 /** Wait for focus to settle before swapping the live preview stream. */
 private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
 
-@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     val context = LocalContext.current
-    val customSettings = LocalCustomSettings.current
-    val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
     val channels by app.channels.channels.collectAsState()
     val recents by app.channels.recents.collectAsState()
+    val epgRevision by app.channels.epgRevision.collectAsState()
     val groups by app.channels.groups.collectAsState()
     val channelsByGroup by app.channels.channelsByGroup.collectAsState()
-    val epgRevision by app.channels.epgRevision.collectAsState()
     var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
     var focusedChannelId by remember { mutableStateOf<String?>(null) }
     var previewChannelId by remember { mutableStateOf<String?>(null) }
@@ -113,13 +97,6 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
 
     BackHandler(enabled = isGridFocused) {
         activeCategoryFocusRequester.requestFocus()
-    }
-
-    LaunchedEffect(channels.isNotEmpty()) {
-        if (channels.isNotEmpty()) {
-            withFrameNanos { }
-            runCatching { activeCategoryFocusRequester.requestFocus() }
-        }
     }
 
     // Restore the last real selection without auto-playing the first playlist entry.
@@ -139,25 +116,34 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
         }
     }
 
-    LaunchedEffect(previewChannelId) {
-        val id = previewChannelId ?: return@LaunchedEffect
-        runCatching { app.channels.fetchEpgDetails(id) }
-    }
-
     if (channels.isEmpty()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .zonePadding(),
-            contentAlignment = Alignment.Center,
+                .padding(48.dp),
+            contentAlignment = Alignment.Center
         ) {
-            EmptyStatePanel(
-                title = "No playlist configured",
-                message = "Add an M3U playlist in Settings to browse live channels and program guides.",
-                icon = Icons.Default.Tv,
-                actionLabel = "Go to Settings",
-                onAction = { nav.goTo(Zone.SETTINGS) },
-            )
+            GlassPanel(
+                modifier = Modifier
+                    .width(480.dp)
+                    .height(260.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Default.Tv, contentDescription = null, modifier = Modifier.size(48.dp), tint = HqColors.Accent)
+                    Spacer(Modifier.height(16.dp))
+                    Text("No Playlist Configured", style = HqType.Headline)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Please go to the Settings tab on the left to configure a valid M3U playlist URL.",
+                        style = HqType.Body,
+                        color = HqColors.TextSecondary
+                    )
+                }
+            }
         }
         return
     }
@@ -168,7 +154,7 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
             CategoryItem("All Channels", Icons.Default.Tv, null),
             CategoryItem("Favorites", Icons.Default.Star, "favorites"),
             CategoryItem("Recent", Icons.Default.History, "recent"),
-        ) + groups.map { CategoryItem(it, Icons.Default.List, it) }
+        ) + groups.map { CategoryItem(it, Icons.AutoMirrored.Filled.List, it) }
     }
 
     val visibleChannels = remember(selectedCategoryId, channels, recents, channelsByGroup) {
@@ -176,24 +162,16 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
             null -> channels
             "favorites" -> channels.filter { it.isFavorite }
             "recent" -> recents
-            else -> channelsByGroup[selectedCategoryId].orEmpty()
+            else -> channels.filter { it.group == selectedCategoryId }
         }
     }
 
     val previewChannel = channels.firstOrNull { it.id == previewChannelId }
 
-    LaunchedEffect(selectedCategoryId, visibleChannels.firstOrNull()?.id, visibleChannels.size) {
-        val ids = visibleChannels.take(48).map { it.id }
-        if (ids.isNotEmpty()) {
-            delay(300)
-            runCatching { app.channels.prefetchEpgForChannels(ids) }
-        }
-    }
-
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .zonePadding(),
+            .padding(horizontal = 24.dp, vertical = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Left column: Category Rail
@@ -226,7 +204,6 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
 
         LiveChannelGridColumn(
             app = app,
-            nav = nav,
             categories = categories,
             selectedCategoryId = selectedCategoryId,
             visibleChannels = visibleChannels,
@@ -250,7 +227,6 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
 
         LivePreviewColumn(
             previewChannel = previewChannel,
-            streamActive = previewActive,
             app = app,
             onLaunchPreview = previewChannel?.let { channel ->
                 {
@@ -268,7 +244,6 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
 @Composable
 private fun LiveChannelGridColumn(
     app: HqApplication,
-    nav: LauncherNavController,
     categories: List<CategoryItem>,
     selectedCategoryId: String?,
     visibleChannels: List<Channel>,
@@ -286,13 +261,7 @@ private fun LiveChannelGridColumn(
         Spacer(Modifier.height(16.dp))
         if (visibleChannels.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                EmptyStatePanel(
-                    title = "No channels here",
-                    message = "This category is empty. Try another filter or load a playlist with more channels.",
-                    icon = Icons.Default.Tv,
-                    actionLabel = "Go to Settings",
-                    onAction = { nav.goTo(Zone.SETTINGS) },
-                )
+                Text("No channels found in this category", style = HqType.Body)
             }
         } else {
             val gridState = remember(selectedCategoryId) { androidx.compose.foundation.lazy.grid.LazyGridState() }
@@ -301,23 +270,16 @@ private fun LiveChannelGridColumn(
                 state = gridState,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                // Inner inset so a focus-scaled edge card doesn't clip against
-                // the category rail or the preview pane.
-                contentPadding = PaddingValues(
-                    start = HqDimens.GridEdgeInset,
-                    end = HqDimens.GridEdgeInset,
-                    top = HqDimens.GridEdgeInset,
-                    bottom = 72.dp,
-                ),
+                contentPadding = PaddingValues(bottom = 72.dp),
                 modifier = Modifier
                     .fillMaxSize()
-                    .onFocusChanged { onGridFocusChanged(it.hasFocus) },
+                    .onFocusChanged { onGridFocusChanged(it.hasFocus) }
+                    .focusProperties { left = activeCategoryFocusRequester },
             ) {
-                itemsIndexed(visibleChannels, key = { _, it -> "${it.id}_${it.number}" }) { index, channel ->
+                items(visibleChannels, key = { "${it.id}_${it.number}" }) { channel ->
                     val nowPlayingTitle = remember(channel.id, epgRevision) {
                         channelEpgTitle(channel.id)
                     }
-                    val cardRequester = remember { FocusRequester() }
                     ChannelGridCard(
                         channel = channel,
                         nowPlayingTitle = nowPlayingTitle,
@@ -326,9 +288,7 @@ private fun LiveChannelGridColumn(
                             app.fullscreenFocusReturn.arm(liveGridFocusTarget(channel.id))
                             onChannelClick(channel)
                         },
-                        focusRequester = cardRequester,
-                        modifier = Modifier
-                            .fullscreenFocusRestore(app, liveGridFocusTarget(channel.id)),
+                        modifier = Modifier.fullscreenFocusRestore(app, liveGridFocusTarget(channel.id)),
                     )
                 }
             }
@@ -339,13 +299,10 @@ private fun LiveChannelGridColumn(
 @Composable
 private fun LivePreviewColumn(
     previewChannel: Channel?,
-    streamActive: Boolean,
     app: HqApplication,
     onLaunchPreview: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val previewShape = RoundedCornerShape(HqDimens.CornerMd)
     val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
     var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(previewChannel?.id) {
@@ -361,7 +318,7 @@ private fun LivePreviewColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .clip(previewShape)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black)
                     .then(
                         previewChannel?.let { channel ->
@@ -378,13 +335,6 @@ private fun LivePreviewColumn(
                 if (previewChannel == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("Select a channel", style = HqType.Body.copy(color = HqColors.TextSecondary))
-                    }
-                } else if (!streamActive) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            previewChannel.name,
-                            style = HqType.Body.copy(color = HqColors.TextSecondary),
-                        )
                     }
                 } else {
                     LivePreview(
@@ -408,24 +358,24 @@ private fun LivePreviewColumn(
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Text(
-                        text = "Now playing",
-                        style = HqType.HeroSection,
+                        text = "NOW PLAYING",
+                        style = HqType.Label.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold)
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = previewChannel?.name ?: "No channel selected",
-                        style = HqType.Headline.copy(fontWeight = FontWeight.Bold),
+                        style = HqType.Headline.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = now?.title ?: "No program data",
-                        style = HqType.CardTitle,
+                        text = now?.title ?: "No Program Data",
+                        style = HqType.Body.copy(color = HqColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = now?.description ?: "Load an XMLTV guide in Settings to overlay TV schedules.",
-                        style = HqType.CardCaption,
-                        maxLines = 3,
+                        text = now?.description ?: "No EPG summary available for this stream. Load standard XMLTV guides to overlay TV schedules.",
+                        style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
+                        maxLines = 3
                     )
                     
                     if (now != null) {
@@ -435,7 +385,7 @@ private fun LivePreviewColumn(
                         val minutesLeft = ((now.endMillis - nowMillis) / 60_000L).coerceAtLeast(0)
                         Row(Modifier.fillMaxWidth()) {
                             Text(
-                                text = formatProgramWindow(context, now),
+                                text = formatProgramWindow(now),
                                 style = HqType.Label.copy(color = HqColors.TextSecondary),
                             )
                             Spacer(Modifier.weight(1f))
@@ -466,7 +416,7 @@ private fun LivePreviewColumn(
                         Spacer(Modifier.height(12.dp))
                         Text(
                             text = "UP NEXT: ${it.title}",
-                            style = HqType.CardCaption.copy(color = HqColors.TextTertiary),
+                            style = HqType.Label.copy(color = HqColors.TextTertiary, fontSize = 11.sp),
                             maxLines = 1
                         )
                     }
@@ -509,10 +459,9 @@ private fun CategoryRailItem(
     Box(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
-            .tvFocusScale(focused)
             .clip(shape)
             .background(bg)
-            .tvFocusBorder(focused, shape)
+            .border(1.dp, if (focused) HqColors.Accent else Color.Transparent, shape)
             .clickable { onClick() }
             .focusable()
             .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -529,9 +478,10 @@ private fun CategoryRailItem(
             Spacer(Modifier.width(10.dp))
             Text(
                 text = label,
-                style = HqType.CardTitle.copy(
+                style = HqType.Body.copy(
                     color = contentColor,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 13.sp,
+                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
                 ),
                 maxLines = 1
             )
@@ -545,7 +495,6 @@ private fun ChannelGridCard(
     nowPlayingTitle: String,
     onFocused: () -> Unit,
     onClick: () -> Unit,
-    focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
     val logoShape = RoundedCornerShape(8.dp)
@@ -557,8 +506,7 @@ private fun ChannelGridCard(
         contentPadding = PaddingValues(12.dp),
         sheenOnFocus = false,
         modifier = modifier
-            .focusRequester(focusRequester)
-            .height(72.dp)
+            .height(58.dp)
             .fillMaxWidth()
     ) { focused ->
         BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -567,7 +515,7 @@ private fun ChannelGridCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(32.dp)
                         .clip(logoShape)
                         .background(Color(0x1AFFFFFF)),
                     contentAlignment = Alignment.Center
@@ -594,14 +542,21 @@ private fun ChannelGridCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = channel.name,
-                        style = HqType.CardTitle,
-                        maxLines = 1,
+                        style = HqType.Body.copy(
+                            color = HqColors.TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        ),
+                        maxLines = 1
                     )
                     if (showProgramInfo) {
                         Text(
                             text = nowPlayingTitle,
-                            style = HqType.CardCaption,
-                            maxLines = 1,
+                            style = HqType.Label.copy(
+                                color = HqColors.TextSecondary,
+                                fontSize = 11.sp
+                            ),
+                            maxLines = 1
                         )
                     }
                 }
@@ -618,12 +573,12 @@ private fun ChannelGridCard(
     }
 }
 
-private fun formatProgramWindow(context: android.content.Context, program: Program): String {
-    // Respect the device 12/24-hour setting for EPG windows.
-    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else "h:mm a"
-    val fmt = SimpleDateFormat(pattern, Locale.getDefault())
-    val start = fmt.format(Date(program.startMillis))
-    val end = fmt.format(Date(program.endMillis))
+private val programStartFmt = SimpleDateFormat("h:mm", Locale.getDefault())
+private val programEndFmt = SimpleDateFormat("h:mm a", Locale.getDefault())
+
+private fun formatProgramWindow(program: Program): String {
+    val start = programStartFmt.format(Date(program.startMillis))
+    val end = programEndFmt.format(Date(program.endMillis))
     return "$start – $end"
 }
 

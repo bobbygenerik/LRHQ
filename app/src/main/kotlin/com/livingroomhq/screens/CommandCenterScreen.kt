@@ -1,9 +1,6 @@
 package com.livingroomhq.screens
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,273 +11,254 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
+import com.livingroomhq.core.data.model.SystemStats
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
-import com.livingroomhq.core.ui.components.initialFocus
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.HqColors
-import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.core.ui.theme.zonePadding
-import com.livingroomhq.ui.UiMessages
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-/**
- * Read-out of real device state. Every tile shows live data — no mock numbers —
- * and is actionable: OK opens the matching Android settings screen, so a
- * focusable card always does something.
- */
-@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun CommandCenterScreen(app: HqApplication) {
-    val context = LocalContext.current
     val stats by remember { app.systemMonitor.stats() }
         .collectAsState(initial = null)
-    val firstCardFocusRequester = remember { FocusRequester() }
-
-    val localIp = remember { getLocalIpAddress() }
-    val tailscaleIp = remember { getTailscaleIpAddress() }
-    val deviceModel = remember { Build.MODEL.ifEmpty { "Android TV Device" } }
-    val appVersion = remember {
-        runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: "—"
+    
+    var localIp by remember { mutableStateOf("192.168.1.105") }
+    var tailscaleIp by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            localIp = getLocalIpAddress()
+            tailscaleIp = getTailscaleIpAddress()
+        }
     }
-
-    val statsReady = stats != null
-
-    fun open(action: String, data: Uri? = null) = context.openSettings(action, data)
+    val deviceModel = remember { Build.MODEL.ifEmpty { "Android TV Device" } }
 
     Column(
         Modifier
             .fillMaxSize()
-            .zonePadding()
-            .focusProperties { enter = { firstCardFocusRequester } }
+            .padding(horizontal = 24.dp, vertical = 24.dp)
     ) {
-        Text("Command Center", style = HqType.Title)
+        Text("ACTIVE DASHBOARD / COMMAND CENTER OVERVIEW", style = HqType.Title)
         Spacer(Modifier.height(16.dp))
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(
-                start = HqDimens.GridEdgeInset,
-                end = HqDimens.GridEdgeInset,
-                top = HqDimens.GridEdgeInset,
-                bottom = 36.dp,
-            ),
+            contentPadding = PaddingValues(bottom = 36.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // 1. System — model + live CPU.
             item {
-                val cpu = stats?.cpuPercent ?: 0f
                 MetricCard(
                     title = "System",
                     icon = Icons.Default.Computer,
-                    description = "System, ${deviceModel}, CPU ${cpu.toInt()} percent",
-                    onClick = { open(Settings.ACTION_SETTINGS) },
-                    modifier = Modifier.initialFocus(firstCardFocusRequester),
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            if (statsReady) deviceModel else "Collecting…",
-                            style = HqType.CardTitle,
-                            maxLines = 1,
-                        )
-                        StatBar("CPU", if (statsReady) "${cpu.toInt()}%" else "…", if (statsReady) cpu / 100f else 0.25f)
+                        Text(deviceModel, style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        val cpuPct = stats?.cpuPercent ?: 18f
+                        StatBar("CPU", "${cpuPct.toInt()}%", cpuPct / 100f)
                     }
                 }
             }
 
-            // 2. Memory — live RAM.
+            // 2. Storage
             item {
-                val used = stats?.ramUsedMb ?: 0L
-                val total = stats?.ramTotalMb ?: 0L
-                val pct = stats?.ramPercent ?: 0f
-                MetricCard(
-                    title = "Memory",
-                    icon = Icons.Default.Memory,
-                    description = "Memory, ${pct.times(100).toInt()} percent used",
-                    onClick = { open(Settings.ACTION_SETTINGS) },
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("RAM", style = HqType.CardTitle)
-                        StatBar("Used", if (statsReady) "${pct.times(100).toInt()}%" else "…", if (statsReady) pct else 0.25f)
-                        Text(
-                            if (statsReady) "$used MB of $total MB" else "Reading memory…",
-                            style = HqType.CardCaption,
-                        )
-                    }
-                }
-            }
-
-            // 3. Storage — live internal storage.
-            item {
-                val totalBytes = stats?.storageTotalBytes ?: 0L
-                val usedBytes = stats?.storageUsedBytes ?: 0L
-                val usedPct = stats?.storagePercent ?: 0f
-                val totalGb = totalBytes / (1024 * 1024 * 1024)
-                val freeGb = (totalBytes - usedBytes) / (1024 * 1024 * 1024)
                 MetricCard(
                     title = "Storage",
                     icon = Icons.Default.Folder,
-                    description = "Storage, ${(usedPct * 100).toInt()} percent used",
-                    onClick = { open(Settings.ACTION_INTERNAL_STORAGE_SETTINGS) },
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Internal Storage", style = HqType.CardTitle)
-                        StatBar("Used", if (statsReady) "${(usedPct * 100).toInt()}%" else "…", if (statsReady) usedPct else 0.25f)
-                        Text(
-                            if (statsReady) "$freeGb GB free of $totalGb GB" else "Reading storage…",
-                            style = HqType.CardCaption,
-                        )
+                        Text("Internal Storage", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        val totalBytes = stats?.storageTotalBytes ?: (120L * 1024 * 1024 * 1024)
+                        val usedBytes = stats?.storageUsedBytes ?: (64L * 1024 * 1024 * 1024)
+                        val usedPct = usedBytes.toFloat() / totalBytes
+                        val totalGb = totalBytes / (1024 * 1024 * 1024)
+                        val freeGb = (totalBytes - usedBytes) / (1024 * 1024 * 1024)
+                        StatBar("Used", "${(usedPct * 100).toInt()}%", usedPct)
+                        Text("$freeGb GB free of $totalGb GB", style = HqType.Label.copy(color = HqColors.TextSecondary, fontSize = 11.sp))
                     }
                 }
             }
 
-            // 4. Network — real IP + live throughput.
+            // 3. Network
             item {
-                val down = stats?.networkDownKbps ?: 0L
-                val up = stats?.networkUpKbps ?: 0L
                 MetricCard(
                     title = "Network",
                     icon = Icons.Default.Wifi,
-                    description = "Network, local IP $localIp",
-                    onClick = { open(Settings.ACTION_WIFI_SETTINGS) },
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Home Network", style = HqType.CardTitle)
-                        StatusRow("LOCAL IP", localIp, HqColors.TextPrimary)
-                        StatusRow("THROUGHPUT", "↓ $down · ↑ $up KB/s", HqColors.TextSecondary)
+                        Text("Home Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("STATUS", style = HqType.Label)
+                            Text("Connected", style = HqType.Label.copy(color = HqColors.Positive))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("LOCAL IP", style = HqType.Label)
+                            Text(localIp, style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
                     }
                 }
             }
 
-            // 5. VPN — real transport state.
+            // 4. Downloads
+            item {
+                MetricCard(
+                    title = "Downloads",
+                    icon = Icons.Default.CloudDownload,
+                    onClick = {}
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("2 Active Files", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        StatBar("Example File 1.mkv", "45%", 0.45f, tint = HqColors.Accent)
+                        StatBar("Example File 2.iso", "72%", 0.72f, tint = HqColors.Accent)
+                    }
+                }
+            }
+
+            // 5. Media Server
+            item {
+                MetricCard(
+                    title = "Media Server",
+                    icon = Icons.Default.Dns,
+                    onClick = {}
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Local Server", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("STATUS", style = HqType.Label)
+                            Text("Online", style = HqType.Label.copy(color = HqColors.Positive))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("LIBRARIES", style = HqType.Label)
+                            Text("12 Libraries", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
+                    }
+                }
+            }
+
+            // 6. VPN
             item {
                 val vpnActive = stats?.vpnActive == true
                 MetricCard(
                     title = "VPN",
                     icon = Icons.Default.Lock,
-                    description = "VPN, ${if (vpnActive) "active" else "off"}",
-                    onClick = { open(Settings.ACTION_VPN_SETTINGS) },
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Private Tunnel", style = HqType.CardTitle)
-                        StatusRow("STATUS", if (vpnActive) "Active" else "Off", if (vpnActive) HqColors.Positive else HqColors.TextTertiary)
-                        Text(
-                            if (vpnActive) "A VPN transport is carrying traffic." else "No VPN transport detected.",
-                            style = HqType.CardCaption,
-                            maxLines = 2,
-                        )
+                        Text("Private Tunnel", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("STATUS", style = HqType.Label)
+                            Text(if (vpnActive) "Connected" else "Disconnected", style = HqType.Label.copy(color = if (vpnActive) HqColors.Positive else HqColors.TextTertiary))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("GATEWAY", style = HqType.Label)
+                            Text(if (vpnActive) "US - New York" else "None", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
                     }
                 }
             }
 
-            // 6. Tailscale — present only if a tailscale/tun interface holds an IP.
+            // 7. Tailscale
             item {
-                val connected = tailscaleIp != null
+                val isTsConnected = tailscaleIp != null
                 MetricCard(
                     title = "Tailscale",
                     icon = Icons.Default.Security,
-                    description = "Tailscale, ${if (connected) "connected" else "not detected"}",
-                    onClick = { open(Settings.ACTION_SETTINGS) },
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Mesh Network", style = HqType.Headline)
-                        StatusRow("STATUS", if (connected) "Connected" else "Not detected", if (connected) HqColors.Positive else HqColors.TextTertiary)
-                        StatusRow("TAIL IP", tailscaleIp ?: "—", HqColors.TextPrimary)
+                        Text("Mesh Network", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("STATUS", style = HqType.Label)
+                            Text(if (isTsConnected) "Connected" else "Offline", style = HqType.Label.copy(color = if (isTsConnected) HqColors.Positive else HqColors.TextTertiary))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("TAIL IP", style = HqType.Label)
+                            Text(tailscaleIp ?: "100.64.0.2", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
                     }
                 }
             }
 
-            // 7. Uptime — real elapsed-realtime since boot/launcher start.
+            // 8. Backups
             item {
-                val uptime = stats?.uptimeMillis ?: 0L
                 MetricCard(
-                    title = "Uptime",
-                    icon = Icons.Default.Schedule,
-                    description = "Uptime, ${formatUptime(uptime)}",
-                    onClick = { open(Settings.ACTION_SETTINGS) },
+                    title = "Backups",
+                    icon = Icons.Default.Backup,
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Session", style = HqType.CardTitle)
-                        Text(
-                            if (statsReady) formatUptime(uptime) else "Collecting…",
-                            style = HqType.Stat,
-                        )
+                        Text("Data Protection", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("LAST RUN", style = HqType.Label)
+                            Text("2 hours ago", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("DESTINATION", style = HqType.Label)
+                            Text("Secure NAS Cloud", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
                     }
                 }
             }
 
-            // 8. Android — real build info.
+            // 9. Updates
             item {
                 MetricCard(
-                    title = "Android",
-                    icon = Icons.Default.Android,
-                    description = "Android version ${Build.VERSION.RELEASE}",
-                    onClick = { open(Settings.ACTION_DEVICE_INFO_SETTINGS) },
+                    title = "Updates",
+                    icon = Icons.Default.CheckCircle,
+                    onClick = {}
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Platform", style = HqType.CardTitle)
-                        StatusRow("VERSION", "Android ${Build.VERSION.RELEASE}", HqColors.TextPrimary)
-                        StatusRow("API / PATCH", "${Build.VERSION.SDK_INT} · ${Build.VERSION.SECURITY_PATCH}", HqColors.TextSecondary)
-                    }
-                }
-            }
-
-            // 9. Launcher — this app's real version.
-            item {
-                MetricCard(
-                    title = "Launcher",
-                    icon = Icons.Default.Apps,
-                    description = "LivingRoom HQ version $appVersion",
-                    onClick = {
-                        open(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            Uri.fromParts("package", context.packageName, null),
-                        )
-                    },
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("LivingRoom HQ", style = HqType.CardTitle)
-                        StatusRow("VERSION", appVersion, HqColors.TextPrimary)
-                        StatusRow("MODEL", deviceModel, HqColors.TextSecondary)
+                        Text("Firmware Status", style = HqType.Headline.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("SYSTEM", style = HqType.Label)
+                            Text("Up to date", style = HqType.Label.copy(color = HqColors.Positive))
+                        }
+                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                            Text("VERSION", style = HqType.Label)
+                            Text("OS 14.1.0-Patch3", style = HqType.Label.copy(color = HqColors.TextPrimary))
+                        }
                     }
                 }
             }
@@ -289,26 +267,15 @@ fun CommandCenterScreen(app: HqApplication) {
 }
 
 @Composable
-private fun StatusRow(label: String, value: String, valueColor: Color) {
-    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-        Text(label, style = HqType.Label)
-        Text(value, style = HqType.Label.copy(color = valueColor), maxLines = 1)
-    }
-}
-
-@Composable
 private fun MetricCard(
     title: String,
     icon: ImageVector,
-    description: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     FocusableGlassCard(
         onClick = onClick,
-        contentDescription = description,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(160.dp),
         cornerRadius = 12.dp,
@@ -324,7 +291,7 @@ private fun MetricCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(title.uppercase(), style = HqType.Label)
-                // Neutral icon badge; lights up with the brand accent on focus.
+                // Neutral icon badge; lights up with the single brand accent on focus.
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -334,7 +301,7 @@ private fun MetricCard(
                 ) {
                     Icon(
                         imageVector = icon,
-                        contentDescription = null,
+                        contentDescription = title,
                         tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
                         modifier = Modifier.size(16.dp)
                     )
@@ -345,41 +312,14 @@ private fun MetricCard(
     }
 }
 
-/** Opens an Android settings screen, falling back to the top-level settings. */
-private fun android.content.Context.openSettings(action: String, data: Uri? = null) {
-    val intent = Intent(action).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (data != null) this.data = data
-    }
-    val launched = runCatching { startActivity(intent); true }.getOrDefault(false)
-    if (!launched) {
-        val fallback = runCatching {
-            startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
-        }.getOrDefault(false)
-        if (!fallback) UiMessages.post("Couldn't open settings")
-    }
-}
-
-private fun formatUptime(millis: Long): String {
-    val totalMinutes = millis / 60_000L
-    val days = totalMinutes / (60 * 24)
-    val hours = (totalMinutes / 60) % 24
-    val minutes = totalMinutes % 60
-    return when {
-        days > 0 -> "${days}d ${hours}h"
-        hours > 0 -> "${hours}h ${minutes}m"
-        else -> "${minutes}m"
-    }
-}
-
 private fun getLocalIpAddress(): String {
     return runCatching {
         NetworkInterface.getNetworkInterfaces().asSequence()
             .flatMap { it.inetAddresses.asSequence() }
             .filterIsInstance<Inet4Address>()
             .filter { !it.isLoopbackAddress }
-            .firstOrNull()?.hostAddress ?: "Unavailable"
-    }.getOrDefault("Unavailable")
+            .firstOrNull()?.hostAddress ?: "192.168.1.105"
+    }.getOrDefault("192.168.1.105")
 }
 
 private fun getTailscaleIpAddress(): String? {

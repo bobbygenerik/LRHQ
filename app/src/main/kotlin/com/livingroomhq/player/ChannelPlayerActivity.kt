@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,12 +23,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ClosedCaption
+import androidx.compose.material.icons.filled.ClosedCaptionDisabled
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.focus.onFocusChanged
 import com.livingroomhq.core.ui.components.GlassPanel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -60,17 +66,22 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.ui.PlayerView
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.translate.SubtitleCue
+import com.livingroomhq.translate.SubtitleFetcher
+import com.livingroomhq.translate.TranslationOverlay
 
 class ChannelPlayerActivity : ComponentActivity() {
 
@@ -142,9 +153,16 @@ private fun ChannelPlayerScreen(
 ) {
     val context = LocalContext.current
     val engine = remember { app.livePreviewEngine }
+    val translator = remember { app.translationEngine }
+    val subtitleFetcher = remember { SubtitleFetcher() }
     var currentChannel by remember(initialChannel) { mutableStateOf(initialChannel) }
     var playbackError by remember { mutableStateOf<String?>(null) }
     var retryNonce by remember { mutableIntStateOf(0) }
+
+    var translatedCues by remember { mutableStateOf<List<SubtitleCue>>(emptyList()) }
+    var currentSubtitle by remember { mutableStateOf<String?>(null) }
+    var subtitlesEnabled by remember { mutableStateOf(false) }
+    var subtitleStatus by remember { mutableStateOf<String?>(null) }
 
     val allChannels by app.channels.channels.collectAsState(initial = emptyList())
     val channelsList = remember(allChannels, currentChannel) {
@@ -181,6 +199,76 @@ private fun ChannelPlayerScreen(
     LaunchedEffect(retryNonce) {
         if (retryNonce > 0) {
             runCatching { focusRequester.requestFocus() }
+        }
+    }
+
+    LaunchedEffect(currentChannel.id, subtitlesEnabled) {
+        translatedCues = emptyList()
+        currentSubtitle = null
+        if (!subtitlesEnabled) {
+            subtitleStatus = null
+            return@LaunchedEffect
+        }
+        subtitleStatus = "Detecting subtitles..."
+        delay(3_000)
+        val tracks = engine.player.currentTracks
+        val subtitleGroup = tracks.groups.firstOrNull { group ->
+            group.type == C.TRACK_TYPE_TEXT && group.isSupported
+        }
+        if (subtitleGroup == null) {
+            subtitleStatus = "No subtitles available"
+            delay(2_000)
+            subtitleStatus = null
+            return@LaunchedEffect
+        }
+        val format = subtitleGroup.getTrackFormat(0)
+        val lang = format.language ?: run {
+            subtitleStatus = "Unknown subtitle language"
+            delay(2_000)
+            subtitleStatus = null
+            return@LaunchedEffect
+        }
+        subtitleStatus = "Subtitles detected: $lang"
+        val loaded = translator.loadModel(lang, "en")
+        if (!loaded) {
+            subtitleStatus = "Translation model not available for $lang"
+            delay(3_000)
+            subtitleStatus = null
+            return@LaunchedEffect
+        }
+        subtitleStatus = "Fetching subtitles..."
+        val subtitleTracks = subtitleFetcher.fetchSubtitleTracks(currentChannel.streamUrl)
+        val matchingTrack = subtitleTracks.firstOrNull { it.language == lang }
+        if (matchingTrack == null) {
+            subtitleStatus = "Could not fetch subtitle track"
+            delay(2_000)
+            subtitleStatus = null
+            return@LaunchedEffect
+        }
+        subtitleStatus = "Translating subtitles..."
+        val cues = subtitleFetcher.fetchCues(matchingTrack.url)
+        val translated = cues.map { cue ->
+            val translatedText = translator.translate(cue.text)
+            cue.copy(text = translatedText)
+        }
+        translatedCues = translated
+        subtitleStatus = "Subtitles enabled"
+        delay(1_500)
+        subtitleStatus = null
+    }
+
+    LaunchedEffect(translatedCues) {
+        if (translatedCues.isEmpty()) {
+            currentSubtitle = null
+            return@LaunchedEffect
+        }
+        while (true) {
+            val position = engine.player.currentPosition
+            val activeCue = translatedCues.firstOrNull {
+                position in it.startMs..it.endMs
+            }
+            currentSubtitle = activeCue?.text
+            delay(100)
         }
     }
 
@@ -415,7 +503,71 @@ private fun ChannelPlayerScreen(
                     }
                 }
             }
+
+            AnimatedVisibility(
+                visible = infoVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.align(Alignment.TopEnd),
+            ) {
+                Row(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    subtitleStatus?.let { status ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xCC000000))
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                        ) {
+                            Text(
+                                status,
+                                style = HqType.Label.copy(
+                                    color = HqColors.TextPrimary,
+                                    fontSize = 12.sp,
+                                    shadow = playerTextShadow(),
+                                ),
+                            )
+                        }
+                    }
+                    var ccFocused by remember { mutableStateOf(false) }
+                    Box(
+                        modifier = Modifier
+                            .onFocusChanged { ccFocused = it.isFocused }
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                when {
+                                    subtitlesEnabled -> HqColors.Accent.copy(alpha = 0.9f)
+                                    ccFocused -> Color(0x33FFFFFF)
+                                    else -> Color(0xCC000000)
+                                }
+                            )
+                            .border(
+                                width = if (ccFocused) 2.dp else 0.dp,
+                                color = if (ccFocused) HqColors.Accent else Color.Transparent,
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .clickable { subtitlesEnabled = !subtitlesEnabled }
+                            .focusable()
+                            .padding(12.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (subtitlesEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
+                            contentDescription = if (subtitlesEnabled) "Disable subtitles" else "Enable subtitles",
+                            tint = if (subtitlesEnabled) Color.Black else HqColors.TextPrimary,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                }
+            }
         }
+
+        TranslationOverlay(
+            text = currentSubtitle,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 

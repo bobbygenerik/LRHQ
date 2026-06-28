@@ -123,7 +123,9 @@ class MainActivity : ComponentActivity() {
 
             // Dynamic accent color updating
             LaunchedEffect(settings.accentColor) {
-                HqColors.Accent = if (settings.accentColor == "Blue") Color(0xFF6FB6FF) else Color(0xFF2BE080)
+                HqColors.updateAccent(
+                    if (settings.accentColor == "Blue") Color(0xFF6FB6FF) else Color(0xFF2BE080)
+                )
             }
 
             // Idle ticker that drops the launcher into Ambient Mode.
@@ -207,6 +209,8 @@ class MainActivity : ComponentActivity() {
         }
         resetHomeBackGesture()
         isResumedState = true
+        resetHomeBackGesture()
+        UiMessages.clear()
         val app = application as HqApplication
         app.installedApps.setHostActivity(this)
         app.installedApps.onHostResumed()

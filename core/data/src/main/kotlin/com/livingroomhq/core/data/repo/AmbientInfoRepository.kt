@@ -5,6 +5,7 @@ import com.livingroomhq.core.data.model.DownloadJob
 import com.livingroomhq.core.data.model.ServiceStatus
 import com.livingroomhq.core.data.model.Weather
 import com.livingroomhq.core.data.model.WeatherCondition
+import com.livingroomhq.core.data.net.LrhqHttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -15,9 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -55,6 +55,8 @@ class RealAmbientInfoRepository(
     private val _services = MutableStateFlow<List<ServiceStatus>>(emptyList())
     override val services: StateFlow<List<ServiceStatus>> = _services.asStateFlow()
 
+    private var cachedLocation: WeatherLocation? = null
+
     init {
         scope.launch {
             while (true) {
@@ -78,12 +80,13 @@ class RealAmbientInfoRepository(
     }
 
     private suspend fun detectLocation(): WeatherLocation {
+        cachedLocation?.let { return it }
         return runCatching {
             val json = JSONObject(fetchText(IP_LOCATION_URL))
             WeatherLocation(
                 latitude = json.getDouble("latitude"),
                 longitude = json.getDouble("longitude"),
-            )
+            ).also { cachedLocation = it }
         }.getOrElse { error ->
             Log.w(TAG, "IP location lookup failed; using fallback location", error)
             FALLBACK_LOCATION
@@ -157,9 +160,8 @@ class RealAmbientInfoRepository(
 }
 
 private suspend fun httpGet(url: String): String = withContext(Dispatchers.IO) {
-    val connection = URL(url).openConnection() as HttpURLConnection
-    connection.connectTimeout = 5_000
-    connection.readTimeout = 5_000
-    connection.requestMethod = "GET"
-    connection.inputStream.bufferedReader().use { it.readText() }
+    val request = Request.Builder().url(url).build()
+    LrhqHttpClient.client.newCall(request).execute().use { response ->
+        response.body?.string() ?: throw IllegalStateException("Empty response body")
+    }
 }
