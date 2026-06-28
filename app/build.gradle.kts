@@ -51,9 +51,18 @@ android {
                 keyPassword = releaseSigningProps.getProperty("releaseKeyPassword")
             }
         }
+        create("projectDebug") {
+            storeFile = rootProject.file("app/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("projectDebug")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
