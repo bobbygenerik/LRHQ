@@ -265,6 +265,7 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     }
 }
 
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun LiveChannelGridColumn(
     app: HqApplication,
@@ -296,6 +297,7 @@ private fun LiveChannelGridColumn(
             }
         } else {
             val gridState = remember(selectedCategoryId) { androidx.compose.foundation.lazy.grid.LazyGridState() }
+            val firstChannelFocusRequester = remember { FocusRequester() }
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 state = gridState,
@@ -311,13 +313,14 @@ private fun LiveChannelGridColumn(
                 ),
                 modifier = Modifier
                     .fillMaxSize()
+                    .focusProperties { enter = { firstChannelFocusRequester } }
                     .onFocusChanged { onGridFocusChanged(it.hasFocus) },
             ) {
                 itemsIndexed(visibleChannels, key = { _, it -> "${it.id}_${it.number}" }) { index, channel ->
                     val nowPlayingTitle = remember(channel.id, epgRevision) {
                         channelEpgTitle(channel.id)
                     }
-                    val cardRequester = remember { FocusRequester() }
+                    val cardRequester = if (index == 0) firstChannelFocusRequester else remember { FocusRequester() }
                     ChannelGridCard(
                         channel = channel,
                         nowPlayingTitle = nowPlayingTitle,

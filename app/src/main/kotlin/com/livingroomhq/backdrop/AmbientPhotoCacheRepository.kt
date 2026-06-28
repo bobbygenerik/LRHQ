@@ -3,19 +3,23 @@ package com.livingroomhq.backdrop
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.livingroomhq.core.data.net.LrhqHttpClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.roundToInt
 
 data class AmbientPhotoCacheStats(
@@ -69,27 +73,34 @@ class AmbientPhotoCacheRepository(
         cacheDir.mkdirs()
         _stats.value = currentStats(isImporting = true, message = "Caching ${urls.size} photos...")
 
-        var imported = 0
-        var failed = 0
-        urls.forEach { rawUrl ->
-            runCatching {
-                val url = rawUrl.toGoogleDisplayUrl()
-                val file = File(cacheDir, "${rawUrl.sha256()}.jpg")
-                if (!file.exists()) {
-                    downloadResizedJpeg(url, file)
+        val semaphore = Semaphore(4)
+        val imported = AtomicInteger(0)
+        val failed = AtomicInteger(0)
+        coroutineScope {
+            urls.map { rawUrl ->
+                async {
+                    semaphore.withPermit {
+                        runCatching {
+                            val url = rawUrl.toGoogleDisplayUrl()
+                            val file = File(cacheDir, "${rawUrl.sha256()}.jpg")
+                            if (!file.exists()) {
+                                downloadResizedJpeg(url, file)
+                            }
+                            file.setLastModified(System.currentTimeMillis())
+                            imported.incrementAndGet()
+                        }.onFailure {
+                            failed.incrementAndGet()
+                        }
+                    }
                 }
-                file.setLastModified(System.currentTimeMillis())
-                imported += 1
-            }.onFailure {
-                failed += 1
-            }
+            }.forEach { it.await() }
         }
 
         trimToCacheLimit()
         val message = buildString {
-            append("Cached $imported photo")
-            if (imported != 1) append("s")
-            if (failed > 0) append(" · $failed failed")
+            append("Cached ${imported.get()} photo")
+            if (imported.get() != 1) append("s")
+            if (failed.get() > 0) append(" · ${failed.get()} failed")
         }
         publishState(message)
         _stats.value
@@ -118,22 +129,29 @@ class AmbientPhotoCacheRepository(
     }
 
     private suspend fun importPickedPhotosAdditive(sources: List<AmbientPhotoCacheSource>): AmbientPhotoCacheStats {
-        var imported = 0
-        var failed = 0
-        sources.forEach { source ->
-            runCatching {
-                cachePhoto(source, cacheDir, skipExisting = true)
-                imported += 1
-            }.onFailure {
-                failed += 1
-            }
+        val semaphore = Semaphore(4)
+        val imported = AtomicInteger(0)
+        val failed = AtomicInteger(0)
+        coroutineScope {
+            sources.map { source ->
+                async {
+                    semaphore.withPermit {
+                        runCatching {
+                            cachePhoto(source, cacheDir, skipExisting = true)
+                            imported.incrementAndGet()
+                        }.onFailure {
+                            failed.incrementAndGet()
+                        }
+                    }
+                }
+            }.forEach { it.await() }
         }
 
         trimToCacheLimit()
         val message = buildString {
-            append("Cached $imported Google photo")
-            if (imported != 1) append("s")
-            if (failed > 0) append(" · $failed failed")
+            append("Cached ${imported.get()} Google photo")
+            if (imported.get() != 1) append("s")
+            if (failed.get() > 0) append(" · ${failed.get()} failed")
         }
         publishState(message)
         return _stats.value
@@ -145,23 +163,30 @@ class AmbientPhotoCacheRepository(
             listFiles()?.forEach { file -> if (file.isFile) file.delete() }
         }
 
-        var imported = 0
-        var failed = 0
-        sources.forEach { source ->
-            runCatching {
-                cachePhoto(source, stagingDir)
-                imported += 1
-            }.onFailure {
-                failed += 1
-            }
+        val semaphore = Semaphore(4)
+        val imported = AtomicInteger(0)
+        val failed = AtomicInteger(0)
+        coroutineScope {
+            sources.map { source ->
+                async {
+                    semaphore.withPermit {
+                        runCatching {
+                            cachePhoto(source, stagingDir)
+                            imported.incrementAndGet()
+                        }.onFailure {
+                            failed.incrementAndGet()
+                        }
+                    }
+                }
+            }.forEach { it.await() }
         }
 
-        if (failed > 0 || imported != sources.size) {
+        if (failed.get() > 0 || imported.get() != sources.size) {
             stagingDir.listFiles()?.forEach { file -> if (file.isFile) file.delete() }
             stagingDir.delete()
             val stats = currentStats(
                 isImporting = false,
-                message = "Refresh failed ($failed failed). Existing cache kept.",
+                message = "Refresh failed (${failed.get()} failed). Existing cache kept.",
             )
             _stats.value = stats
             return stats
@@ -174,11 +199,11 @@ class AmbientPhotoCacheRepository(
         stagingDir.delete()
 
         trimToCacheLimit()
-        publishState("Refreshed album: $imported photos.")
+        publishState("Refreshed album: ${imported.get()} photos.")
         return _stats.value
     }
 
-    private fun cachePhoto(source: AmbientPhotoCacheSource, targetDir: File, skipExisting: Boolean = false) {
+    private suspend fun cachePhoto(source: AmbientPhotoCacheSource, targetDir: File, skipExisting: Boolean = false) {
         val file = File(targetDir, "${source.id.sha256()}.jpg")
         if (!skipExisting || !file.exists()) {
             downloadResizedJpeg(source.url.toGoogleDisplayUrl(), file, source.bearerToken)
@@ -225,17 +250,17 @@ class AmbientPhotoCacheRepository(
             ?.sortedBy { it.name }
             .orEmpty()
 
-    suspend fun trimToCacheLimit() = withContext(dispatcher) {
+    fun trimToCacheLimit() {
         var files = cachedFiles()
         var totalBytes = files.sumOf { it.length() }
         files.sortedBy { it.lastModified() }.forEach { file ->
-            if (totalBytes <= maxCacheBytes) return@withContext
+            if (totalBytes <= maxCacheBytes) return
             totalBytes -= file.length()
             file.delete()
         }
     }
 
-    private fun downloadResizedJpeg(url: String, target: File, bearerToken: String? = null) {
+    private suspend fun downloadResizedJpeg(url: String, target: File, bearerToken: String? = null) {
         val bytes = httpGetBytes(url, bearerToken)
         val options = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
@@ -257,19 +282,13 @@ class AmbientPhotoCacheRepository(
         bitmap.recycle()
     }
 
-    private fun httpGetBytes(url: String, bearerToken: String? = null): ByteArray {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15_000
-            readTimeout = 30_000
-            instanceFollowRedirects = true
-            setRequestProperty("User-Agent", "LRHQ Ambient Cache")
-            bearerToken?.let { setRequestProperty("Authorization", "Bearer $it") }
-        }
-        return connection.inputStream.use { input ->
-            ByteArrayOutputStream().use { output ->
-                input.copyTo(output)
-                output.toByteArray()
-            }
+    private suspend fun httpGetBytes(url: String, bearerToken: String? = null): ByteArray {
+        val requestBuilder = Request.Builder()
+            .url(url)
+            .header("User-Agent", "LRHQ Ambient Cache")
+        bearerToken?.let { requestBuilder.header("Authorization", "Bearer $it") }
+        return LrhqHttpClient.client.newCall(requestBuilder.build()).execute().use { response ->
+            response.body?.bytes() ?: throw IllegalStateException("Empty response body")
         }
     }
 

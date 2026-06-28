@@ -38,9 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -94,6 +96,15 @@ fun Sidebar(
 ) {
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(expanded) { onExpandedChanged(expanded) }
+    var pendingSelection by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(pendingSelection) {
+        if (pendingSelection) {
+            withFrameNanos { }
+            focusManager.moveFocus(FocusDirection.Right)
+            pendingSelection = false
+        }
+    }
     val width by animateDpAsState(if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH, label = "sidebarWidth")
     val scrimAlpha by animateFloatAsState(if (expanded) 0.6f else 0f, label = "scrimAlpha")
 
@@ -132,14 +143,6 @@ fun Sidebar(
                 .focusGroup()
                 .onFocusChanged { expanded = it.hasFocus },
         ) {
-            if (!expanded) {
-                LauncherBrandMark(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 20.dp),
-                )
-            }
-
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -163,7 +166,10 @@ fun Sidebar(
                         icon = item.icon,
                         active = currentZone == item.zone,
                         expanded = expanded,
-                        onClick = { onZoneSelected(item.zone) },
+                        onClick = {
+                            onZoneSelected(item.zone)
+                            pendingSelection = true
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(itemFocusRequesters.getValue(item.zone)),

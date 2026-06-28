@@ -67,7 +67,10 @@ internal fun RecentChannelsRow(
     if (recentList.isEmpty()) {
         Text("No channels yet — add an M3U playlist in Settings to begin.", style = HqType.Body)
     } else {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(horizontal = 6.dp),
+        ) {
             itemsIndexed(recentList, key = { _, channel -> "${channel.id}_${channel.number}" }) { index, channel ->
                 RecentChannelChip(
                     channel = channel,

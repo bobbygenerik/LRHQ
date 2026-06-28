@@ -128,6 +128,7 @@ fun HomeScreen(
 
     val density = LocalDensity.current
     val scrollScope = rememberCoroutineScope()
+    val recentFocusRequester = remember { FocusRequester() }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -252,13 +253,14 @@ fun HomeScreen(
                     )
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = viewportHeight)
-                        .background(Color.Transparent)
-                        .homeZonePadding()
-                        .onFocusChanged {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = viewportHeight)
+                            .background(Color.Transparent)
+                            .homeZonePadding()
+                            .focusProperties { enter = { recentFocusRequester } }
+                            .onFocusChanged {
                             val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
                             if (it.hasFocus && scrollState.value < targetScroll) {
                                 scrollScope.launch { scrollState.animateScrollTo(targetScroll) }
@@ -269,6 +271,7 @@ fun HomeScreen(
                         app = app,
                         channels = channels,
                         recents = recents,
+                        firstItemFocusRequester = recentFocusRequester,
                         onUpPressed = {
                             scrollScope.launch {
                                 scrollState.animateScrollTo(0)

@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
@@ -35,6 +38,7 @@ internal fun OnNowRail(
     app: HqApplication,
     items: List<Pair<Channel, Program>>,
     nowMillis: Long,
+    firstItemFocusRequester: FocusRequester? = null,
     onChannelSelected: (Channel) -> Unit,
 ) {
     if (items.isEmpty()) return
@@ -44,14 +48,20 @@ internal fun OnNowRail(
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp),
     ) {
-        items(items, key = { (channel, _) -> channel.id }) { (channel, program) ->
+        itemsIndexed(items, key = { index, (channel, _) -> channel.id }) { index, (channel, program) ->
             OnNowCard(
                 app = app,
                 channel = channel,
                 program = program,
                 nowMillis = nowMillis,
                 onClick = { onChannelSelected(channel) },
+                modifier = if (index == 0 && firstItemFocusRequester != null) {
+                    Modifier.focusRequester(firstItemFocusRequester)
+                } else {
+                    Modifier
+                },
             )
         }
     }
@@ -64,10 +74,11 @@ private fun OnNowCard(
     program: Program,
     nowMillis: Long,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     FocusableGlassCard(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .width(200.dp)
             .height(124.dp)
             .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),
