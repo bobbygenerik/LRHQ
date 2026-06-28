@@ -1,7 +1,6 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.BuildConfig
-import com.livingroomhq.core.data.net.LrhqHttpClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -9,12 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.net.HttpURLConnection
 import java.net.URLEncoder
+import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 import kotlin.math.max
@@ -142,6 +139,7 @@ class GooglePhotosPickerClient(
                 error = null,
             )
         }.onFailure { error ->
+            error.printStackTrace()
             _state.value = _state.value.copy(
                 isBusy = false,
                 status = if (sync) {
@@ -157,6 +155,11 @@ class GooglePhotosPickerClient(
     private fun humanizePickerError(error: Throwable): String {
         val message = error.message.orEmpty()
         return when {
+            message.contains("client_secret", ignoreCase = true) ||
+                message.contains("missing required parameter", ignoreCase = true) ->
+                "Google requires a client secret for this OAuth client type. " +
+                    "Even for TV clients, Google Cloud Console provides a client secret. " +
+                    "Please copy the client secret from Google Cloud Console and add it to googlePhotos.clientSecret in local.properties."
             message.contains("Invalid device flow scope", ignoreCase = true) ||
                 message.contains("invalid_scope", ignoreCase = true) ->
                 "This TV OAuth client can only request profile during sign-in. " +
@@ -244,7 +247,7 @@ class GooglePhotosPickerClient(
                 put("device_code", device.deviceCode)
                 put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
             }
-            val response = postFormResult("https://oauth2.googleapis.com/token", params)
+            val response = postFormResult("https://oauth2.googleapis.com/token", params, throwOnError = false)
             val error = response.optString("error")
             when {
                 response.has("access_token") -> {
@@ -324,12 +327,13 @@ class GooglePhotosPickerClient(
 
     private fun deleteSession(accessToken: String, sessionId: String) {
         runCatching {
-            val request = Request.Builder()
-                .url("https://photospicker.googleapis.com/v1/sessions/${sessionId.urlEncode()}")
-                .delete()
-                .header("Authorization", "Bearer $accessToken")
-                .build()
-            LrhqHttpClient.client.newCall(request).execute().close()
+            val connection = (URL("https://photospicker.googleapis.com/v1/sessions/${sessionId.urlEncode()}").openConnection() as HttpURLConnection).apply {
+                requestMethod = "DELETE"
+                connectTimeout = 15_000
+                readTimeout = 15_000
+                setRequestProperty("Authorization", "Bearer $accessToken")
+            }
+            connection.inputStream.use { it.readBytes() }
         }
     }
 
@@ -350,48 +354,55 @@ class GooglePhotosPickerClient(
         return json
     }
 
-    private fun postFormResult(url: String, params: Map<String, String>): JSONObject {
-        val formBody = FormBody.Builder().apply {
-            params.forEach { (key, value) -> add(key, value) }
-        }.build()
-        val request = Request.Builder()
-            .url(url)
-            .post(formBody)
-            .build()
-        return LrhqHttpClient.client.newCall(request).execute().readJson()
+    private fun postFormResult(url: String, params: Map<String, String>, throwOnError: Boolean = true): JSONObject {
+        val body = params.entries.joinToString("&") { "${it.key.urlEncode()}=${it.value.urlEncode()}" }
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            doOutput = true
+            setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+        }
+        connection.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+        return connection.readJson(throwOnError)
     }
 
     private fun postJson(url: String, accessToken: String, body: JSONObject): JSONObject {
-        val requestBody = body.toString()
-            .toRequestBody("application/json".toMediaType())
-        val request = Request.Builder()
-            .url(url)
-            .post(requestBody)
-            .header("Authorization", "Bearer $accessToken")
-            .build()
-        return LrhqHttpClient.client.newCall(request).execute().readJson()
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            doOutput = true
+            setRequestProperty("Authorization", "Bearer $accessToken")
+            setRequestProperty("Content-Type", "application/json")
+        }
+        connection.outputStream.use { it.write(body.toString().toByteArray(StandardCharsets.UTF_8)) }
+        return connection.readJson()
     }
 
     private fun getJson(url: String, accessToken: String): JSONObject {
-        val request = Request.Builder()
-            .url(url)
-            .header("Authorization", "Bearer $accessToken")
-            .build()
-        return LrhqHttpClient.client.newCall(request).execute().readJson()
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            setRequestProperty("Authorization", "Bearer $accessToken")
+        }
+        return connection.readJson()
     }
 
-    private fun okhttp3.Response.readJson(): JSONObject {
-        val text = body?.string().orEmpty()
-        if (!isSuccessful) {
+    private fun HttpURLConnection.readJson(throwOnError: Boolean = true): JSONObject {
+        val stream = if (responseCode in 200..299) inputStream else errorStream
+        val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+        val json = if (text.isBlank()) JSONObject() else JSONObject(text)
+        if (throwOnError && responseCode !in 200..299) {
             val message = runCatching {
-                val json = JSONObject(text)
                 json.optJSONObject("error")?.optString("message")
                     ?: json.optString("error_description")
                     ?: json.optString("error")
             }.getOrNull()?.takeIf { it.isNotBlank() }
-            error(message ?: "HTTP $code")
+            error(message ?: "HTTP $responseCode")
         }
-        return if (text.isBlank()) JSONObject() else JSONObject(text)
+        return json
     }
 }
 

@@ -27,8 +27,7 @@ data class CustomSettings(
     val showWeather: Boolean = true,
     val idleTimeSeconds: Int = 300,
     val animations: String = "Smooth",
-    val soundEffects: Boolean = true,
-    val subtitleLanguage: String = "en",
+    val soundEffects: Boolean = true
 )
 
 val LocalCustomSettings = staticCompositionLocalOf { CustomSettings() }
@@ -47,10 +46,7 @@ object HqColors {
     val GlassStroke = Color(0x14FFFFFF) // Hairline stroke (8% white)
     
     // Dynamic Accent color matching user customization setting
-    private var _accent by mutableStateOf(Color(0xFF2BE080))
-    val Accent: Color get() = _accent
-
-    fun updateAccent(color: Color) { _accent = color }
+    var Accent by mutableStateOf(Color(0xFF2BE080))
     
     // GlassStrokeFocused follows Accent color
     val GlassStrokeFocused: Color get() = Accent

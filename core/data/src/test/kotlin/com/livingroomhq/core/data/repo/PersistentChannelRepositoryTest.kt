@@ -160,7 +160,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { _, block -> block(guide.byteInputStream()) },
+            fetchPlaylistStream = { guide.byteInputStream() },
         )
 
         repo.loadXmltv("http://x/guide.xml")
@@ -200,8 +200,8 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { url, block ->
-                if (url.contains("guide")) block(mixedCaseGuide.byteInputStream()) else block(playlist.byteInputStream())
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) mixedCaseGuide.byteInputStream() else playlist.byteInputStream()
             },
         )
         repo.loadM3u("http://x/list.m3u")
@@ -234,8 +234,8 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { url, block ->
-                if (url.contains("guide")) block(duplicateGuide.byteInputStream()) else block(duplicatePlaylist.byteInputStream())
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) duplicateGuide.byteInputStream() else duplicatePlaylist.byteInputStream()
             },
         )
         repo.loadM3u("http://x/list.m3u")
@@ -271,8 +271,8 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { url, block ->
-                if (url.contains("guide")) block(localGuide.byteInputStream()) else block(localPlaylist.byteInputStream())
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
             },
         )
         repo.loadM3u("http://x/list.m3u")
@@ -309,8 +309,8 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { url, block ->
-                if (url.contains("guide")) block(localGuide.byteInputStream()) else block(localPlaylist.byteInputStream())
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
             },
         )
         bootstrap.loadM3u("http://x/list.m3u")
@@ -324,7 +324,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { _, _ -> error("network unavailable during restore test") },
+            fetchPlaylistStream = { error("network unavailable during restore test") },
         )
         restored.restore()
         advanceUntilIdle()
@@ -342,7 +342,7 @@ class PersistentChannelRepositoryTest {
             prefs = prefs,
             scope = backgroundScope,
             workDispatcher = UnconfinedTestDispatcher(testScheduler),
-            fetchPlaylistStream = { _, block -> block(response.byteInputStream()) },
+            fetchPlaylistStream = { response.byteInputStream() },
         )
 
     @Test
@@ -356,7 +356,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
-            fetchPlaylistStream = { _, block -> block(guide.byteInputStream()) },
+            fetchPlaylistStream = { guide.byteInputStream() },
         )
         repo.loadXmltv("http://x/guide.xml")
 

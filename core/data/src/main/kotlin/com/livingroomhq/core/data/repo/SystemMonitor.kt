@@ -27,13 +27,6 @@ class SystemMonitor(
     private val intervalMillis: Long = 2_000L,
 ) {
 
-    private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-    private val reusedMemoryInfo = ActivityManager.MemoryInfo()
-    private val ramTotalMbCached: Long by lazy {
-        activityManager.getMemoryInfo(reusedMemoryInfo)
-        reusedMemoryInfo.totalMem / (1024 * 1024)
-    }
-
     fun stats(): Flow<SystemStats> = flow {
         var lastCpu = readCpuTicks()
         var lastRx = TrafficStats.getTotalRxBytes()
@@ -55,17 +48,13 @@ class SystemMonitor(
             val upKbps = ((tx - lastTx) / 1024f / seconds).toLong().coerceAtLeast(0)
             lastRx = rx; lastTx = tx; lastAt = now
 
-            activityManager.getMemoryInfo(reusedMemoryInfo)
-            val usedMb = (reusedMemoryInfo.totalMem - reusedMemoryInfo.availMem) / (1024 * 1024)
-            val storage = storageStats()
-
             emit(
                 SystemStats(
                     cpuPercent = cpuPercent,
-                    ramUsedMb = usedMb,
-                    ramTotalMb = ramTotalMbCached,
-                    storageUsedBytes = storage.second,
-                    storageTotalBytes = storage.first,
+                    ramUsedMb = ramUsedMb(),
+                    ramTotalMb = ramTotalMb(),
+                    storageUsedBytes = storageUsed(),
+                    storageTotalBytes = storageTotal(),
                     networkDownKbps = downKbps,
                     networkUpKbps = upKbps,
                     vpnActive = isVpnActive(),
@@ -91,12 +80,17 @@ class SystemMonitor(
         return ((totalDelta - idleDelta).toFloat() / totalDelta * 100f).coerceIn(0f, 100f)
     }
 
-    private fun storageStats(): Pair<Long, Long> {
-        val stat = StatFs(Environment.getDataDirectory().path)
-        val total = stat.blockCountLong * stat.blockSizeLong
-        val used = (stat.blockCountLong - stat.availableBlocksLong) * stat.blockSizeLong
-        return total to used
+    private fun memoryInfo(): ActivityManager.MemoryInfo {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        return ActivityManager.MemoryInfo().also(am::getMemoryInfo)
     }
+
+    private fun ramTotalMb() = memoryInfo().totalMem / (1024 * 1024)
+    private fun ramUsedMb() = memoryInfo().let { (it.totalMem - it.availMem) / (1024 * 1024) }
+
+    private fun dataStat() = StatFs(Environment.getDataDirectory().path)
+    private fun storageTotal() = dataStat().let { it.blockCountLong * it.blockSizeLong }
+    private fun storageUsed() = dataStat().let { (it.blockCountLong - it.availableBlocksLong) * it.blockSizeLong }
 
     private fun isVpnActive(): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

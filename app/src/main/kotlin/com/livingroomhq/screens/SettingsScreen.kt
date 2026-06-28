@@ -183,11 +183,6 @@ fun SettingsScreen(
 
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
-                    SubtitleSettingsPanel(
-                        translationEngine = app.translationEngine,
-                        settings = settings,
-                        onSettingsChanged = onSettingsChanged,
-                    )
                     AmbientPhotosSettingsPanel(
                         importText = ambientPhotoImportText,
                         cacheStats = ambientPhotoCacheStats,
@@ -220,9 +215,10 @@ fun SettingsScreen(
                             coroutineScope.launch {
                                 maintenanceBusy = true
                                 maintenanceStatus = "Running device maintenance..."
-                            runCatching {
-                                app.channels.runMaintenance()
-                            }
+                                runCatching {
+                                    app.channels.runMaintenance()
+                                    app.ambientPhotoCache.trimToCacheLimit()
+                                }
                                     .onSuccess {
                                         maintenanceBusy = false
                                         maintenanceStatus = "Maintenance completed: Pruned old programs. Cache size optimized."

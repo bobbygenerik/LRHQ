@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Error
@@ -44,7 +43,6 @@ import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.translate.TranslationEngine
 
 @Composable
 internal fun LiveTvSettingsPanel(
@@ -499,92 +497,6 @@ internal fun DeviceCareAndSystemPanel(
                             modifier = Modifier.size(16.dp),
                         )
                     },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun SubtitleSettingsPanel(
-    translationEngine: TranslationEngine,
-    settings: CustomSettings,
-    onSettingsChanged: (CustomSettings) -> Unit,
-) {
-    val installedModels = translationEngine.installedModels()
-    
-    Spacer(Modifier.height(4.dp))
-    Text("SUBTITLE TRANSLATION", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
-    GlassPanel(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                "Automatically translate embedded subtitles from foreign language channels to English using on-device AI models.",
-                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Auto-translate subtitles", style = HqType.Label)
-                CustomButtonToggle(
-                    options = listOf("On", "Off"),
-                    selected = if (settings.subtitleLanguage != "off") "On" else "Off",
-                    onSelected = { 
-                        onSettingsChanged(settings.copy(subtitleLanguage = if (it == "On") "en" else "off")) 
-                    },
-                )
-            }
-            
-            if (installedModels.isEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Error,
-                        contentDescription = null,
-                        tint = HqColors.Warning,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "No translation models installed",
-                        style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Warning),
-                    )
-                }
-                Text(
-                    "Bundle OPUS-MT models in app/src/main/assets/translation_models/ to enable translation. See README for instructions.",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
-                )
-            } else {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Installed language models:",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
-                )
-                installedModels.forEach { model ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 2.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ClosedCaption,
-                            contentDescription = null,
-                            tint = HqColors.Accent,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            model,
-                            style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary),
-                        )
-                    }
-                }
-                Text(
-                    "Models use ~15-20MB RAM each. Only one model loads at a time to conserve memory.",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
                 )
             }
         }

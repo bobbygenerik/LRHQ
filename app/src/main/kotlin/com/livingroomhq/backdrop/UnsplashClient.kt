@@ -1,11 +1,11 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.BuildConfig
-import com.livingroomhq.core.data.net.LrhqHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.Request
 import org.json.JSONArray
+import java.net.HttpURLConnection
+import java.net.URL
 import java.net.URLEncoder
 
 /**
@@ -30,14 +30,16 @@ object UnsplashClient {
 
         runCatching {
             val q = URLEncoder.encode(query, "UTF-8")
-            val endpoint =
+            val endpoint = URL(
                 "https://api.unsplash.com/photos/random" +
-                    "?orientation=landscape&count=$count&query=$q&client_id=$key"
-            val request = Request.Builder()
-                .url(endpoint)
-                .header("Accept-Version", "v1")
-                .build()
-            val body = LrhqHttpClient.client.newCall(request).execute().use { it.body!!.string() }
+                    "?orientation=landscape&count=$count&query=$q&client_id=$key",
+            )
+            val conn = (endpoint.openConnection() as HttpURLConnection).apply {
+                setRequestProperty("Accept-Version", "v1")
+                connectTimeout = 8_000
+                readTimeout = 8_000
+            }
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
 
             val arr = JSONArray(body)
             val photos = ArrayList<AmbientPhoto>(arr.length())
@@ -54,10 +56,13 @@ object UnsplashClient {
                         profileUrl = profile?.let { it + UTM },
                     ),
                 )
+                // Unsplash API guideline: ping the download endpoint on use.
                 runCatching {
                     val dl = photo.getJSONObject("links").getString("download_location")
-                    val pingRequest = Request.Builder().url("$dl&client_id=$key").build()
-                    LrhqHttpClient.client.newCall(pingRequest).execute().close()
+                    (URL("$dl&client_id=$key").openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 5_000
+                        readTimeout = 5_000
+                    }.inputStream.close()
                 }
             }
             photos

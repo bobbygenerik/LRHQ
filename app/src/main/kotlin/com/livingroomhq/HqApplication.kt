@@ -1,8 +1,6 @@
 package com.livingroomhq
 
 import android.app.Application
-import coil.Coil
-import coil.ImageLoader
 import com.livingroomhq.backdrop.AmbientBackdrops
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.AmbientPhotoCacheRepository
@@ -25,7 +23,6 @@ import com.livingroomhq.core.widget.WidgetRegistry
 import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
-import com.livingroomhq.translate.TranslationEngine
 import com.livingroomhq.ui.UiMessages
 import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.io.File
+import kotlinx.coroutines.runBlocking
 
 /**
  * Composition root. The launcher must cold-start fast, so wiring is plain
@@ -67,10 +64,6 @@ class HqApplication : Application() {
     val googlePhotosPicker: GooglePhotosPickerClient by lazy { GooglePhotosPickerClient(ambientPhotoCache) }
     val livePreviewEngine: LivePreviewEngine by lazy { LivePreviewEngine(this) }
     val fullscreenFocusReturn: FullscreenFocusReturn by lazy { FullscreenFocusReturn() }
-    val translationEngine: TranslationEngine by lazy { TranslationEngine(this) }
-
-    private val _ready = MutableStateFlow(false)
-    val ready: StateFlow<Boolean> = _ready.asStateFlow()
 
     private val _ambientBackdropPhotos = MutableStateFlow(AmbientBackdrops.photos)
     private val _remoteAmbientPhotos = MutableStateFlow(AmbientBackdrops.photos)
@@ -80,17 +73,12 @@ class HqApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        Coil.setImageLoader(
-            ImageLoader.Builder(this)
-                .crossfade(true)
-                .build(),
-        )
-        appScope.launch(Dispatchers.IO) {
-            copyTranslationModels()
+        // Room open + channel restore must not run on the main thread during first
+        // composition — a large EPG WAL can take seconds and ANR the launcher.
+        runBlocking(Dispatchers.IO) {
             database
             channels
             ambientPhotoCache.restore()
-            _ready.value = true
         }
         // Keep the system Watch Next row in step with the library.
         appScope.launch {
@@ -110,21 +98,6 @@ class HqApplication : Application() {
             val photos = UnsplashClient.fetchLandscapePhotos()
             if (photos.isNotEmpty()) {
                 _remoteAmbientPhotos.value = photos
-            }
-        }
-    }
-
-    private fun copyTranslationModels() {
-        val target = File(filesDir, "translation_models")
-        if (target.exists()) return
-        val languages = assets.list("translation_models") ?: return
-        for (lang in languages) {
-            val dest = File(target, lang).apply { mkdirs() }
-            val files = assets.list("translation_models/$lang") ?: continue
-            for (file in files) {
-                File(dest, file).outputStream().use { out ->
-                    assets.open("translation_models/$lang/$file").copyTo(out)
-                }
             }
         }
     }

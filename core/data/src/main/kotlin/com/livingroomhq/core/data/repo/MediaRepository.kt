@@ -3,18 +3,14 @@ package com.livingroomhq.core.data.repo
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import androidx.core.content.ContextCompat
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,32 +36,13 @@ class LocalMediaRepository(
     private val _library = MutableStateFlow<List<MediaItem>>(emptyList())
     override val library: StateFlow<List<MediaItem>> = _library.asStateFlow()
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var debounceJob: Job? = null
-    private val observer = object : ContentObserver(handler) {
-        override fun onChange(selfChange: Boolean) {
-            debounceJob?.cancel()
-            debounceJob = scope.launch {
-                delay(2_000)
-                refresh()
-            }
-        }
-    }
-
     init {
         refresh()
-        val resolver = context.contentResolver
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            resolver.registerContentObserver(
-                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
-                true,
-                observer,
-            )
-            resolver.registerContentObserver(
-                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
-                true,
-                observer,
-            )
+        scope.launch {
+            while (true) {
+                delay(60_000)
+                refresh()
+            }
         }
     }
 

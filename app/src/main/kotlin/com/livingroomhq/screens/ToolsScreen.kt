@@ -42,7 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -58,15 +60,14 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
-import com.livingroomhq.core.ui.components.GlassPanel
+import com.livingroomhq.core.ui.components.ModalGlassPanel
+import com.livingroomhq.core.ui.components.ModalTitle
+import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.core.ui.components.EmptyStatePanel
-import com.livingroomhq.core.ui.components.ModalGlassPanel
-import com.livingroomhq.core.ui.components.ModalTitle
-import com.livingroomhq.core.ui.components.initialFocus
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.ui.UiMessages
@@ -119,6 +120,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
 
     val gridState = rememberLazyGridState()
     val moverFocus = remember { FocusRequester() }
+    val firstItemFocusRequester = remember { FocusRequester() }
     var moveTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(moveTick, movingPackage) {
         val pkg = movingPackage ?: return@LaunchedEffect
@@ -149,7 +151,6 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
 
     fun openApp(packageName: String) {
         if (!app.installedApps.canLaunch()) return
-        focusManager.clearFocus(force = true)
         disarmLaunch()
         app.installedApps.launch(packageName, context)
     }
@@ -169,11 +170,15 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
     BackHandler(enabled = menuPackage != null) { menuPackage = null }
     BackHandler(enabled = movingPackage != null) { cancelMove() }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .focusProperties { enter = { firstItemFocusRequester } }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .zonePadding(),
         ) {
             Text("APPS", style = HqType.Title)
             Spacer(Modifier.height(4.dp))
@@ -194,14 +199,13 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No installed applications found", style = HqType.Body)
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Install apps from the Play Store, or use App Manager in Settings to review installed packages.",
-                            style = HqType.Label.copy(color = HqColors.TextTertiary),
-                        )
-                    }
+                    EmptyStatePanel(
+                        title = "No apps found",
+                        message = "Install apps from the Play Store, then return here to launch and organize them.",
+                        icon = Icons.Default.Apps,
+                        actionLabel = "Open Settings",
+                        onAction = { nav.goTo(Zone.SETTINGS) },
+                    )
                 }
             } else {
                 LazyVerticalGrid(
@@ -209,10 +213,16 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                     state = gridState,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 36.dp),
+                    // Horizontal inset so focus-scaled edge cards don't clip.
+                    contentPadding = PaddingValues(
+                        start = HqDimens.GridEdgeInset,
+                        end = HqDimens.GridEdgeInset,
+                        top = HqDimens.GridEdgeInset,
+                        bottom = 36.dp,
+                    ),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    items(apps, key = { it.packageName }) { entry ->
+                    itemsIndexed(apps, key = { _, app -> app.packageName }) { index, entry ->
                         val isMoving = entry.packageName == movingPackage
                         AppCard(
                             entry = entry,
@@ -228,8 +238,8 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                             onDisarm = {
                                 if (armedPackage == entry.packageName) disarmLaunch()
                             },
-                            moveModifier = if (isMoving) {
-                                Modifier
+                            moveModifier = when {
+                                isMoving -> Modifier
                                     .focusRequester(moverFocus)
                                     .onPreviewKeyEvent { ev ->
                                         if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent true
@@ -243,9 +253,9 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                                         }
                                         true
                                     }
-                            } else {
-                                Modifier
+                                else -> Modifier
                             },
+                            modifier = if (index == 0) Modifier.initialFocus(firstItemFocusRequester) else Modifier
                         )
                     }
                 }
@@ -286,36 +296,39 @@ private fun AppCard(
     onLongClick: () -> Unit,
     onDisarm: () -> Unit,
     moveModifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val cardModifier = Modifier
         .fillMaxWidth()
-        .height(72.dp)
+        .height(148.dp)
         .onFocusChanged { if (!it.isFocused) onDisarm() }
         .then(
             when {
-                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(8.dp))
-                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(HqDimens.CornerMd))
+                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(HqDimens.CornerMd))
                 else -> Modifier
             },
         )
         .then(moveModifier)
+        .then(modifier)
 
     FocusableGlassCard(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = cardModifier,
-        cornerRadius = 8.dp,
+        cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(12.dp),
         sheenOnFocus = false,
     ) { focused ->
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize(),
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(HqDimens.CornerMd))
                     .background(HqColors.IconWell),
                 contentAlignment = Alignment.Center,
             ) {
@@ -335,39 +348,31 @@ private fun AppCard(
                         imageVector = Icons.Default.Apps,
                         contentDescription = null,
                         tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(32.dp),
                     )
                 }
             }
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = entry.label,
-                    style = HqType.Body.copy(
-                        color = HqColors.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                    ),
-                    maxLines = 1,
-                )
-                Text(
-                    text = when {
-                        isArmed -> "PRESS OK AGAIN"
-                        entry.isTvApp -> "TV APP"
-                        else -> "MOBILE APP"
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = entry.label,
+                style = HqType.CardTitle,
+                maxLines = 2,
+            )
+            Text(
+                text = when {
+                    isArmed -> "Press OK again"
+                    entry.isTvApp -> "TV app"
+                    else -> "Mobile app"
+                },
+                style = HqType.CardCaption.copy(
+                    color = when {
+                        isArmed -> HqColors.Accent
+                        entry.isTvApp -> HqColors.Accent
+                        else -> HqColors.TextSecondary
                     },
-                    style = HqType.Label.copy(
-                        color = when {
-                            isArmed -> HqColors.Accent
-                            entry.isTvApp -> HqColors.Accent
-                            else -> HqColors.TextSecondary
-                        },
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    maxLines = 1,
-                )
-            }
+                ),
+                maxLines = 1,
+            )
         }
     }
 }
@@ -398,10 +403,7 @@ private fun AppActionMenu(
             },
         contentAlignment = Alignment.Center,
     ) {
-        ModalGlassPanel(
-            modifier = Modifier.widthIn(min = 260.dp),
-            contentPadding = PaddingValues(24.dp),
-        ) {
+        ModalGlassPanel(modifier = Modifier.width(320.dp)) {
             ModalTitle(label)
             Spacer(Modifier.height(8.dp))
             MenuRow("Open", Modifier.focusRequester(firstFocus), onOpen)
@@ -429,10 +431,8 @@ private fun MenuRow(
         ) {
             Text(
                 text = label,
-                style = HqType.Body.copy(
+                style = HqType.CardTitle.copy(
                     color = if (focused) HqColors.Accent else HqColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
                 ),
                 maxLines = 1,
             )
