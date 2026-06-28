@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -49,7 +50,7 @@ internal fun OnNowRail(
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        contentPadding = PaddingValues(horizontal = 40.dp),
     ) {
         itemsIndexed(items, key = { index, (channel, _) -> channel.id }) { index, (channel, program) ->
             OnNowCard(
@@ -80,6 +81,7 @@ private fun OnNowCard(
     FocusableGlassCard(
         onClick = onClick,
         modifier = modifier
+            .focusable()
             .width(200.dp)
             .height(124.dp)
             .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),

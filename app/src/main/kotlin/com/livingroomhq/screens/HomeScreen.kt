@@ -258,7 +258,11 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .heightIn(min = viewportHeight)
                             .background(Color.Transparent)
-                            .homeZonePadding()
+                            .padding(
+                                start = HqDimens.SafeHorizontal,
+                                top = HqDimens.SafeVertical,
+                                bottom = HqDimens.SafeVertical,
+                            )
                             .focusProperties { enter = { recentFocusRequester } }
                             .onFocusChanged {
                             val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
