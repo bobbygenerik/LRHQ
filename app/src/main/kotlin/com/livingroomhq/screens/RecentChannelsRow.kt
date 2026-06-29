@@ -70,7 +70,7 @@ internal fun RecentChannelsRow(
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(horizontal = 40.dp),
+            contentPadding = PaddingValues(start = 6.dp, end = 40.dp),
         ) {
             itemsIndexed(recentList, key = { _, channel -> "${channel.id}_${channel.number}" }) { index, channel ->
                 RecentChannelChip(

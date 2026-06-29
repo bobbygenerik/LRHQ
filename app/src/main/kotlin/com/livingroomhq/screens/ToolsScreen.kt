@@ -404,11 +404,12 @@ private fun AppActionMenu(
         contentAlignment = Alignment.Center,
     ) {
         ModalGlassPanel(modifier = Modifier.width(320.dp)) {
-            ModalTitle(label)
-            Spacer(Modifier.height(8.dp))
-            MenuRow("Open", Modifier.focusRequester(firstFocus), onOpen)
-            MenuRow("App settings", onClick = onSettings)
-            MenuRow("Move", onClick = onMove)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ModalTitle(label)
+                MenuRow("Open", Modifier.focusRequester(firstFocus), onOpen)
+                MenuRow("App settings", onClick = onSettings)
+                MenuRow("Move", onClick = onMove)
+            }
         }
     }
 }

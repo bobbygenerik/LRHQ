@@ -13,23 +13,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.fullscreenFocusRestore
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
-import com.livingroomhq.core.ui.components.FocusableGlassCard
+import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -50,7 +55,7 @@ internal fun OnNowRail(
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 40.dp),
+        contentPadding = PaddingValues(start = 6.dp, end = 40.dp),
     ) {
         itemsIndexed(items, key = { index, (channel, _) -> channel.id }) { index, (channel, program) ->
             OnNowCard(
@@ -78,17 +83,20 @@ private fun OnNowCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FocusableGlassCard(
-        onClick = onClick,
+    var focused by remember { mutableStateOf(false) }
+    GlassPanel(
         modifier = modifier
             .focusable()
+            .onFocusChanged { focused = it.isFocused }
+            .clickable { onClick() }
             .width(200.dp)
             .height(124.dp)
             .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),
+        focused = focused,
         cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(14.dp),
         sheenOnFocus = false,
-    ) { focused ->
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
