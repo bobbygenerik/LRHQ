@@ -57,13 +57,12 @@ class GooglePhotosPickerClient(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val clientId = BuildConfig.GOOGLE_PHOTOS_CLIENT_ID
-    private val clientSecret = BuildConfig.GOOGLE_PHOTOS_CLIENT_SECRET
 
     private val _state = MutableStateFlow(
         GooglePhotosPickerState(
             isConfigured = clientId.isNotBlank(),
             status = if (clientId.isBlank()) {
-                "Add Google Photos credentials to local.properties."
+                "Add a Google Photos client ID to local.properties."
             } else {
                 "Ready to connect Google Photos."
             },
@@ -240,7 +239,6 @@ class GooglePhotosPickerClient(
             delay(intervalSeconds * 1000L)
             val params = buildMap {
                 put("client_id", clientId)
-                if (clientSecret.isNotBlank()) put("client_secret", clientSecret)
                 put("device_code", device.deviceCode)
                 put("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
             }

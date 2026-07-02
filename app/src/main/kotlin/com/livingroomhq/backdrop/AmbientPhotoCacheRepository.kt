@@ -261,34 +261,49 @@ class AmbientPhotoCacheRepository(
     }
 
     private suspend fun downloadResizedJpeg(url: String, target: File, bearerToken: String? = null) {
-        val bytes = httpGetBytes(url, bearerToken)
+        val temp = File.createTempFile("ambient_photo_", ".download", cacheDir)
+        try {
+            httpDownloadToFile(url, temp, bearerToken)
+            decodeResizedJpeg(temp, target)
+        } finally {
+            temp.delete()
+        }
+    }
+
+    private fun decodeResizedJpeg(source: File, target: File) {
         val options = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
         }
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+        BitmapFactory.decodeFile(source.absolutePath, options)
         val sampleSize = calculateSampleSize(options.outWidth, options.outHeight)
-        val bitmap = BitmapFactory.decodeByteArray(
-            bytes,
-            0,
-            bytes.size,
+        val bitmap = BitmapFactory.decodeFile(
+            source.absolutePath,
             BitmapFactory.Options().apply { inSampleSize = sampleSize },
         ) ?: error("Unsupported image")
 
-        val resized = bitmap.resizedToFit(1920, 1080)
-        target.outputStream().use { out ->
-            resized.compress(Bitmap.CompressFormat.JPEG, 84, out)
+        var resized: Bitmap? = null
+        try {
+            resized = bitmap.resizedToFit(1920, 1080)
+            target.outputStream().use { out ->
+                resized.compress(Bitmap.CompressFormat.JPEG, 84, out)
+            }
+        } finally {
+            if (resized != null && resized !== bitmap) resized.recycle()
+            bitmap.recycle()
         }
-        if (resized !== bitmap) resized.recycle()
-        bitmap.recycle()
     }
 
-    private suspend fun httpGetBytes(url: String, bearerToken: String? = null): ByteArray {
+    private suspend fun httpDownloadToFile(url: String, target: File, bearerToken: String? = null) {
         val requestBuilder = Request.Builder()
             .url(url)
             .header("User-Agent", "LRHQ Ambient Cache")
         bearerToken?.let { requestBuilder.header("Authorization", "Bearer $it") }
-        return LrhqHttpClient.client.newCall(requestBuilder.build()).execute().use { response ->
-            response.body?.bytes() ?: throw IllegalStateException("Empty response body")
+        LrhqHttpClient.client.newCall(requestBuilder.build()).execute().use { response ->
+            if (!response.isSuccessful) error("HTTP ${response.code}")
+            val body = response.body ?: throw IllegalStateException("Empty response body")
+            target.outputStream().use { out ->
+                body.byteStream().copyTo(out)
+            }
         }
     }
 

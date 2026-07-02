@@ -16,10 +16,6 @@ val googlePhotosClientId: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("googlePhotos.clientId", "")
-val googlePhotosClientSecret: String = Properties().apply {
-    val f = rootProject.file("local.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
-}.getProperty("googlePhotos.clientSecret", "")
 val releaseSigningProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -38,7 +34,6 @@ android {
 
         buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"$unsplashAccessKey\"")
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
-        buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_SECRET", "\"$googlePhotosClientSecret\"")
     }
 
     signingConfigs {

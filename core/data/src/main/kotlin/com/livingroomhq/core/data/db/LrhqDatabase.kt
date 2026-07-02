@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChannelEntity::class, ProgramEntity::class, GuideChannelEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class LrhqDatabase : RoomDatabase() {
@@ -51,13 +51,31 @@ abstract class LrhqDatabase : RoomDatabase() {
             }
         }
 
+        /** Add composite indices for hot EPG window lookups. */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS index_programs_channelId_endMillis_startMillis
+                    ON programs(channelId, endMillis, startMillis)
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS index_programs_endMillis_startMillis
+                    ON programs(endMillis, startMillis)
+                    """.trimIndent(),
+                )
+            }
+        }
+
         fun build(context: Context): LrhqDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
                 LrhqDatabase::class.java,
                 "lrhq_launcher.db"
             )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
     }
 }

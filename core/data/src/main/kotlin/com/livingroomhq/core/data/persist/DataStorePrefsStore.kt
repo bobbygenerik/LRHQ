@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 private val Context.launcherDataStore by preferencesDataStore(name = "launcher_prefs")
@@ -47,10 +48,14 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
         }
 
     override val playlistUrl: Flow<String?> =
-        store.data.map { it[Keys.PLAYLIST_URL] ?: "https://opop.pro/mpjJUXrysJKL" }
+        store.data
+            .map { it[Keys.PLAYLIST_URL] }
+            .distinctUntilChanged()
 
     override val epgUrl: Flow<String?> =
-        store.data.map { it[Keys.EPG_URL] ?: "https://dragtvplus.lol/xmltv.php?username=bobby&password=09052757" }
+        store.data
+            .map { it[Keys.EPG_URL] }
+            .distinctUntilChanged()
 
     override val defaultPromptDismissed: Flow<Boolean> =
         store.data.map { it[Keys.PROMPT_DISMISSED] ?: false }

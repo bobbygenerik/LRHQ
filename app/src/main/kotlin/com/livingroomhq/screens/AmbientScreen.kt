@@ -90,7 +90,7 @@ fun AmbientScreen(app: HqApplication) {
             clockTime = ambientTime(context)
             clockMeridiem = ambientMeridiem(context)
             clockDate = ambientDate()
-            delay(1_000)
+            delay(30_000)
         }
     }
 

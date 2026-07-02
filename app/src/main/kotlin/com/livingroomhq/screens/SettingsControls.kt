@@ -82,18 +82,19 @@ internal fun GlassTextField(
                 .fillMaxWidth()
                 .focusable()
                 .onPreviewKeyEvent { event ->
-                    if (event.key == Key.DirectionLeft && event.type == KeyEventType.KeyDown) {
-                        val isCursorAtStart = textFieldValue.selection.collapsed && textFieldValue.selection.start == 0
-                        if (isCursorAtStart) {
-                            try {
-                                focusManager.moveFocus(FocusDirection.Left)
-                                true
-                            } catch (e: Exception) {
-                                false
-                            }
-                        } else {
-                            false
-                        }
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    val selection = textFieldValue.selection
+                    val collapsed = selection.collapsed
+                    val cursor = selection.start
+                    val direction = when (event.key) {
+                        Key.DirectionLeft -> if (collapsed && cursor == 0) FocusDirection.Left else null
+                        Key.DirectionRight -> if (collapsed && cursor == textFieldValue.text.length) FocusDirection.Right else null
+                        Key.DirectionUp -> FocusDirection.Up
+                        Key.DirectionDown -> FocusDirection.Down
+                        else -> null
+                    }
+                    if (direction != null) {
+                        runCatching { focusManager.moveFocus(direction) }.getOrDefault(false)
                     } else {
                         false
                     }

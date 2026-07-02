@@ -83,6 +83,8 @@ import com.livingroomhq.translate.SubtitleCue
 import com.livingroomhq.translate.SubtitleFetcher
 import com.livingroomhq.translate.TranslationOverlay
 
+private const val TRANSLATION_FEATURE_ENABLED = false
+
 class ChannelPlayerActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -153,7 +155,6 @@ private fun ChannelPlayerScreen(
 ) {
     val context = LocalContext.current
     val engine = remember { app.livePreviewEngine }
-    val translator = remember { app.translationEngine }
     val subtitleFetcher = remember { SubtitleFetcher() }
     var currentChannel by remember(initialChannel) { mutableStateOf(initialChannel) }
     var playbackError by remember { mutableStateOf<String?>(null) }
@@ -205,7 +206,7 @@ private fun ChannelPlayerScreen(
     LaunchedEffect(currentChannel.id, subtitlesEnabled) {
         translatedCues = emptyList()
         currentSubtitle = null
-        if (!subtitlesEnabled) {
+        if (!TRANSLATION_FEATURE_ENABLED || !subtitlesEnabled) {
             subtitleStatus = null
             return@LaunchedEffect
         }
@@ -229,7 +230,7 @@ private fun ChannelPlayerScreen(
             return@LaunchedEffect
         }
         subtitleStatus = "Subtitles detected: $lang"
-        val loaded = translator.loadModel(lang, "en")
+        val loaded = app.translationEngine.loadModel(lang, "en")
         if (!loaded) {
             subtitleStatus = "Translation model not available for $lang"
             delay(3_000)
@@ -248,7 +249,7 @@ private fun ChannelPlayerScreen(
         subtitleStatus = "Translating subtitles..."
         val cues = subtitleFetcher.fetchCues(matchingTrack.url)
         val translated = cues.map { cue ->
-            val translatedText = translator.translate(cue.text)
+            val translatedText = app.translationEngine.translate(cue.text)
             cue.copy(text = translatedText)
         }
         translatedCues = translated
@@ -504,61 +505,63 @@ private fun ChannelPlayerScreen(
                 }
             }
 
-            AnimatedVisibility(
-                visible = infoVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.TopEnd),
-            ) {
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+            if (TRANSLATION_FEATURE_ENABLED) {
+                AnimatedVisibility(
+                    visible = infoVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.TopEnd),
                 ) {
-                    subtitleStatus?.let { status ->
+                    Row(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        subtitleStatus?.let { status ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xCC000000))
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                            ) {
+                                Text(
+                                    status,
+                                    style = HqType.Label.copy(
+                                        color = HqColors.TextPrimary,
+                                        fontSize = 12.sp,
+                                        shadow = playerTextShadow(),
+                                    ),
+                                )
+                            }
+                        }
+                        var ccFocused by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
+                                .onFocusChanged { ccFocused = it.isFocused }
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xCC000000))
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                .background(
+                                    when {
+                                        subtitlesEnabled -> HqColors.Accent.copy(alpha = 0.9f)
+                                        ccFocused -> Color(0x33FFFFFF)
+                                        else -> Color(0xCC000000)
+                                    }
+                                )
+                                .border(
+                                    width = if (ccFocused) 2.dp else 0.dp,
+                                    color = if (ccFocused) HqColors.Accent else Color.Transparent,
+                                    shape = RoundedCornerShape(8.dp),
+                                )
+                                .clickable { subtitlesEnabled = !subtitlesEnabled }
+                                .focusable()
+                                .padding(12.dp),
                         ) {
-                            Text(
-                                status,
-                                style = HqType.Label.copy(
-                                    color = HqColors.TextPrimary,
-                                    fontSize = 12.sp,
-                                    shadow = playerTextShadow(),
-                                ),
+                            Icon(
+                                imageVector = if (subtitlesEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
+                                contentDescription = if (subtitlesEnabled) "Disable subtitles" else "Enable subtitles",
+                                tint = if (subtitlesEnabled) Color.Black else HqColors.TextPrimary,
+                                modifier = Modifier.size(28.dp),
                             )
                         }
-                    }
-                    var ccFocused by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier
-                            .onFocusChanged { ccFocused = it.isFocused }
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                when {
-                                    subtitlesEnabled -> HqColors.Accent.copy(alpha = 0.9f)
-                                    ccFocused -> Color(0x33FFFFFF)
-                                    else -> Color(0xCC000000)
-                                }
-                            )
-                            .border(
-                                width = if (ccFocused) 2.dp else 0.dp,
-                                color = if (ccFocused) HqColors.Accent else Color.Transparent,
-                                shape = RoundedCornerShape(8.dp),
-                            )
-                            .clickable { subtitlesEnabled = !subtitlesEnabled }
-                            .focusable()
-                            .padding(12.dp),
-                    ) {
-                        Icon(
-                            imageVector = if (subtitlesEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
-                            contentDescription = if (subtitlesEnabled) "Disable subtitles" else "Enable subtitles",
-                            tint = if (subtitlesEnabled) Color.Black else HqColors.TextPrimary,
-                            modifier = Modifier.size(28.dp),
-                        )
                     }
                 }
             }
