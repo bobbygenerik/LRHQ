@@ -1,12 +1,8 @@
 package com.livingroomhq.core.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 
 /**
  * Marks an element to receive focus the first time it enters composition.
@@ -21,13 +17,9 @@ import androidx.compose.ui.focus.focusRequester
  * pass (especially on cold-start when the launcher is the default HOME app).
  * Without this yield, `requestFocus()` can race against
  * `ViewRootImpl.performTraversals`, causing a crash/freeze on Shield TV.
+ *
+ * Prefer [Modifier.tvInitialFocus] for new code.
  */
 @Composable
-fun Modifier.initialFocus(requester: FocusRequester = remember { FocusRequester() }): Modifier {
-    LaunchedEffect(requester) {
-        // Wait for the first frame so the node is attached and laid out.
-        withFrameNanos { }
-        runCatching { requester.requestFocus() }
-    }
-    return focusRequester(requester)
-}
+fun Modifier.initialFocus(requester: FocusRequester = remember { FocusRequester() }): Modifier =
+    tvInitialFocus(requester)

@@ -59,7 +59,7 @@ import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.components.SidebarCollapsedWidth
-import com.livingroomhq.components.fullscreenFocusRestore
+import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.initialFocus
@@ -337,7 +337,7 @@ private fun HomeHero(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .fullscreenFocusRestore(app, homeHeroFocusTarget(), focusRequester)
+            .restoreFocusOnReturn(app.fullscreenFocusReturn, homeHeroFocusTarget(), focusRequester)
             .onFocusChanged {
                 if (it.isFocused) onFocused()
             }

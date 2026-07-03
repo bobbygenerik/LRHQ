@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.livingroomhq.HqApplication
-import com.livingroomhq.components.fullscreenFocusRestore
+import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.tvFocusScale
 import com.livingroomhq.core.ui.theme.HqColors
@@ -77,7 +77,7 @@ internal fun RecentChannelsRow(
                     channel = channel,
                     onClick = { onChannelSelected(channel) },
                     modifier = Modifier
-                        .fullscreenFocusRestore(app, homeRecentFocusTarget(channel.id))
+                        .restoreFocusOnReturn(app.fullscreenFocusReturn, homeRecentFocusTarget(channel.id))
                         .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
                         .onPreviewKeyEvent { keyEvent ->
                             if (onUpPressed != null && keyEvent.key == Key.DirectionUp && keyEvent.type == KeyEventType.KeyDown) {

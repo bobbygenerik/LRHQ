@@ -31,7 +31,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
-import com.livingroomhq.components.fullscreenFocusRestore
+import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.GlassPanel
@@ -91,7 +91,7 @@ private fun OnNowCard(
             .clickable { onClick() }
             .width(200.dp)
             .height(124.dp)
-            .fullscreenFocusRestore(app, homeOnNowFocusTarget(channel.id)),
+            .restoreFocusOnReturn(app.fullscreenFocusReturn, homeOnNowFocusTarget(channel.id)),
         focused = focused,
         cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(14.dp),
