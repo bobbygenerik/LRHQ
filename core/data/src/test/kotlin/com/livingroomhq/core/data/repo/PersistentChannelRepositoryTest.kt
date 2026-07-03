@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -177,9 +178,11 @@ class PersistentChannelRepositoryTest {
         val prefs = InMemoryPrefsStore()
         val repo = repository(prefs, "<tv />")
 
-        val result = runCatching { repo.loadXmltv("http://x/empty.xml") }
-
+        val result = kotlin.runCatching { repo.loadXmltv("http://x/empty.xml") }
         assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        advanceUntilIdle()
+
         assertNull(repo.epgNowNext("one").first)
         assertNull(prefs.epgUrl.first())
     }
@@ -327,7 +330,7 @@ class PersistentChannelRepositoryTest {
             fetchPlaylistStream = { error("network unavailable during restore test") },
         )
         restored.restore()
-        advanceUntilIdle()
+        runCurrent()
 
         assertEquals("ABC World News", restored.epgNowNext(channelId).first?.title)
     }
@@ -364,6 +367,224 @@ class PersistentChannelRepositoryTest {
 
         assertNull(repo.epgNowNext("one").first)
         assertNull(prefs.epgUrl.first())
+    }
+
+    @Test
+    fun `groups reflects distinct group titles from channels`() = runTest(UnconfinedTestDispatcher()) {
+        val multiGroupPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="n1" group-title="News",News One
+            http://s/n1.m3u8
+            #EXTINF:-1 tvg-id="n2" group-title="News",News Two
+            http://s/n2.m3u8
+            #EXTINF:-1 tvg-id="s1" group-title="Sports",Sports One
+            http://s/s1.m3u8
+            #EXTINF:-1 tvg-id="e1" group-title="Entertainment",Entertainment One
+            http://s/e1.m3u8
+        """.trimIndent()
+        val repo = repository(InMemoryPrefsStore(), multiGroupPlaylist)
+        repo.loadM3u("http://x/list.m3u")
+        advanceUntilIdle()
+
+        val result = repo.groups.first()
+        // Groups preserve first-occurrence order (distinct), not sorted
+        assertEquals("News", result[0])
+        assertEquals("Sports", result[1])
+        assertEquals("Entertainment", result[2])
+    }
+
+    @Test
+    fun `channelsByGroup maps channels under correct group keys`() = runTest(UnconfinedTestDispatcher()) {
+        val multiGroupPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="n1" group-title="News",News One
+            http://s/n1.m3u8
+            #EXTINF:-1 tvg-id="n2" group-title="News",News Two
+            http://s/n2.m3u8
+            #EXTINF:-1 tvg-id="s1" group-title="Sports",Sports One
+            http://s/s1.m3u8
+        """.trimIndent()
+        val repo = repository(InMemoryPrefsStore(), multiGroupPlaylist)
+        repo.loadM3u("http://x/list.m3u")
+        advanceUntilIdle()
+
+        val byGroup = repo.channelsByGroup.first()
+        assertEquals(2, byGroup["News"]?.size)
+        assertEquals(1, byGroup["Sports"]?.size)
+        assertNull(byGroup["Movies"])
+    }
+
+    @Test
+    fun `toggleFavorite toggles isFavorite flag in channels state`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = repository(InMemoryPrefsStore(), playlist)
+        repo.loadM3u("http://x/list.m3u")
+        advanceUntilIdle()
+
+        val target = repo.channels.first().first { !it.isFavorite }
+        repo.toggleFavorite(target.id)
+        advanceUntilIdle()
+
+        val updated = repo.channels.first().first { it.id == target.id }
+        assertTrue(updated.isFavorite)
+
+        repo.toggleFavorite(target.id)
+        advanceUntilIdle()
+
+        val reverted = repo.channels.first().first { it.id == target.id }
+        assertFalse(reverted.isFavorite)
+    }
+
+    @Test
+    fun `loadM3u propagates network errors`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { throw java.io.IOException("Simulated network error") },
+        )
+        val result = kotlin.runCatching { repo.loadM3u("http://x/bad.m3u8") }
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is java.io.IOException)
+        advanceUntilIdle()
+        assertTrue(repo.channels.first().isEmpty())
+    }
+
+    @Test
+    fun `loadXmltv propagates network errors`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { throw java.io.IOException("Simulated network error") },
+        )
+        val result = kotlin.runCatching { repo.loadXmltv("http://x/bad.xml") }
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is java.io.IOException)
+        advanceUntilIdle()
+        assertNull(repo.epgNowNext("one").first)
+        assertNull(repo.epgNowNext("one").second)
+    }
+
+    @Test
+    fun `loadM3u deduplicates channels with same tvg id`() = runTest(UnconfinedTestDispatcher()) {
+        val dupPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="dup1" group-title="News",Dup One
+            http://s/1.m3u8
+            #EXTINF:-1 tvg-id="dup1" group-title="News",Dup One (copy)
+            http://s/2.m3u8
+            #EXTINF:-1 tvg-id="dup2" group-title="Sports",Dup Two
+            http://s/3.m3u8
+        """.trimIndent()
+        val repo = repository(InMemoryPrefsStore(), dupPlaylist)
+        repo.loadM3u("http://x/list.m3u")
+        advanceUntilIdle()
+
+        val channels = repo.channels.first()
+        // Parser assigns unique ids via urlHash for duplicate tvg-ids
+        assertTrue(channels.size >= 2)
+        assertEquals("dup1", channels[0].tvgId)
+        assertEquals("dup2", channels.last().tvgId)
+    }
+
+    @Test
+    fun `epg does not match substring channel names`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val guide = """
+            <tv>
+              <channel id="abcnewschannel">
+                <display-name>ABC News</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="abcnewschannel">
+                <title>ABC World News</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="qrs" group-title="News",QRS One
+            http://s/qrs.m3u8
+            #EXTINF:-1 tvg-id="abcnewschannel" group-title="News",ABC News Stream
+            http://s/abcnews.m3u8
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) guide.byteInputStream() else playlist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val channels = repo.channels.first()
+        val qrsChannel = channels.first { it.id.startsWith("qrs") }
+        val abcNewsStream = channels.first { it.id.startsWith("abcnewschannel") }
+
+        // Unrelated tvg-id "qrs" should NOT match guide channel "abcnewschannel"
+        assertNull(repo.epgNowNext(qrsChannel.id).first)
+        // Exact tvg-id "abcnewschannel" SHOULD match
+        assertEquals("ABC World News", repo.epgNowNext(abcNewsStream.id).first?.title)
+        // Exact tvg-id "abcnewschannel" SHOULD match
+        assertEquals("ABC World News", repo.epgNowNext(abcNewsStream.id).first?.title)
+        // Exact tvg-id "abcnewschannel" SHOULD match
+        assertEquals("ABC World News", repo.epgNowNext(abcNewsStream.id).first?.title)
+    }
+
+    @Test
+    fun `restore is idempotent`() = runTest(UnconfinedTestDispatcher()) {
+        val prefs = InMemoryPrefsStore().apply { setPlaylistUrl("http://x/list.m3u") }
+        val repo = repository(prefs, playlist)
+        repo.restore()
+        repo.restore()
+        repo.restore()
+        advanceUntilIdle()
+        assertEquals(listOf("one", "two"), repo.channels.first().map { it.id })
+    }
+
+    @Test
+    fun `epg matches after normalizing hd suffix in channel name`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val guide = """
+            <tv>
+              <channel id="abchd">
+                <display-name>ABC HD</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="abchd">
+                <title>ABC Evening News</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="ABC" group-title="News",ABC
+            http://s/abc.m3u8
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) guide.byteInputStream() else playlist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val channelId = repo.channels.first().single().id
+        assertEquals("ABC Evening News", repo.epgNowNext(channelId).first?.title)
     }
 }
 

@@ -2,36 +2,44 @@
 
 A living-room command center for Android TV — not a grid of icons, not an OS.
 LivingRoom HQ combines IPTV, media discovery, utilities, system monitoring and
-ambient information into one spatial experience that makes the television feel
+ambient information into one unified experience that makes the television feel
 alive before any app is launched.
 
-## Spatial navigation
+## Navigation
 
-The launcher is one continuous space made of four directional zones around Home:
+The launcher uses a collapsible sidebar rail on the left. The rail stays
+icon-only while you browse content and expands when focus moves into it
+(D-pad LEFT). Selecting a tab collapses the rail and moves focus back into
+the main content.
+
+Tabs are ordered top-to-bottom:
 
 ```
-          LIVE
-TOOLS     HOME     MEDIA
-        AMBIENT
+Home
+Live TV
+Apps
+Command Center
+Settings
 ```
 
-- **Up** → Live (IPTV channel surfing: list + always-on preview, now/next EPG)
-- **Right** → Media (cinematic poster rails with an expanding info panel)
-- **Left** → Tools (utility dashboard of intelligent app cards)
-- **Down** → Ambient (idle face: oversized clock, weather, current channel)
-- **Menu** → Command Center (mission-control dashboard: CPU, RAM, storage, network, VPN, services)
-- **Home / Back** → return to center
+- **Home** → IPTV-first landing zone with a live hero and recent-channel rail
+- **Live TV** → Channel grid with always-on preview and now/next EPG
+- **Apps** → Utility dashboard of intelligent app cards
+- **Command Center** → System monitor (CPU, RAM, storage, network, VPN, services)
+- **Settings** → Playlist/EPG sources, weather, and appearance controls
+- **Menu** → Jump directly to Command Center
+- **Double Back** → Enter Ambient Mode
 
-Zone changes slide the world along the axis of travel
-(`navigation/SpatialNavHost.kt`), so moving right genuinely feels like
-travelling right. After three minutes of inactivity the launcher drifts into
-Ambient Mode on its own (`navigation/SpatialNavController.kt`).
+Tab switches animate vertically based on the sidebar order
+(`navigation/LauncherNavHost.kt`). After the configured idle timeout the
+launcher fades into Ambient Mode on its own
+(`navigation/LauncherNavController.kt`).
 
 ## Architecture
 
 | Module | Role |
 | --- | --- |
-| `:app` | Launcher activity, spatial navigation, zone screens, built-in widgets |
+| `:app` | Launcher activity, sidebar tab navigation, zone screens, built-in widgets |
 | `:core:ui` | OLED-dark glassmorphism design system (`GlassPanel`, `StatBar`, `HqColors`, `HqType`) |
 | `:core:data` | Models + repositories: IPTV channels/EPG, media library, system monitor, ambient info, installed apps |
 | `:core:widget` | Widget plugin contract (`WidgetPlugin`, `WidgetRegistry`) — apps are cards, never icons |

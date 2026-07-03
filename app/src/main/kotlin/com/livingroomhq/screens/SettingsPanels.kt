@@ -37,7 +37,7 @@ import com.livingroomhq.backdrop.GooglePhotosPickerState
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.LoadingRow
-import com.livingroomhq.core.ui.components.initialFocus
+import com.livingroomhq.core.ui.components.tvInitialFocus
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.CustomSettings
@@ -76,7 +76,7 @@ internal fun LiveTvSettingsPanel(
                     placeholder = "Enter M3U link...",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .initialFocus(firstFocusRequester),
+                        .tvInitialFocus(firstFocusRequester),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     SettingsActionButton(

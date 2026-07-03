@@ -47,7 +47,7 @@ import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
-import com.livingroomhq.core.ui.components.initialFocus
+import com.livingroomhq.core.ui.components.tvInitialFocus
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -114,7 +114,7 @@ fun CommandCenterScreen(app: HqApplication) {
                     icon = Icons.Default.Computer,
                     description = "System, ${deviceModel}, CPU ${cpu.toInt()} percent",
                     onClick = { open(Settings.ACTION_SETTINGS) },
-                    modifier = Modifier.initialFocus(firstCardFocusRequester),
+                    modifier = Modifier.tvInitialFocus(firstCardFocusRequester),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(

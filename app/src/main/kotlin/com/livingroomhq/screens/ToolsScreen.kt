@@ -62,7 +62,7 @@ import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.ModalGlassPanel
 import com.livingroomhq.core.ui.components.ModalTitle
-import com.livingroomhq.core.ui.components.initialFocus
+import com.livingroomhq.core.ui.components.tvInitialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -255,7 +255,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                                     }
                                 else -> Modifier
                             },
-                            modifier = if (index == 0) Modifier.initialFocus(firstItemFocusRequester) else Modifier
+                            modifier = if (index == 0) Modifier.tvInitialFocus(firstItemFocusRequester) else Modifier
                         )
                     }
                 }

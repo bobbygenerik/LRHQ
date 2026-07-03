@@ -1,16 +1,16 @@
-# Graph Report - LRHQ  (2026-06-24)
+# Graph Report - LRHQ  (2026-07-02)
 
 ## Corpus Check
-- 97 files · ~966,045 words
+- 104 files · ~968,005 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1049 nodes · 1855 edges · 61 communities (50 shown, 11 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 132 edges (avg confidence: 0.8)
+- 1109 nodes · 1982 edges · 64 communities (53 shown, 11 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 135 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a08b5c37`
+- Built from commit: `de38ebef`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -69,19 +69,22 @@
 - [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 57|Community 57]]
 - [[_COMMUNITY_Community 58|Community 58]]
+- [[_COMMUNITY_Community 59|Community 59]]
+- [[_COMMUNITY_Community 60|Community 60]]
+- [[_COMMUNITY_Community 61|Community 61]]
 - [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `PersistentChannelRepository` - 30 edges
-2. `FakeIptvDao` - 27 edges
-3. `HomeScreen()` - 26 edges
-4. `FocusableGlassCard()` - 26 edges
-5. `HqApplication` - 24 edges
-6. `IptvDao` - 23 edges
-7. `InMemoryPrefsStore` - 23 edges
-8. `GlassPanel()` - 23 edges
-9. `AmbientPhotoCacheRepository` - 22 edges
+2. `HqApplication` - 27 edges
+3. `FakeIptvDao` - 27 edges
+4. `HomeScreen()` - 26 edges
+5. `FocusableGlassCard()` - 26 edges
+6. `GlassPanel()` - 24 edges
+7. `AmbientPhotoCacheRepository` - 23 edges
+8. `IptvDao` - 23 edges
+9. `InMemoryPrefsStore` - 23 edges
 10. `GooglePhotosPickerClient` - 22 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -107,7 +110,7 @@
 - **Widget Plugin Contract and Registry** — widget_widgetplugin_widgetplugin, widget_widgetplugin_widgetstate, widget_widgetplugin_widgetstat, widget_widgetregistry_widgetregistry [EXTRACTED 1.00]
 - **Demo Repository Implementations Behind Stable Interfaces** — repo_ambientinforepository_demoambientinforepository, repo_channelrepository_demochannelrepository, repo_mediarepository_demomediarepository, readme_demo_repository_pattern [INFERRED 0.95]
 
-## Communities (61 total, 11 thin omitted)
+## Communities (64 total, 11 thin omitted)
 
 ### Community 0 - "Command Center Dashboard"
 Cohesion: 0.10
@@ -118,12 +121,12 @@ Cohesion: 0.38
 Nodes (6): tvFocusBorder(), tvFocusScale(), Boolean, Dp, Modifier, Shape
 
 ### Community 2 - "IPTV Channels & EPG"
-Cohesion: 0.06
-Nodes (46): LauncherPrefsStore, Modifier, Boolean, LauncherNavController, AmbientPhoto, android, Boolean, Channel (+38 more)
+Cohesion: 0.05
+Nodes (51): LauncherPrefsStore, Modifier, Boolean, LauncherNavController, AmbientPhoto, android, Boolean, Channel (+43 more)
 
 ### Community 3 - "Widget Plugin Contract"
 Cohesion: 0.09
-Nodes (21): Float, Long, Channel, Int, List, Long, Map, Pair (+13 more)
+Nodes (19): Float, Long, Channel, Int, List, Long, Map, Pair (+11 more)
 
 ### Community 4 - "Data Models & Installed Apps"
 Cohesion: 0.09
@@ -138,12 +141,12 @@ Cohesion: 0.14
 Nodes (11): Activity, Boolean, Context, Int, LaunchableApp, List, StateFlow, String (+3 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.15
-Nodes (18): Any, AmbientPhoto, Bitmap, Boolean, Int, List, Long, MutableSet (+10 more)
+Cohesion: 0.16
+Nodes (17): Any, AmbientPhoto, Bitmap, Boolean, Int, List, Long, MutableSet (+9 more)
 
 ### Community 8 - "Main Activity Key Handling"
-Cohesion: 0.09
-Nodes (31): AmbientInfoRepository, AmbientPhotoCacheRepository, Boolean, Channel, List, String, AmbientPhoto, ChannelRepository (+23 more)
+Cohesion: 0.08
+Nodes (33): AmbientInfoRepository, AmbientPhotoCacheRepository, Boolean, Channel, List, String, AmbientPhoto, Boolean (+25 more)
 
 ### Community 9 - "Ambient Info Services"
 Cohesion: 0.22
@@ -154,12 +157,12 @@ Cohesion: 0.06
 Nodes (46): AmbientPhotoCacheStats, Boolean, List, Modifier, String, Boolean, Color, Composable (+38 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.26
-Nodes (16): android, HqApplication, Modifier, String, WidgetPlugin, WidgetState, AmbientClock(), ambientDate() (+8 more)
+Cohesion: 0.21
+Nodes (10): Modifier, Boolean, ImageVector, Modifier, String, Zone, LauncherBrandMark(), NavigationItem (+2 more)
 
 ### Community 13 - "Media Screen UI"
 Cohesion: 0.29
-Nodes (6): Architecture, Building, Design language, Knowledge graph, LivingRoom HQ, Spatial navigation
+Nodes (6): Architecture, Building, Design language, Knowledge graph, LivingRoom HQ, Navigation
 
 ### Community 17 - "Tools Screen"
 Cohesion: 0.10
@@ -186,8 +189,8 @@ Cohesion: 0.15
 Nodes (16): AmbientPhotoCacheSource, Boolean, List, Long, Map, StateFlow, String, DeviceCodeResponse (+8 more)
 
 ### Community 23 - "Community 23"
-Cohesion: 0.06
-Nodes (40): Modifier, WidgetPlugin, WidgetState, Boolean, HqApplication, LaunchableApp, LauncherNavController, List (+32 more)
+Cohesion: 0.07
+Nodes (42): Modifier, WidgetPlugin, WidgetState, Boolean, HqApplication, LaunchableApp, LauncherNavController, List (+34 more)
 
 ### Community 24 - "Community 24"
 Cohesion: 0.23
@@ -202,16 +205,16 @@ Cohesion: 0.29
 Nodes (6): Channel, InputStream, List, MutableSet, String, M3uParser
 
 ### Community 28 - "Community 28"
-Cohesion: 0.07
-Nodes (42): Boolean, Channel, Int, Long, Modifier, String, android, Boolean (+34 more)
+Cohesion: 0.08
+Nodes (37): Boolean, Channel, Int, Long, Modifier, String, android, Boolean (+29 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.14
 Nodes (10): Boolean, ChannelEntity, Flow, GuideChannelEntity, List, Long, ProgramBrief, ProgramEntity (+2 more)
 
 ### Community 30 - "Community 30"
-Cohesion: 0.10
-Nodes (20): android, Bundle, Channel, HqApplication, Shadow, String, Channel, ExoPlayer (+12 more)
+Cohesion: 0.08
+Nodes (23): android, Bundle, Channel, HqApplication, Shadow, String, Channel, ExoPlayer (+15 more)
 
 ### Community 31 - "Community 31"
 Cohesion: 0.10
@@ -226,8 +229,8 @@ Cohesion: 0.16
 Nodes (10): Boolean, Channel, Context, ExoPlayer, Int, MediaItem, String, Tracks (+2 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.18
-Nodes (17): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, AmbientInfoRepository, httpGet() (+9 more)
+Cohesion: 0.16
+Nodes (19): Flow, List, StateFlow, String, WeatherCondition, DownloadJob, ServiceStatus, Weather (+11 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.22
@@ -235,7 +238,7 @@ Nodes (5): List, Map, Program, String, XmltvParserTest
 
 ### Community 37 - "Community 37"
 Cohesion: 0.06
-Nodes (29): Modifier, Boolean, ImageVector, Modifier, String, Zone, Boolean, Bundle (+21 more)
+Nodes (35): Boolean, Bundle, Int, Intent, LauncherNavController, Long, Modifier, Zone (+27 more)
 
 ### Community 38 - "Community 38"
 Cohesion: 0.25
@@ -273,6 +276,14 @@ Nodes (4): Program, fromModel(), ProgramBrief, ProgramEntity
 Cohesion: 0.17
 Nodes (9): ActivityManager, Boolean, Float, Flow, Long, Pair, Command Center Dashboard, SystemMonitor (+1 more)
 
+### Community 51 - "Community 51"
+Cohesion: 0.20
+Nodes (8): Boolean, Int, List, Long, StateFlow, String, Array, TranslationEngine
+
+### Community 52 - "Community 52"
+Cohesion: 0.30
+Nodes (7): List, Long, Pair, String, SubtitleCue, SubtitleFetcher, SubtitleTrack
+
 ### Community 54 - "Community 54"
 Cohesion: 0.50
 Nodes (3): Conversation & Actions, Device installs (hard rule), graphify
@@ -280,6 +291,10 @@ Nodes (3): Conversation & Actions, Device installs (hard rule), graphify
 ### Community 55 - "Community 55"
 Cohesion: 0.33
 Nodes (5): FocusRequester, HqApplication, LauncherFocusTarget, Modifier, fullscreenFocusRestore()
+
+### Community 59 - "Community 59"
+Cohesion: 0.33
+Nodes (11): Java_com_livingroomhq_translate_TranslationEngine_nativeLoadModel(), Java_com_livingroomhq_translate_TranslationEngine_nativeRelease(), Java_com_livingroomhq_translate_TranslationEngine_nativeTranslate(), Java_com_livingroomhq_translate_TranslationEngine_nativeUnload(), jint, jlong, JNIEnv, JNIEXPORT (+3 more)
 
 ### Community 65 - "Community 65"
 Cohesion: 0.50
@@ -290,24 +305,24 @@ Cohesion: 0.50
 Nodes (3): initialFocus(), FocusRequester, Modifier
 
 ## Knowledge Gaps
-- **268 isolated node(s):** `PreToolUse`, `PreToolUse`, `plugin`, `LauncherPrefsStore`, `LrhqDatabase` (+263 more)
+- **281 isolated node(s):** `$schema`, `plugin`, `jstring`, `jobjectArray`, `jint` (+276 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HqApplication` connect `Main Activity Key Handling` to `System Monitoring`, `Community 12`, `Community 37`?**
-  _High betweenness centrality (0.214) - this node is a cross-community bridge._
 - **Why does `StatBar()` connect `Command Center Dashboard` to `Community 28`, `System Monitoring`, `Community 23`?**
-  _High betweenness centrality (0.190) - this node is a cross-community bridge._
-- **Why does `PersistentChannelRepository` connect `Data Models & Installed Apps` to `Main Activity Key Handling`, `Tools Screen`?**
-  _High betweenness centrality (0.177) - this node is a cross-community bridge._
+  _High betweenness centrality (0.202) - this node is a cross-community bridge._
+- **Why does `HqApplication` connect `Main Activity Key Handling` to `System Monitoring`, `Community 37`?**
+  _High betweenness centrality (0.199) - this node is a cross-community bridge._
+- **Why does `DownloadJob` connect `Command Center Dashboard` to `Community 35`, `Widget Plugin Contract`?**
+  _High betweenness centrality (0.167) - this node is a cross-community bridge._
 - **Are the 6 inferred relationships involving `PersistentChannelRepository` (e.g. with `.`empty playlist leaves channels empty`()` and `.`loadM3u replaces lineup and persists url`()`) actually correct?**
   _`PersistentChannelRepository` has 6 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 13 inferred relationships involving `HomeScreen()` (e.g. with `.onCreate()` and `AmbientScreen()`) actually correct?**
   _`HomeScreen()` has 13 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 17 inferred relationships involving `FocusableGlassCard()` (e.g. with `ConfirmDialog()` and `EmptyStatePanel()`) actually correct?**
   _`FocusableGlassCard()` has 17 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `PreToolUse`, `PreToolUse`, `plugin` to the rest of the system?**
-  _273 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `$schema`, `plugin`, `jstring` to the rest of the system?**
+  _286 weakly-connected nodes found - possible documentation gaps or missing edges._

@@ -1,5 +1,7 @@
 package com.livingroomhq.player
 
+import android.content.ComponentCallbacks2
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -46,6 +48,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -84,8 +87,14 @@ import com.livingroomhq.translate.SubtitleFetcher
 import com.livingroomhq.translate.TranslationOverlay
 
 private const val TRANSLATION_FEATURE_ENABLED = false
+private const val INFO_OVERLAY_DURATION_MS = 4_000L
+private const val SUBTITLE_DETECTION_DELAY_MS = 3_000L
+private const val PROGRESS_TICK_MS = 100L
 
 class ChannelPlayerActivity : ComponentActivity() {
+
+    private var playerReleased = false
+    private var memoryCallback: ComponentCallbacks2? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,6 +137,21 @@ class ChannelPlayerActivity : ComponentActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        // Trim memory on low-memory conditions (Android TV common scenario).
+        val cb = object : ComponentCallbacks2 {
+            override fun onTrimMemory(level: Int) {
+                if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
+                    app.livePreviewEngine.trimMemory()
+                }
+            }
+            override fun onConfigurationChanged(c: Configuration) {}
+            override fun onLowMemory() {
+                app.livePreviewEngine.trimMemory()
+            }
+        }
+        memoryCallback = cb
+        registerComponentCallbacks(cb)
+
         setContent {
             ChannelPlayerScreen(
                 app = app,
@@ -136,7 +160,24 @@ class ChannelPlayerActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        memoryCallback?.let { unregisterComponentCallbacks(it) }
+        memoryCallback = null
+        if (!playerReleased) {
+            val app = application as HqApplication
+            app.livePreviewEngine.demoteFromFullscreen()
+            playerReleased = true
+        }
+    }
+
     override fun finish() {
+        // Ensure player is released back to preview mode before exit
+        if (!playerReleased) {
+            val app = application as HqApplication
+            app.livePreviewEngine.demoteFromFullscreen()
+            playerReleased = true
+        }
         super.finish()
         if (android.os.Build.VERSION.SDK_INT >= 34) {
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
@@ -174,6 +215,11 @@ private fun ChannelPlayerScreen(
         app.channels.epgNowNext(currentChannel.id)
     }
 
+    var infoVisible by remember { mutableStateOf(true) }
+    var interactionNonce by remember { mutableIntStateOf(0) }
+    val focusRequester = remember { FocusRequester() }
+    val retryFocus = remember { FocusRequester() }
+
     fun tuneChannel(delta: Int) {
         val size = channelsList.size
         if (size <= 1) return
@@ -182,23 +228,24 @@ private fun ChannelPlayerScreen(
         val nextIndex = (currentIndex + delta + size) % size
         playbackError = null
         currentChannel = channelsList[nextIndex]
+        app.channels.markWatched(currentChannel.id)
+        interactionNonce++
     }
-
-    // Live TV has no transport bar to seek, so the info overlay is the only chrome.
-    // Show it briefly, then fade it out; any DPAD press brings it back and restarts the timer.
-    var infoVisible by remember { mutableStateOf(true) }
-    var interactionNonce by remember { mutableIntStateOf(0) }
-    val focusRequester = remember { FocusRequester() }
-    val retryFocus = remember { FocusRequester() }
 
     LaunchedEffect(interactionNonce) {
         infoVisible = true
-        delay(4_000)
+        delay(INFO_OVERLAY_DURATION_MS)
         infoVisible = false
     }
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    // Initial focus with frame yield (Shield TV workaround)
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        runCatching { focusRequester.requestFocus() }
+    }
     LaunchedEffect(retryNonce) {
         if (retryNonce > 0) {
+            withFrameNanos { }
             runCatching { focusRequester.requestFocus() }
         }
     }
@@ -211,7 +258,7 @@ private fun ChannelPlayerScreen(
             return@LaunchedEffect
         }
         subtitleStatus = "Detecting subtitles..."
-        delay(3_000)
+        delay(SUBTITLE_DETECTION_DELAY_MS)
         val tracks = engine.player.currentTracks
         val subtitleGroup = tracks.groups.firstOrNull { group ->
             group.type == C.TRACK_TYPE_TEXT && group.isSupported
@@ -269,10 +316,11 @@ private fun ChannelPlayerScreen(
                 position in it.startMs..it.endMs
             }
             currentSubtitle = activeCue?.text
-            delay(100)
+            delay(PROGRESS_TICK_MS)
         }
     }
 
+    // Single listener registration — uses rememberUpdatedState to avoid stale refs
     DisposableEffect(engine) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
@@ -286,7 +334,6 @@ private fun ChannelPlayerScreen(
         engine.player.addListener(listener)
         onDispose {
             engine.player.removeListener(listener)
-            engine.demoteFromFullscreen()
         }
     }
 
@@ -351,6 +398,7 @@ private fun ChannelPlayerScreen(
                 FocusableGlassCard(
                     onClick = {
                         playbackError = null
+                        engine.retryFullscreen()
                         retryNonce++
                     },
                     modifier = Modifier

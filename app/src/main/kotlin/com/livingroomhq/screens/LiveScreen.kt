@@ -45,7 +45,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,8 +72,9 @@ import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
-import com.livingroomhq.core.ui.components.initialFocus
-import com.livingroomhq.core.ui.components.rememberTvFocusManager
+import com.livingroomhq.core.ui.components.rememberZones
+import com.livingroomhq.core.ui.components.yieldAndFocus
+import com.livingroomhq.core.ui.components.zoneFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -109,17 +109,16 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
     var focusedChannelId by remember { mutableStateOf<String?>(null) }
     var previewChannelId by remember { mutableStateOf<String?>(null) }
     
-    val focusManager = rememberTvFocusManager()
+    val zones = rememberZones("categories", "grid", "preview")
     var isGridFocused by remember { mutableStateOf(false) }
 
     BackHandler(enabled = isGridFocused) {
-        runCatching { focusManager.activeZone.requestFocus() }
+        runCatching { zones[0].requester.requestFocus() }
     }
 
     LaunchedEffect(channels.isNotEmpty()) {
         if (channels.isNotEmpty()) {
-            withFrameNanos { }
-            runCatching { focusManager.activeZone.requestFocus() }
+            yieldAndFocus(zones[0].requester)
         }
     }
 
@@ -219,7 +218,7 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
                         onClick = { selectedCategoryId = cat.id },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (isActive) Modifier.focusRequester(focusManager.activeZone) else Modifier),
+                            .then(if (isActive) Modifier.zoneFocus(zones[0], initial = true) else Modifier),
                     )
                 }
             }
@@ -232,7 +231,7 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
             selectedCategoryId = selectedCategoryId,
             visibleChannels = visibleChannels,
             epgRevision = epgRevision,
-            categoryFocusRequester = focusManager.activeZone,
+            categoryFocusRequester = zones[0].requester,
             onGridFocusChanged = { isGridFocused = it },
             onChannelFocused = { focusedChannelId = it },
             onChannelClick = { channel ->

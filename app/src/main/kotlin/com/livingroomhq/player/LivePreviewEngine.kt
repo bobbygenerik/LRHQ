@@ -22,11 +22,15 @@ class LivePreviewEngine(context: Context) {
     private var boundOwner: String? = null
     private var boundView: TextureView? = null
     private var previewTextureView: TextureView? = null
-    private var fullscreenPlayerView: PlayerView? = null
+    private var _fullscreenPlayerView: PlayerView? = null
     private var boundUrl: String? = null
     private var previewMaxVideoWidth: Int = 1280
     private var previewMaxVideoHeight: Int = 720
     var fullscreenActive = false
+
+    /** Exposed for ChannelPlayerActivity to rebind during channel zapping. */
+    val activePlayerView: PlayerView?
+        get() = _fullscreenPlayerView
 
     val player: ExoPlayer = IptvExoPlayer.create(appContext).apply {
         playWhenReady = true
@@ -77,7 +81,7 @@ class LivePreviewEngine(context: Context) {
     /** Move the live decoder to a fullscreen [PlayerView] without restarting the stream. */
     fun promoteToFullscreen(playerView: PlayerView, channel: Channel) {
         val url = channel.streamUrl.takeIf { it.isNotBlank() } ?: return
-        if (fullscreenActive && fullscreenPlayerView === playerView && boundUrl == url) {
+        if (fullscreenActive && _fullscreenPlayerView === playerView && boundUrl == url) {
             if (playerView.player != player) playerView.player = player
             return
         }
@@ -86,7 +90,7 @@ class LivePreviewEngine(context: Context) {
         boundView?.let { player.clearVideoTextureView(it) }
         boundView = null
 
-        fullscreenPlayerView = playerView
+        _fullscreenPlayerView = playerView
         playerView.player = player
 
         IptvExoPlayer.configureForFullscreen(player)
@@ -101,8 +105,8 @@ class LivePreviewEngine(context: Context) {
 
         player.pause()
         player.volume = 0f
-        fullscreenPlayerView?.player = null
-        fullscreenPlayerView = null
+        _fullscreenPlayerView?.player = null
+        _fullscreenPlayerView = null
 
         val textureView = previewTextureView ?: boundView
         if (textureView != null) {
@@ -118,6 +122,20 @@ class LivePreviewEngine(context: Context) {
             boundUrl = null
         }
         previewTextureView = null
+    }
+
+    /** Retry playback after a [PlaybackException] without creating a new media item. */
+    fun retryFullscreen() {
+        if (!fullscreenActive) return
+        runCatching { player.prepare() }
+    }
+
+    /** Release decoder resources under memory pressure without fully destroying the player. */
+    fun trimMemory() {
+        if (fullscreenActive) return
+        player.stop()
+        player.clearMediaItems()
+        boundUrl = null
     }
 
     fun ensureFullscreenAudio(tracks: Tracks) {

@@ -62,7 +62,7 @@ import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
-import com.livingroomhq.core.ui.components.initialFocus
+import com.livingroomhq.core.ui.components.tvInitialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -347,7 +347,7 @@ private fun HomeHero(
                 indication = null,
                 onClick = onWatch,
             )
-            .then(if (requestInitialFocus) Modifier.initialFocus(focusRequester) else Modifier),
+            .then(if (requestInitialFocus) Modifier.tvInitialFocus(focusRequester) else Modifier),
     ) {
         content()
     }
