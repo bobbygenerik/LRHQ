@@ -11,6 +11,7 @@ import com.livingroomhq.backdrop.UnsplashClient
 import com.livingroomhq.backdrop.mergeAmbientPhotos
 import com.livingroomhq.player.LivePreviewEngine
 import com.livingroomhq.core.data.db.LrhqDatabase
+import com.livingroomhq.core.data.net.conditionalHttpFetch
 import com.livingroomhq.core.data.persist.DataStorePrefsStore
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import com.livingroomhq.core.data.repo.AmbientInfoRepository
@@ -19,13 +20,15 @@ import com.livingroomhq.core.data.repo.InstalledAppsRepository
 import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.core.data.repo.MediaRepository
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
+import com.livingroomhq.core.data.sync.IptvSyncRepositoryProvider
+import com.livingroomhq.core.data.sync.IptvSyncWorker
 import com.livingroomhq.core.data.repo.RealAmbientInfoRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
 import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
-import com.livingroomhq.translate.TranslationEngine
+import com.livingroomhq.ui.SnackbarController
 import com.livingroomhq.ui.UiMessages
 import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
@@ -35,29 +38,42 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
  * Composition root. The launcher must cold-start fast, so wiring is plain
  * lazy properties rather than a DI framework — nothing is constructed until
  * the first screen asks for it.
  */
-class HqApplication : Application() {
+class HqApplication : Application(), IptvSyncRepositoryProvider {
 
     /** App-lifetime scope for repository persistence and background sync. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    val snackbar = SnackbarController()
+
     val prefs: LauncherPrefsStore by lazy { DataStorePrefsStore(this) }
     val database: LrhqDatabase by lazy { LrhqDatabase.build(this) }
     val channels: ChannelRepository by lazy {
-        PersistentChannelRepository(database.iptvDao(), prefs, appScope).also { it.restore() }
+        PersistentChannelRepository(
+            iptvDao = database.iptvDao(),
+            prefs = prefs,
+            scope = appScope,
+            conditionalFetch = ::conditionalHttpFetch,
+        ).also { it.restore() }
     }
+
+    override fun iptvRepositoryForSync(): PersistentChannelRepository =
+        channels as PersistentChannelRepository
     val media: MediaRepository by lazy { LocalMediaRepository(this, appScope) }
     val ambientInfo: AmbientInfoRepository by lazy { RealAmbientInfoRepository(appScope) }
     val systemMonitor: SystemMonitor by lazy { SystemMonitor(this) }
     val installedApps: InstalledAppsRepository by lazy {
-        InstalledAppsRepository(this) { UiMessages.post("Couldn't open that app") }
+        InstalledAppsRepository(
+            this,
+            pinnedPackages = { prefs.pinnedAppPackages.first() },
+        ) { snackbar.post("Couldn't open that app") }
     }
     val widgets: WidgetRegistry by lazy {
         WidgetRegistry().also { registerBuiltInWidgets(it, this) }
@@ -67,7 +83,6 @@ class HqApplication : Application() {
     val googlePhotosPicker: GooglePhotosPickerClient by lazy { GooglePhotosPickerClient(ambientPhotoCache) }
     val livePreviewEngine: LivePreviewEngine by lazy { LivePreviewEngine(this) }
     val fullscreenFocusReturn: FullscreenFocusReturn by lazy { FullscreenFocusReturn() }
-    val translationEngine: TranslationEngine by lazy { TranslationEngine(this) }
 
     private val _ready = MutableStateFlow(false)
     val ready: StateFlow<Boolean> = _ready.asStateFlow()
@@ -80,16 +95,17 @@ class HqApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        UiMessages.bind(snackbar)
         Coil.setImageLoader(
             ImageLoader.Builder(this)
                 .crossfade(true)
                 .build(),
         )
         appScope.launch(Dispatchers.IO) {
-            copyTranslationModels()
             database
             channels
             ambientPhotoCache.restore()
+            IptvSyncWorker.schedule(this@HqApplication)
             _ready.value = true
         }
         // Keep the system Watch Next row in step with the library.
@@ -110,21 +126,6 @@ class HqApplication : Application() {
             val photos = UnsplashClient.fetchLandscapePhotos()
             if (photos.isNotEmpty()) {
                 _remoteAmbientPhotos.value = photos
-            }
-        }
-    }
-
-    private fun copyTranslationModels() {
-        val target = File(filesDir, "translation_models")
-        if (target.exists()) return
-        val languages = assets.list("translation_models") ?: return
-        for (lang in languages) {
-            val dest = File(target, lang).apply { mkdirs() }
-            val files = assets.list("translation_models/$lang") ?: continue
-            for (file in files) {
-                File(dest, file).outputStream().use { out ->
-                    assets.open("translation_models/$lang/$file").copyTo(out)
-                }
             }
         }
     }

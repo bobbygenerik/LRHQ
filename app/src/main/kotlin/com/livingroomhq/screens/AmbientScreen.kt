@@ -35,15 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.core.ui.theme.hqAccent
 import com.livingroomhq.core.widget.WidgetPlugin
 import com.livingroomhq.core.widget.WidgetState
+import com.livingroomhq.screens.ambient.AmbientViewModel
 import com.livingroomhq.core.widget.WidgetZone
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -51,27 +54,30 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun AmbientScreen(app: HqApplication) {
+fun AmbientScreen(
+    viewModel: AmbientViewModel = viewModel(
+        factory = run {
+            val app = LocalContext.current.applicationContext as HqApplication
+            AmbientViewModel.factory(
+                app.channels,
+                app.media,
+                app.ambientBackdropPhotos,
+                app.widgets,
+                app.prefs.showWeather,
+            )
+        },
+    ),
+) {
     val view = LocalView.current
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val recents by app.channels.recents.collectAsState()
-    val library by app.media.library.collectAsState()
-    val ambientPhotos by app.ambientBackdropPhotos.collectAsState()
-    val customSettings = LocalCustomSettings.current
-    val rawAmbientWidgets by app.widgets.plugins.collectAsState(initial = emptyList())
-    val ambientWidgets = remember(rawAmbientWidgets, customSettings.showWeather) {
-        rawAmbientWidgets.filter { widget ->
-            WidgetZone.AMBIENT in widget.zones && (widget.id != "builtin.weather" || customSettings.showWeather)
-        }
-    }
-    val weatherWidget = ambientWidgets.firstOrNull { it.id == "builtin.weather" }
-    val trayWidgets = ambientWidgets.filterNot { it.id == "builtin.weather" }
+    val context = LocalContext.current
+    val state by viewModel.uiState.collectAsState()
 
-    val current = recents.firstOrNull()
-    val (nowProgram, _) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
-    val mediaBackdrops = remember(library) { library.mapNotNull { it.backdropUrl }.distinct() }
-    val backdropSources = remember(mediaBackdrops, ambientPhotos) {
-        BackdropProvider.forAmbient(mediaBackdrops, ambientPhotos)
+    val current = state.currentChannel
+    val (nowProgram, _) = current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
+    val weatherWidget = state.ambientWidgets.firstOrNull { it.id == "builtin.weather" }
+    val trayWidgets = state.ambientWidgets.filterNot { it.id == "builtin.weather" }
+    val backdropSources = remember(state.libraryBackdropUrls, state.ambientPhotos) {
+        BackdropProvider.forAmbient(state.libraryBackdropUrls, state.ambientPhotos)
     }
 
     DisposableEffect(view) {
@@ -228,11 +234,12 @@ private fun AmbientNowPlaying(
     channelName: String,
     programTitle: String?,
 ) {
+    val accent = hqAccent()
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = "NOW PLAYING",
             style = HqType.Label.copy(
-                color = HqColors.Accent.copy(alpha = 0.92f),
+                color = accent.copy(alpha = 0.92f),
                 fontWeight = FontWeight.Bold,
                 fontSize = 10.sp,
                 shadow = ambientSecondaryShadow,
@@ -355,6 +362,7 @@ private fun AmbientWidgetCard(
     state: WidgetState,
     modifier: Modifier = Modifier,
 ) {
+    val accent = hqAccent()
     GlassPanel(
         modifier = modifier.width(220.dp),
         cornerRadius = 16.dp,
@@ -363,7 +371,7 @@ private fun AmbientWidgetCard(
             Text(
                 text = state.title.uppercase(),
                 style = HqType.Label.copy(
-                    color = if (state.isHealthy) HqColors.Accent else HqColors.Critical,
+                    color = if (state.isHealthy) accent else HqColors.Critical,
                     fontWeight = FontWeight.Bold,
                     fontSize = 10.sp
                 )

@@ -16,6 +16,10 @@ val googlePhotosClientId: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("googlePhotos.clientId", "")
+val captionServerUrl: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("caption.serverUrl", "")
 val releaseSigningProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -34,6 +38,7 @@ android {
 
         buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"$unsplashAccessKey\"")
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
+        buildConfigField("String", "CAPTION_SERVER_URL", "\"$captionServerUrl\"")
     }
 
     signingConfigs {
@@ -104,7 +109,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.tvprovider)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-process:2.8.7")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.coil.compose)
     implementation(libs.media3.exoplayer)

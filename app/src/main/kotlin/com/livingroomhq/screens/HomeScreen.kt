@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
@@ -66,13 +67,16 @@ import com.livingroomhq.core.ui.components.tvInitialFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.core.ui.theme.homeZonePadding
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.rememberLivePreviewActive
+import com.livingroomhq.screens.home.HomeEffect
+import com.livingroomhq.screens.home.HomeEvent
+import com.livingroomhq.screens.home.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -88,44 +92,48 @@ private val HERO_BACKDROP_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "avif
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun HomeScreen(
-    app: HqApplication,
     nav: LauncherNavController,
+    focusReturn: FullscreenFocusReturn,
+    viewModel: HomeViewModel = viewModel(
+        factory = HomeViewModel.factory(
+            (LocalContext.current.applicationContext as HqApplication).channels,
+            (LocalContext.current.applicationContext as HqApplication).ambientInfo,
+        ),
+    ),
 ) {
-    val channels by app.channels.channels.collectAsState()
-    val recents by app.channels.recents.collectAsState()
-    val weather by app.ambientInfo.weather.collectAsState()
-    val epgRevision by app.channels.epgRevision.collectAsState()
+    val state by viewModel.uiState.collectAsState()
     val customSettings = LocalCustomSettings.current
     val context = LocalContext.current
     val heroBackdrops = remember(context) { bundledHeroBackdrops(context) }
 
-    val current = recents.firstOrNull() ?: channels.firstOrNull()
-    val (nowProgram, nextProgram) = current?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
-    val recentList = recents.ifEmpty { channels.take(6) }
+    val current = state.currentChannel
+    val (nowProgram, nextProgram) = current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
 
-    var clockTime by remember { mutableStateOf(timeNow(context)) }
-    var clockDate by remember { mutableStateOf(dateNow()) }
-    var nowMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
-            clockTime = timeNow(context)
-            clockDate = dateNow()
-            nowMillis = System.currentTimeMillis()
+            viewModel.tickClock(System.currentTimeMillis())
             delay(10_000)
         }
     }
 
-    var onNow by remember { mutableStateOf<List<Pair<Channel, Program>>>(emptyList()) }
-    LaunchedEffect(channels, recents, epgRevision, current?.id, nowMillis / 30_000L) {
-        onNow = app.channels.computeOnNowRail(excludeChannelId = current?.id)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is HomeEffect.LaunchPlayer -> ChannelPlayer.launch(context, effect.channel)
+                is HomeEffect.ArmFocus -> focusReturn.arm(
+                    LauncherFocusTarget(Zone.HOME, effect.targetKey),
+                )
+                HomeEffect.NavigateToLive -> nav.goTo(Zone.LIVE)
+            }
+        }
     }
 
-    LaunchedEffect(current?.id) {
-        val id = current?.id ?: return@LaunchedEffect
-        runCatching { app.channels.fetchEpgDetails(id) }
+    var clockTime by remember { mutableStateOf(timeNow(context)) }
+    var clockDate by remember { mutableStateOf(dateNow()) }
+    LaunchedEffect(state.nowMillis) {
+        clockTime = timeNow(context)
+        clockDate = dateNow()
     }
-
-
     val density = LocalDensity.current
     val scrollScope = rememberCoroutineScope()
     val recentFocusRequester = remember { FocusRequester() }
@@ -220,28 +228,21 @@ fun HomeScreen(
                         .focusProperties {
                             canFocus = scrollState.value < viewportHeightPx.toInt() / 2
                         },
-                    app = app,
+                    focusReturn = focusReturn,
                     focusRequester = heroFocusRequester,
                     requestInitialFocus = true,
                     onFocused = {
                         overlaysVisible = true
                         scrollScope.launch { scrollState.animateScrollTo(0) }
                     },
-                    onWatch = {
-                        if (current != null) {
-                            app.fullscreenFocusReturn.arm(homeHeroFocusTarget())
-                            ChannelPlayer.launch(context, current)
-                        } else {
-                            nav.goTo(Zone.LIVE)
-                        }
-                    },
+                    onWatch = { viewModel.onEvent(HomeEvent.WatchHero) },
                 ) {
                     HomeHeroContent(
                         channel = current,
                         clockTime = clockTime,
                         clockDate = clockDate,
-                        temperatureF = weather?.temperatureF,
-                        weatherCondition = weather?.condition,
+                        temperatureF = state.weather?.temperatureF,
+                        weatherCondition = state.weather?.condition,
                         showWeather = customSettings.showWeather,
                         nowTitle = nowProgram?.title,
                         nowDescription = nowProgram?.description,
@@ -272,9 +273,9 @@ fun HomeScreen(
                         },
                 ) {
                     RecentChannelsRow(
-                        app = app,
-                        channels = channels,
-                        recents = recents,
+                        focusReturn = focusReturn,
+                        channels = state.channels,
+                        recents = state.recents,
                         firstItemFocusRequester = recentFocusRequester,
                         onUpPressed = {
                             scrollScope.launch {
@@ -283,22 +284,22 @@ fun HomeScreen(
                             }
                         },
                         onChannelSelected = { channel ->
-                            app.channels.markWatched(channel.id)
-                            app.fullscreenFocusReturn.arm(homeRecentFocusTarget(channel.id))
-                            ChannelPlayer.launch(context, channel)
+                            viewModel.onEvent(
+                                HomeEvent.OpenChannel(channel, "home:recent:${channel.id}"),
+                            )
                         },
                     )
 
-                    if (onNow.isNotEmpty()) {
+                    if (state.onNow.isNotEmpty()) {
                         Spacer(Modifier.height(28.dp))
                         OnNowRail(
-                            app = app,
-                            items = onNow,
-                            nowMillis = nowMillis,
+                            focusReturn = focusReturn,
+                            items = state.onNow,
+                            nowMillis = state.nowMillis,
                             onChannelSelected = { channel ->
-                                app.channels.markWatched(channel.id)
-                                app.fullscreenFocusReturn.arm(homeOnNowFocusTarget(channel.id))
-                                ChannelPlayer.launch(context, channel)
+                                viewModel.onEvent(
+                                    HomeEvent.OpenChannel(channel, "home:on-now:${channel.id}"),
+                                )
                             },
                         )
                     }
@@ -324,7 +325,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHero(
-    app: HqApplication,
+    focusReturn: FullscreenFocusReturn,
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester,
     requestInitialFocus: Boolean,
@@ -337,7 +338,7 @@ private fun HomeHero(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .restoreFocusOnReturn(app.fullscreenFocusReturn, homeHeroFocusTarget(), focusRequester)
+            .restoreFocusOnReturn(focusReturn, homeHeroFocusTarget(), focusRequester)
             .onFocusChanged {
                 if (it.isFocused) onFocused()
             }

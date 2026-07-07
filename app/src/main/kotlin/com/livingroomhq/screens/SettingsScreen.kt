@@ -1,40 +1,42 @@
 package com.livingroomhq.screens
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Text
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.ui.components.ConfirmDialog
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
-import android.content.Intent
-import android.provider.Settings
-import androidx.compose.ui.platform.LocalContext
-import com.livingroomhq.ui.UiMessages
-import kotlinx.coroutines.launch
+import com.livingroomhq.screens.settings.SettingsActionResult
+import com.livingroomhq.screens.settings.SettingsEvent
+import com.livingroomhq.screens.settings.SettingsViewModel
+import com.livingroomhq.ui.LocalSnackbarController
+import com.livingroomhq.ui.SnackbarController
 
 private sealed interface ConfirmRequest {
     data object ClearPlaylist : ConfirmRequest
@@ -42,33 +44,57 @@ private sealed interface ConfirmRequest {
     data object ClearCache : ConfirmRequest
 }
 
+private data class ActionUi(val text: String, val loading: Boolean, val success: Boolean)
+
+private fun SettingsActionResult.toActionUi(): ActionUi = when (this) {
+    SettingsActionResult.Idle -> ActionUi("", false, false)
+    is SettingsActionResult.Loading -> ActionUi(message, true, false)
+    is SettingsActionResult.Success -> ActionUi(message, false, true)
+    is SettingsActionResult.Failure -> ActionUi(message, false, false)
+}
+
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsScreen(
-    app: HqApplication,
     settings: CustomSettings,
     onSettingsChanged: (CustomSettings) -> Unit,
+    viewModel: SettingsViewModel = viewModel(
+        factory = run {
+            val app = LocalContext.current.applicationContext as HqApplication
+            SettingsViewModel.factory(
+                app.channels,
+                app.prefs,
+                app.ambientPhotoCache,
+                app.googlePhotosPicker,
+            )
+        },
+    ),
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val playlistUrlFlow by app.prefs.playlistUrl.collectAsState(initial = null)
-    val epgUrlFlow by app.prefs.epgUrl.collectAsState(initial = null)
+    val app = context.applicationContext as HqApplication
+    val snackbar = LocalSnackbarController.current
+    val vmState by viewModel.uiState.collectAsState()
+    val playlistResult by viewModel.playlistStatus.collectAsState()
+    val guideResult by viewModel.guideStatus.collectAsState()
+    val maintenanceResult by viewModel.maintenanceStatus.collectAsState()
     val ambientPhotoCacheStats by app.ambientPhotoCache.stats.collectAsState()
     val googlePhotosPickerState by app.googlePhotosPicker.state.collectAsState()
 
-    var m3uUrl by remember(playlistUrlFlow) { mutableStateOf(playlistUrlFlow ?: "") }
-    var epgUrl by remember(epgUrlFlow) { mutableStateOf(epgUrlFlow ?: "") }
+    var m3uUrl by remember(vmState.playlistUrl) { mutableStateOf(vmState.playlistUrl ?: "") }
+    var epgUrl by remember(vmState.epgUrl) { mutableStateOf(vmState.epgUrl ?: "") }
+    var pinnedPackagesText by remember(vmState.pinnedAppPackages) {
+        mutableStateOf(vmState.pinnedAppPackages.joinToString("\n"))
+    }
+    var captionServerUrl by remember(vmState.liveCaptionServerUrl) {
+        mutableStateOf(vmState.liveCaptionServerUrl.orEmpty())
+    }
     var ambientPhotoImportText by remember { mutableStateOf("") }
-    var epgStatus by remember { mutableStateOf("") }
-    var epgLoading by remember { mutableStateOf(false) }
-    var statusText by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var isSuccess by remember { mutableStateOf(false) }
-
     var confirmDialog by remember { mutableStateOf<ConfirmRequest?>(null) }
-    var maintenanceStatus by remember { mutableStateOf("") }
-    var maintenanceBusy by remember { mutableStateOf(false) }
     val firstItemFocusRequester = remember { FocusRequester() }
+
+    val playlistUi = remember(playlistResult) { playlistResult.toActionUi() }
+    val guideUi = remember(guideResult) { guideResult.toActionUi() }
+    val maintenanceUi = remember(maintenanceResult) { maintenanceResult.toActionUi() }
 
     BackHandler(enabled = confirmDialog != null) { confirmDialog = null }
 
@@ -83,7 +109,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .focusProperties { enter = { firstItemFocusRequester } }
+            .focusProperties { enter = { firstItemFocusRequester } },
     ) {
         Column(
             modifier = Modifier
@@ -101,59 +127,30 @@ fun SettingsScreen(
                     LiveTvSettingsPanel(
                         m3uUrl = m3uUrl,
                         onM3uUrlChange = { m3uUrl = it },
-                        statusText = statusText,
-                        isLoading = isLoading,
-                        isSuccess = isSuccess,
+                        statusText = playlistUi.text,
+                        isLoading = playlistUi.loading,
+                        isSuccess = playlistUi.success,
                         onLoadPlaylist = {
                             if (m3uUrl.trim().isEmpty()) {
-                                statusText = "Please enter a playlist URL"
+                                snackbar.post("Please enter a playlist URL")
                                 return@LiveTvSettingsPanel
                             }
-                            coroutineScope.launch {
-                                isLoading = true
-                                isSuccess = false
-                                statusText = "Loading stream playlist..."
-                                runCatching { app.channels.loadM3u(m3uUrl.trim()) }
-                                    .onSuccess {
-                                        isLoading = false
-                                        isSuccess = true
-                                        statusText = "IPTV channels loaded successfully!"
-                                    }
-                                    .onFailure { err ->
-                                        isLoading = false
-                                        statusText = "Failed: ${err.localizedMessage ?: "Invalid URL or Network error"}"
-                                    }
-                            }
+                            viewModel.onEvent(SettingsEvent.LoadPlaylist(m3uUrl))
                         },
-                        onClearPlaylist = {
-                            confirmDialog = ConfirmRequest.ClearPlaylist
-                        },
+                        onClearPlaylist = { confirmDialog = ConfirmRequest.ClearPlaylist },
                         epgUrl = epgUrl,
-                        epgStatus = epgStatus,
-                        isEpgLoading = epgLoading,
+                        epgStatus = guideUi.text,
+                        isEpgLoading = guideUi.loading,
                         onEpgUrlChange = { epgUrl = it },
                         onLoadGuide = {
                             if (epgUrl.trim().isEmpty()) {
-                                epgStatus = "Please enter a guide URL"
+                                snackbar.post("Please enter a guide URL")
                                 return@LiveTvSettingsPanel
                             }
-                            coroutineScope.launch {
-                                epgLoading = true
-                                epgStatus = "Loading guide..."
-                                runCatching { app.channels.loadXmltv(epgUrl.trim()) }
-                                    .onSuccess {
-                                        epgLoading = false
-                                        epgStatus = "Guide loaded successfully!"
-                                    }
-                                    .onFailure {
-                                        epgLoading = false
-                                        epgStatus = "Failed: ${it.localizedMessage ?: "Invalid URL or network error"}"
-                                    }
-                            }
+                            viewModel.onEvent(SettingsEvent.LoadGuide(epgUrl))
                         },
-                        onClearGuide = {
-                            confirmDialog = ConfirmRequest.ClearGuide
-                        },
+                        onClearGuide = { confirmDialog = ConfirmRequest.ClearGuide },
+                        syncStatusText = vmState.syncStatusText,
                         firstFocusRequester = firstItemFocusRequester,
                     )
 
@@ -161,86 +158,67 @@ fun SettingsScreen(
                         publicPlaylists = publicPlaylists,
                         onPublicPlaylistSelected = { playlist ->
                             m3uUrl = playlist.url
-                            coroutineScope.launch {
-                                isLoading = true
-                                isSuccess = false
-                                statusText = "Loading ${playlist.name}..."
-                                runCatching { app.channels.loadM3u(playlist.url) }
-                                    .onSuccess {
-                                        isLoading = false
-                                        isSuccess = true
-                                        statusText = "${playlist.name} loaded successfully!"
-                                    }
-                                    .onFailure { err ->
-                                        isLoading = false
-                                        statusText = "Failed: ${err.localizedMessage}"
-                                    }
-                            }
+                            viewModel.onEvent(SettingsEvent.LoadSamplePlaylist(playlist.url, playlist.name))
                         },
-                        isLoading = isLoading,
+                        isLoading = playlistUi.loading,
                     )
                 }
 
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
+                    AppsAndCaptionsSettingsPanel(
+                        pinnedPackagesText = pinnedPackagesText,
+                        onPinnedPackagesTextChange = { pinnedPackagesText = it },
+                        onSavePinnedPackages = {
+                            val packages = pinnedPackagesText.lines()
+                                .map { it.trim() }
+                                .filter { it.isNotEmpty() }
+                            viewModel.onEvent(SettingsEvent.SavePinnedAppPackages(packages))
+                            snackbar.post("Pinned apps saved")
+                        },
+                        captionServerUrl = captionServerUrl,
+                        onCaptionServerUrlChange = { captionServerUrl = it },
+                        onSaveCaptionUrl = {
+                            viewModel.onEvent(
+                                SettingsEvent.SaveLiveCaptionServerUrl(
+                                    captionServerUrl.trim().ifBlank { null },
+                                ),
+                            )
+                            snackbar.post("Caption server saved")
+                        },
+                    )
                     AmbientPhotosSettingsPanel(
                         importText = ambientPhotoImportText,
                         cacheStats = ambientPhotoCacheStats,
                         pickerState = googlePhotosPickerState,
                         onImportTextChange = { ambientPhotoImportText = it },
-                        onStartGooglePhotosPicker = {
-                            coroutineScope.launch {
-                                app.googlePhotosPicker.startPickerImport()
-                            }
-                        },
-                        onRefreshGooglePhotosAlbum = {
-                            coroutineScope.launch {
-                                app.googlePhotosPicker.refreshPickerImport()
-                            }
-                        },
+                        onStartGooglePhotosPicker = { viewModel.startGooglePhotosImport() },
+                        onRefreshGooglePhotosAlbum = { viewModel.refreshGooglePhotosImport() },
                         onImportPhotos = {
-                            coroutineScope.launch {
-                                val result = app.ambientPhotoCache.importFromText(ambientPhotoImportText)
-                                if (result.photoCount > 0) ambientPhotoImportText = ""
+                            viewModel.importPhotosFromText(ambientPhotoImportText) {
+                                ambientPhotoImportText = ""
                             }
                         },
-                        onClearCache = {
-                            confirmDialog = ConfirmRequest.ClearCache
-                        },
+                        onClearCache = { confirmDialog = ConfirmRequest.ClearCache },
                     )
                     DeviceCareAndSystemPanel(
-                        maintenanceStatus = maintenanceStatus,
-                        isMaintenanceBusy = maintenanceBusy,
-                        onRunMaintenance = {
-                            coroutineScope.launch {
-                                maintenanceBusy = true
-                                maintenanceStatus = "Running device maintenance..."
-                                runCatching {
-                                    app.channels.runMaintenance()
-                                    app.ambientPhotoCache.trimToCacheLimit()
-                                }
-                                    .onSuccess {
-                                        maintenanceBusy = false
-                                        maintenanceStatus = "Maintenance completed: Pruned old programs. Cache size optimized."
-                                    }
-                                    .onFailure {
-                                        maintenanceBusy = false
-                                        maintenanceStatus = "Maintenance failed: ${it.localizedMessage}"
-                                    }
-                            }
-                        },
+                        maintenanceStatus = maintenanceUi.text,
+                        isMaintenanceBusy = maintenanceUi.loading,
+                        onRunMaintenance = { viewModel.onEvent(SettingsEvent.RunMaintenance) },
                         onLaunchDeviceSettings = {
                             context.launchSettingsIntent(
                                 Intent(Settings.ACTION_SETTINGS),
-                                "Couldn't open device settings"
+                                snackbar,
+                                "Couldn't open device settings",
                             )
                         },
                         onLaunchAppManager = {
                             context.launchSettingsIntent(
                                 Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
-                                "Couldn't open app manager"
+                                snackbar,
+                                "Couldn't open app manager",
                             )
-                        }
+                        },
                     )
                 }
             }
@@ -255,13 +233,8 @@ fun SettingsScreen(
                 confirmLabel = "Clear Playlist",
                 onConfirm = {
                     confirmDialog = null
-                    coroutineScope.launch {
-                        app.prefs.setPlaylistUrl(null)
-                        app.prefs.setRecents(emptyList())
-                        m3uUrl = ""
-                        statusText = "Playlist cleared."
-                        isSuccess = false
-                    }
+                    m3uUrl = ""
+                    viewModel.onEvent(SettingsEvent.ClearPlaylist)
                 },
                 onDismiss = { confirmDialog = null },
             )
@@ -271,11 +244,8 @@ fun SettingsScreen(
                 confirmLabel = "Clear Guide",
                 onConfirm = {
                     confirmDialog = null
-                    coroutineScope.launch {
-                        app.channels.clearXmltv()
-                        epgUrl = ""
-                        epgStatus = "Guide cleared."
-                    }
+                    epgUrl = ""
+                    viewModel.onEvent(SettingsEvent.ClearGuide)
                 },
                 onDismiss = { confirmDialog = null },
             )
@@ -285,9 +255,7 @@ fun SettingsScreen(
                 confirmLabel = "Clear Cache",
                 onConfirm = {
                     confirmDialog = null
-                    coroutineScope.launch {
-                        app.ambientPhotoCache.clear()
-                    }
+                    viewModel.onEvent(SettingsEvent.ClearPhotoCache)
                 },
                 onDismiss = { confirmDialog = null },
             )
@@ -295,10 +263,14 @@ fun SettingsScreen(
     }
 }
 
-private fun android.content.Context.launchSettingsIntent(intent: Intent, errorMessage: String) {
+private fun android.content.Context.launchSettingsIntent(
+    intent: Intent,
+    snackbar: SnackbarController,
+    errorMessage: String,
+) {
     runCatching {
         startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }.onFailure {
-        UiMessages.post(errorMessage)
+        snackbar.post(errorMessage)
     }
 }

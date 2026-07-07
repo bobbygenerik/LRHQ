@@ -16,6 +16,7 @@ data class ChannelEntity(
     val tvgId: String? = null,
     val tvgName: String? = null,
     val tvgChno: String? = null,
+    val sourceId: String = DEFAULT_SOURCE_ID,
 ) {
     fun toModel(): Channel = Channel(
         id = id,
@@ -31,6 +32,8 @@ data class ChannelEntity(
     )
 
     companion object {
+        const val DEFAULT_SOURCE_ID = "default"
+
         fun fromModel(model: Channel): ChannelEntity = ChannelEntity(
             id = model.id,
             number = model.number,

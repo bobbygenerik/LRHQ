@@ -1,7 +1,11 @@
 package com.livingroomhq.backdrop
 
 import com.livingroomhq.BuildConfig
+import com.livingroomhq.core.data.fault.runLoggedCatching
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.HttpURLConnection
@@ -28,7 +32,7 @@ object UnsplashClient {
         val key = BuildConfig.UNSPLASH_ACCESS_KEY
         if (key.isBlank()) return@withContext emptyList()
 
-        runCatching {
+        runLoggedCatching("unsplash_fetch") {
             val q = URLEncoder.encode(query, "UTF-8")
             val endpoint = URL(
                 "https://api.unsplash.com/photos/random" +
@@ -39,33 +43,49 @@ object UnsplashClient {
                 connectTimeout = 8_000
                 readTimeout = 8_000
             }
-            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            try {
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(body)
+                val photos = ArrayList<AmbientPhoto>(arr.length())
+                val downloadUrls = ArrayList<String>(arr.length())
+                for (i in 0 until arr.length()) {
+                    val photo = arr.getJSONObject(i)
+                    val raw = photo.getJSONObject("urls").getString("raw")
+                    val user = photo.getJSONObject("user")
+                    val name = user.optString("name").takeIf { it.isNotBlank() }
+                    val profile = user.optJSONObject("links")?.optString("html")?.takeIf { it.isNotBlank() }
+                    photos.add(
+                        AmbientPhoto(
+                            url = "$raw&w=1920&q=80&fm=jpg&fit=crop",
+                            photographer = name,
+                            profileUrl = profile?.let { it + UTM },
+                        ),
+                    )
+                    downloadUrls.add(photo.getJSONObject("links").getString("download_location"))
+                }
+                pingDownloadsParallel(downloadUrls, key)
+                photos
+            } finally {
+                conn.disconnect()
+            }
+        }.getOrDefault(emptyList())
+    }
 
-            val arr = JSONArray(body)
-            val photos = ArrayList<AmbientPhoto>(arr.length())
-            for (i in 0 until arr.length()) {
-                val photo = arr.getJSONObject(i)
-                val raw = photo.getJSONObject("urls").getString("raw")
-                val user = photo.getJSONObject("user")
-                val name = user.optString("name").takeIf { it.isNotBlank() }
-                val profile = user.optJSONObject("links")?.optString("html")?.takeIf { it.isNotBlank() }
-                photos.add(
-                    AmbientPhoto(
-                        url = "$raw&w=1920&q=80&fm=jpg&fit=crop",
-                        photographer = name,
-                        profileUrl = profile?.let { it + UTM },
-                    ),
-                )
-                // Unsplash API guideline: ping the download endpoint on use.
-                runCatching {
-                    val dl = photo.getJSONObject("links").getString("download_location")
-                    (URL("$dl&client_id=$key").openConnection() as HttpURLConnection).apply {
+    private suspend fun pingDownloadsParallel(urls: List<String>, clientId: String) = coroutineScope {
+        urls.map { dl ->
+            async(Dispatchers.IO) {
+                runLoggedCatching("unsplash_download_ping") {
+                    val conn = (URL("$dl&client_id=$clientId").openConnection() as HttpURLConnection).apply {
                         connectTimeout = 5_000
                         readTimeout = 5_000
-                    }.inputStream.close()
+                    }
+                    try {
+                        conn.inputStream.use { it.readBytes() }
+                    } finally {
+                        conn.disconnect()
+                    }
                 }
             }
-            photos
-        }.getOrDefault(emptyList())
+        }.awaitAll()
     }
 }

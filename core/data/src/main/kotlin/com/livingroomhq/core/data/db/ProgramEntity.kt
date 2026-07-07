@@ -2,27 +2,27 @@ package com.livingroomhq.core.data.db
 
 import androidx.room.Entity
 import androidx.room.Index
-import androidx.room.PrimaryKey
 import com.livingroomhq.core.data.model.Program
 
 @Entity(
     tableName = "programs",
+    primaryKeys = ["channelId", "startMillis"],
     indices = [
         Index(value = ["channelId"]),
         Index(value = ["startMillis"]),
         Index(value = ["endMillis"]),
         Index(value = ["channelId", "endMillis", "startMillis"]),
         Index(value = ["endMillis", "startMillis"]),
-    ]
+    ],
 )
 data class ProgramEntity(
-    @PrimaryKey(autoGenerate = true) val dbId: Long = 0,
     val channelId: String,
     val title: String,
     val description: String,
     val startMillis: Long,
     val endMillis: Long,
     val artworkUrl: String? = null,
+    val sourceId: String = ChannelEntity.DEFAULT_SOURCE_ID,
 ) {
     fun toModel(): Program = Program(
         channelId = channelId,

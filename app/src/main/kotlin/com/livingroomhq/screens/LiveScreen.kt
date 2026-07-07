@@ -44,7 +44,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,10 +65,15 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
+import com.livingroomhq.navigation.FullscreenFocusReturn
+import com.livingroomhq.screens.live.LiveTvEffect
+import com.livingroomhq.screens.live.LiveTvEvent
+import com.livingroomhq.screens.live.LiveTvViewModel
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.rememberZones
@@ -92,59 +96,50 @@ import java.util.Date
 import java.util.Locale
 
 /** Wait for focus to settle before swapping the live preview stream. */
-private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
+private const val PREVIEW_PROGRESS_TICK_MS = 30_000L
 
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
+fun LiveScreen(
+    nav: LauncherNavController,
+    focusReturn: FullscreenFocusReturn,
+    viewModel: LiveTvViewModel = viewModel(
+        factory = LiveTvViewModel.factory(
+            (LocalContext.current.applicationContext as HqApplication).channels,
+        ),
+    ),
+) {
     val context = LocalContext.current
     val customSettings = LocalCustomSettings.current
     val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
-    val channels by app.channels.channels.collectAsState()
-    val recents by app.channels.recents.collectAsState()
-    val groups by app.channels.groups.collectAsState()
-    val channelsByGroup by app.channels.channelsByGroup.collectAsState()
-    val epgRevision by app.channels.epgRevision.collectAsState()
-    var selectedCategoryId by rememberSaveable { mutableStateOf<String?>(null) }
-    var focusedChannelId by remember { mutableStateOf<String?>(null) }
-    var previewChannelId by remember { mutableStateOf<String?>(null) }
-    
+    val state by viewModel.uiState.collectAsState()
     val zones = rememberZones("categories", "grid", "preview")
-    var isGridFocused by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = isGridFocused) {
-        runCatching { zones[0].requester.requestFocus() }
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is LiveTvEffect.LaunchPlayer -> ChannelPlayer.launch(context, effect.channel)
+                is LiveTvEffect.ArmGridFocus ->
+                    focusReturn.arm(liveGridFocusTarget(effect.channelId))
+                is LiveTvEffect.ArmPreviewFocus ->
+                    focusReturn.arm(livePreviewFocusTarget(effect.channelId))
+                LiveTvEffect.FocusCategories ->
+                    runCatching { zones[0].requester.requestFocus() }
+            }
+        }
     }
 
-    LaunchedEffect(channels.isNotEmpty()) {
-        if (channels.isNotEmpty()) {
+    BackHandler(enabled = state.isGridFocused) {
+        viewModel.onEvent(LiveTvEvent.FocusCategories)
+    }
+
+    LaunchedEffect(state.channels.isNotEmpty()) {
+        if (state.channels.isNotEmpty()) {
             yieldAndFocus(zones[0].requester)
         }
     }
 
-    // Restore the last real selection without auto-playing the first playlist entry.
-    LaunchedEffect(channels, recents) {
-        if (previewChannelId == null) {
-            val initial = recents.firstOrNull()?.id
-            previewChannelId = initial
-            focusedChannelId = initial
-        }
-    }
-
-    LaunchedEffect(focusedChannelId) {
-        val id = focusedChannelId ?: return@LaunchedEffect
-        delay(PREVIEW_FOCUS_DEBOUNCE_MS)
-        if (focusedChannelId == id) {
-            previewChannelId = id
-        }
-    }
-
-    LaunchedEffect(previewChannelId) {
-        val id = previewChannelId ?: return@LaunchedEffect
-        runCatching { app.channels.fetchEpgDetails(id) }
-    }
-
-    if (channels.isEmpty()) {
+    if (state.isEmpty) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -162,32 +157,12 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
         return
     }
 
-    // Categories
-    val categories = remember(groups) {
+    val categories = remember(state.groups) {
         listOf(
             CategoryItem("All Channels", Icons.Default.Tv, null),
             CategoryItem("Favorites", Icons.Default.Star, "favorites"),
             CategoryItem("Recent", Icons.Default.History, "recent"),
-        ) + groups.map { CategoryItem(it, Icons.Default.List, it) }
-    }
-
-    val visibleChannels = remember(selectedCategoryId, channels, recents, channelsByGroup) {
-        when (selectedCategoryId) {
-            null -> channels
-            "favorites" -> channels.filter { it.isFavorite }
-            "recent" -> recents
-            else -> channelsByGroup[selectedCategoryId].orEmpty()
-        }
-    }
-
-    val previewChannel = channels.firstOrNull { it.id == previewChannelId }
-
-    LaunchedEffect(selectedCategoryId, visibleChannels.firstOrNull()?.id, visibleChannels.size) {
-        val ids = visibleChannels.take(48).map { it.id }
-        if (ids.isNotEmpty()) {
-            delay(300)
-            runCatching { app.channels.prefetchEpgForChannels(ids) }
-        }
+        ) + state.groups.map { CategoryItem(it, Icons.Default.List, it) }
     }
 
     Row(
@@ -210,12 +185,12 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
                 contentPadding = PaddingValues(bottom = 24.dp),
             ) {
                 items(categories, key = { it.id ?: "all" }) { cat ->
-                    val isActive = selectedCategoryId == cat.id
+                    val isActive = state.selectedCategoryId == cat.id
                     CategoryRailItem(
                         label = cat.name,
                         icon = cat.icon,
                         active = isActive,
-                        onClick = { selectedCategoryId = cat.id },
+                        onClick = { viewModel.onEvent(LiveTvEvent.SelectCategory(cat.id)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(if (isActive) Modifier.zoneFocus(zones[0], initial = true) else Modifier),
@@ -225,23 +200,18 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
         }
 
         LiveChannelGridColumn(
-            app = app,
             nav = nav,
+            focusReturn = focusReturn,
             categories = categories,
-            selectedCategoryId = selectedCategoryId,
-            visibleChannels = visibleChannels,
-            epgRevision = epgRevision,
+            selectedCategoryId = state.selectedCategoryId,
+            visibleChannels = state.visibleChannels,
+            epgRevision = state.epgRevision,
             categoryFocusRequester = zones[0].requester,
-            onGridFocusChanged = { isGridFocused = it },
-            onChannelFocused = { focusedChannelId = it },
-            onChannelClick = { channel ->
-                focusedChannelId = channel.id
-                previewChannelId = channel.id
-                app.channels.markWatched(channel.id)
-                ChannelPlayer.launch(context, channel)
-            },
+            onGridFocusChanged = { viewModel.onEvent(LiveTvEvent.SetGridFocused(it)) },
+            onChannelFocused = { viewModel.onEvent(LiveTvEvent.FocusChannel(it)) },
+            onChannelClick = { viewModel.onEvent(LiveTvEvent.OpenChannel(it)) },
             channelEpgTitle = { channelId ->
-                app.channels.epgNowNext(channelId).first?.title ?: "No Program Info"
+                viewModel.epgNowNext(channelId).first?.title ?: "No Program Info"
             },
             modifier = Modifier
                 .weight(0.48f)
@@ -249,15 +219,13 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
         )
 
         LivePreviewColumn(
-            previewChannel = previewChannel,
+            previewChannel = state.previewChannel,
             streamActive = previewActive,
-            app = app,
-            onLaunchPreview = previewChannel?.let { channel ->
-                {
-                    app.fullscreenFocusReturn.arm(livePreviewFocusTarget(channel.id))
-                    ChannelPlayer.launch(context, channel)
-                }
+            nowNext = state.previewChannel?.let { viewModel.epgNowNext(it.id) },
+            onLaunchPreview = state.previewChannel?.let { channel ->
+                { viewModel.onEvent(LiveTvEvent.OpenPreviewFullscreen(channel)) }
             },
+            focusReturn = focusReturn,
             modifier = Modifier
                 .weight(0.32f)
                 .fillMaxHeight(),
@@ -268,8 +236,8 @@ fun LiveScreen(app: HqApplication, nav: LauncherNavController) {
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun LiveChannelGridColumn(
-    app: HqApplication,
     nav: LauncherNavController,
+    focusReturn: FullscreenFocusReturn,
     categories: List<CategoryItem>,
     selectedCategoryId: String?,
     visibleChannels: List<Channel>,
@@ -325,13 +293,10 @@ private fun LiveChannelGridColumn(
                         channel = channel,
                         nowPlayingTitle = nowPlayingTitle,
                         onFocused = { onChannelFocused(channel.id) },
-                        onClick = {
-                            app.fullscreenFocusReturn.arm(liveGridFocusTarget(channel.id))
-                            onChannelClick(channel)
-                        },
+                        onClick = { onChannelClick(channel) },
                         focusRequester = cardRequester,
                         modifier = Modifier
-                            .restoreFocusOnReturn(app.fullscreenFocusReturn, liveGridFocusTarget(channel.id)),
+                            .restoreFocusOnReturn(focusReturn, liveGridFocusTarget(channel.id)),
                     )
                 }
             }
@@ -343,18 +308,19 @@ private fun LiveChannelGridColumn(
 private fun LivePreviewColumn(
     previewChannel: Channel?,
     streamActive: Boolean,
-    app: HqApplication,
+    nowNext: Pair<Program?, Program?>?,
+    focusReturn: FullscreenFocusReturn,
     onLaunchPreview: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val previewShape = RoundedCornerShape(HqDimens.CornerMd)
-    val (now, next) = previewChannel?.let { app.channels.epgNowNext(it.id) } ?: (null to null)
+    val (now, next) = nowNext ?: (null to null)
     var progressTick by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(previewChannel?.id) {
         while (true) {
             progressTick = System.currentTimeMillis()
-            delay(30_000)
+            delay(PREVIEW_PROGRESS_TICK_MS)
         }
     }
 
@@ -368,7 +334,7 @@ private fun LivePreviewColumn(
                     .background(Color.Black)
                     .then(
                         previewChannel?.let { channel ->
-                            Modifier.restoreFocusOnReturn(app.fullscreenFocusReturn, livePreviewFocusTarget(channel.id))
+                            Modifier.restoreFocusOnReturn(focusReturn, livePreviewFocusTarget(channel.id))
                         } ?: Modifier,
                     )
                     .then(

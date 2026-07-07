@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -20,6 +21,7 @@ import kotlinx.coroutines.withContext
  */
 class InstalledAppsRepository(
     private val context: Context,
+    private val pinnedPackages: suspend () -> List<String> = { emptyList() },
     private val onLaunchError: (packageName: String) -> Unit = {},
 ) {
 
@@ -81,8 +83,8 @@ class InstalledAppsRepository(
             }
 
         val detectedPackages = detected.map { it.packageName }.toSet()
-        val extraPackages = listOf("io.gh.reisxd.tizentube.cobalt", "io.github.reisxd.tizentube.cobalt")
-        val extraApps = extraPackages.filter { it !in detectedPackages }.mapNotNull { pkg ->
+        val extraPackages = pinnedPackages().filter { it !in detectedPackages }
+        val extraApps = extraPackages.mapNotNull { pkg ->
             try {
                 val info = pm.getPackageInfo(pkg, 0)
                 val label = info.applicationInfo?.loadLabel(pm)?.toString() ?: pkg

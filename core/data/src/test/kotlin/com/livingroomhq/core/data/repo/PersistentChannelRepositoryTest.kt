@@ -586,6 +586,89 @@ class PersistentChannelRepositoryTest {
         val channelId = repo.channels.first().single().id
         assertEquals("ABC Evening News", repo.epgNowNext(channelId).first?.title)
     }
+
+    @Test
+    fun `epg distinguishes east and west regional feeds`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val regionalGuide = """
+            <tv>
+              <channel id="espn.east">
+                <display-name>ESPN East</display-name>
+              </channel>
+              <channel id="espn.west">
+                <display-name>ESPN West</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="espn.east">
+                <title>East Coast Game</title>
+              </programme>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="espn.west">
+                <title>West Coast Game</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val regionalPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="ESPN East" group-title="Sports",ESPN East
+            http://s/east.m3u8
+            #EXTINF:-1 tvg-name="ESPN West" group-title="Sports",ESPN West
+            http://s/west.m3u8
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) regionalGuide.byteInputStream() else regionalPlaylist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val channels = repo.channels.first()
+        val east = channels.first { it.name.contains("East") }
+        val west = channels.first { it.name.contains("West") }
+        assertEquals("East Coast Game", repo.epgNowNext(east.id).first?.title)
+        assertEquals("West Coast Game", repo.epgNowNext(west.id).first?.title)
+    }
+
+    @Test
+    fun `epg does not match bare channel number to numeric guide alias`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val numericGuide = """
+            <tv>
+              <channel id="5">
+                <display-name>Guide Channel Five</display-name>
+              </channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="5">
+                <title>Numeric Guide Show</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+        val numberedPlaylist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-id="wnyt" group-title="News",WNYT
+            http://s/wnyt.m3u8
+        """.trimIndent()
+        val repo = PersistentChannelRepository(
+            iptvDao = FakeIptvDao(),
+            prefs = InMemoryPrefsStore(),
+            scope = backgroundScope,
+            nowMillis = { 1_716_062_430_000L },
+            workDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) numericGuide.byteInputStream() else numberedPlaylist.byteInputStream()
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        val channelId = repo.channels.first().single().id
+        assertNull(repo.epgNowNext(channelId).first)
+    }
 }
 
 class FakeIptvDao : IptvDao {
@@ -612,6 +695,22 @@ class FakeIptvDao : IptvDao {
         channelsList.clear()
         channelsFlow.value = emptyList()
     }
+
+    override suspend fun deleteChannelsNotIn(ids: List<String>) {
+        channelsList.removeAll { it.id !in ids }
+        channelsFlow.value = channelsList.toList()
+    }
+
+    override suspend fun syncChannels(channels: List<ChannelEntity>) {
+        if (channels.isEmpty()) {
+            clearChannels()
+            return
+        }
+        insertChannels(channels)
+        deleteChannelsNotIn(channels.map { it.id })
+    }
+
+    override suspend fun replaceChannels(channels: List<ChannelEntity>) = syncChannels(channels)
 
     override suspend fun updateChannelFavorite(channelId: String, isFavorite: Boolean) {
         val index = channelsList.indexOfFirst { it.id == channelId }
@@ -649,7 +748,10 @@ class FakeIptvDao : IptvDao {
             .map { ProgramBrief(it.channelId, it.title, it.startMillis, it.endMillis) }
 
     override suspend fun insertPrograms(programs: List<ProgramEntity>) {
-        programsList.addAll(programs)
+        programs.forEach { incoming ->
+            programsList.removeAll { it.channelId == incoming.channelId && it.startMillis == incoming.startMillis }
+            programsList.add(incoming)
+        }
     }
 
     override suspend fun clearPrograms() {
@@ -662,6 +764,15 @@ class FakeIptvDao : IptvDao {
 
     override suspend fun pruneOldPrograms(threshold: Long) {
         programsList.removeAll { it.endMillis < threshold }
+    }
+
+    override suspend fun pruneProgramsBeforeWindow(channelIds: List<String>, windowStart: Long) {
+        programsList.removeAll { it.channelId in channelIds && it.startMillis < windowStart }
+    }
+
+    override suspend fun replacePrograms(programs: List<ProgramEntity>) {
+        clearPrograms()
+        insertPrograms(programs)
     }
 
     override suspend fun getDistinctProgramChannelIds(): List<String> =
@@ -677,4 +788,19 @@ class FakeIptvDao : IptvDao {
     override suspend fun clearGuideChannels() {
         guideChannelsList.clear()
     }
+
+    override suspend fun deleteGuideChannelsNotIn(ids: List<String>) {
+        guideChannelsList.removeAll { it.id !in ids }
+    }
+
+    override suspend fun syncGuideChannels(channels: List<GuideChannelEntity>) {
+        if (channels.isEmpty()) {
+            clearGuideChannels()
+            return
+        }
+        insertGuideChannels(channels)
+        deleteGuideChannelsNotIn(channels.map { it.id })
+    }
+
+    override suspend fun replaceGuideChannels(channels: List<GuideChannelEntity>) = syncGuideChannels(channels)
 }

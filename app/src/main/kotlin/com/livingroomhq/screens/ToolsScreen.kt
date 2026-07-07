@@ -36,7 +36,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,9 +66,12 @@ import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.core.ui.components.EmptyStatePanel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
-import com.livingroomhq.ui.UiMessages
+import com.livingroomhq.screens.tools.ToolsViewModel
+import com.livingroomhq.ui.LocalSnackbarController
+import com.livingroomhq.core.ui.theme.hqAccent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -80,14 +81,19 @@ private const val ARM_LAUNCH_MS = 2_500L
 
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
+fun ToolsScreen(
+    nav: LauncherNavController,
+    viewModel: ToolsViewModel = viewModel(
+        factory = run {
+            val app = LocalContext.current.applicationContext as HqApplication
+            ToolsViewModel.factory(app.installedApps, app.prefs)
+        },
+    ),
+) {
+    val accent = hqAccent()
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val scope = rememberCoroutineScope()
-
-    var detected by remember { mutableStateOf<List<LaunchableApp>>(emptyList()) }
-    val savedOrder by app.prefs.appOrder.collectAsState(initial = emptyList())
-    val hostResumeTick by app.installedApps.hostResumeTick.collectAsState()
+    val snackbar = LocalSnackbarController.current
+    val state by viewModel.uiState.collectAsState()
 
     var armedPackage by remember { mutableStateOf<String?>(null) }
     var armedAt by remember { mutableLongStateOf(0L) }
@@ -97,24 +103,18 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
         armedAt = 0L
     }
 
-    LaunchedEffect(hostResumeTick) {
-        if (hostResumeTick > 0) disarmLaunch()
+    LaunchedEffect(state.hostResumeTick) {
+        if (state.hostResumeTick > 0) disarmLaunch()
     }
 
-    LaunchedEffect(Unit) {
-        detected = app.installedApps.launchableApps()
-    }
-
-    // Working list shown in the grid. Rebuilt from detected apps + saved order,
-    // except while a move is in progress (so live repositioning isn't clobbered).
     val apps = remember { mutableStateListOf<LaunchableApp>() }
     var movingPackage by remember { mutableStateOf<String?>(null) }
     var menuPackage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(detected, savedOrder) {
+    LaunchedEffect(state.detected, state.savedOrder) {
         if (movingPackage == null) {
             apps.clear()
-            apps.addAll(mergeOrder(detected, savedOrder))
+            apps.addAll(state.apps)
         }
     }
 
@@ -139,31 +139,31 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
     }
 
     fun commitMove() {
-        scope.launch { app.prefs.setAppOrder(apps.map { it.packageName }) }
+        viewModel.saveOrder(apps.map { it.packageName })
         movingPackage = null
     }
 
     fun cancelMove() {
         movingPackage = null
         apps.clear()
-        apps.addAll(mergeOrder(detected, savedOrder))
+        apps.addAll(state.apps)
     }
 
     fun openApp(packageName: String) {
-        if (!app.installedApps.canLaunch()) return
+        if (!viewModel.canLaunch()) return
         disarmLaunch()
-        app.installedApps.launch(packageName, context)
+        viewModel.launch(packageName, context)
     }
 
     fun requestLaunch(packageName: String, label: String) {
-        if (!app.installedApps.canLaunch()) return
+        if (!viewModel.canLaunch()) return
         val now = SystemClock.uptimeMillis()
         if (armedPackage == packageName && now - armedAt <= ARM_LAUNCH_MS) {
             openApp(packageName)
         } else {
             armedPackage = packageName
             armedAt = now
-            UiMessages.post("Press OK again to open $label")
+            snackbar.post("Press OK again to open $label")
         }
     }
 
@@ -189,7 +189,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                     "Press OK twice to open · hold OK for more"
                 },
                 style = HqType.Label.copy(
-                    color = if (movingPackage != null) HqColors.Accent else HqColors.TextSecondary,
+                    color = if (movingPackage != null) accent else HqColors.TextSecondary,
                 ),
             )
             Spacer(Modifier.height(16.dp))
@@ -226,6 +226,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                         val isMoving = entry.packageName == movingPackage
                         AppCard(
                             entry = entry,
+                            accent = accent,
                             isMoving = isMoving,
                             isArmed = armedPackage == entry.packageName,
                             packageManagerIcon = {
@@ -273,7 +274,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
                     },
                     onSettings = {
                         menuPackage = null
-                        app.installedApps.openAppSettings(pkg)
+                        viewModel.openAppSettings(pkg)
                     },
                     onMove = {
                         menuPackage = null
@@ -289,6 +290,7 @@ fun ToolsScreen(app: HqApplication, nav: LauncherNavController) {
 @Composable
 private fun AppCard(
     entry: LaunchableApp,
+    accent: androidx.compose.ui.graphics.Color,
     isMoving: Boolean,
     isArmed: Boolean,
     packageManagerIcon: suspend () -> Drawable?,
@@ -304,8 +306,8 @@ private fun AppCard(
         .onFocusChanged { if (!it.isFocused) onDisarm() }
         .then(
             when {
-                isMoving -> Modifier.border(2.dp, HqColors.Accent, RoundedCornerShape(HqDimens.CornerMd))
-                isArmed -> Modifier.border(2.dp, HqColors.Accent.copy(alpha = 0.85f), RoundedCornerShape(HqDimens.CornerMd))
+                isMoving -> Modifier.border(2.dp, accent, RoundedCornerShape(HqDimens.CornerMd))
+                isArmed -> Modifier.border(2.dp, accent.copy(alpha = 0.85f), RoundedCornerShape(HqDimens.CornerMd))
                 else -> Modifier
             },
         )
@@ -347,7 +349,7 @@ private fun AppCard(
                     Icon(
                         imageVector = Icons.Default.Apps,
                         contentDescription = null,
-                        tint = if (focused) HqColors.Accent else HqColors.TextTertiary,
+                        tint = if (focused) accent else HqColors.TextTertiary,
                         modifier = Modifier.size(32.dp),
                     )
                 }
@@ -366,8 +368,8 @@ private fun AppCard(
                 },
                 style = HqType.CardCaption.copy(
                     color = when {
-                        isArmed -> HqColors.Accent
-                        entry.isTvApp -> HqColors.Accent
+                        isArmed -> accent
+                        entry.isTvApp -> accent
                         else -> HqColors.TextSecondary
                     },
                 ),
@@ -420,6 +422,7 @@ private fun MenuRow(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val accent = hqAccent()
     FocusableGlassCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(48.dp),
@@ -433,29 +436,12 @@ private fun MenuRow(
             Text(
                 text = label,
                 style = HqType.CardTitle.copy(
-                    color = if (focused) HqColors.Accent else HqColors.TextPrimary,
+                    color = if (focused) accent else HqColors.TextPrimary,
                 ),
                 maxLines = 1,
             )
         }
     }
-}
-
-/**
- * Detected apps reordered by the user's saved preference. Saved entries that are
- * still installed lead (in saved order); newly installed apps follow in their
- * existing alphabetical order; uninstalled saved entries are dropped.
- */
-private fun mergeOrder(
-    detected: List<LaunchableApp>,
-    savedOrder: List<String>,
-): List<LaunchableApp> {
-    if (savedOrder.isEmpty()) return detected
-    val byPackage = detected.associateBy { it.packageName }
-    val ordered = savedOrder.mapNotNull { byPackage[it] }
-    val savedSet = savedOrder.toHashSet()
-    val rest = detected.filter { it.packageName !in savedSet }
-    return ordered + rest
 }
 
 private fun Key.isCenterKey(): Boolean =

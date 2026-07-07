@@ -3,15 +3,17 @@ package com.livingroomhq.core.data.repo
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.core.content.ContextCompat
 import com.livingroomhq.core.data.model.MediaItem
 import com.livingroomhq.core.data.model.MediaType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,14 +38,21 @@ class LocalMediaRepository(
     private val _library = MutableStateFlow<List<MediaItem>>(emptyList())
     override val library: StateFlow<List<MediaItem>> = _library.asStateFlow()
 
+    private val mediaObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            refresh()
+        }
+
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            refresh()
+        }
+    }
+
     init {
         refresh()
-        scope.launch {
-            while (true) {
-                delay(60_000)
-                refresh()
-            }
-        }
+        val resolver = context.contentResolver
+        resolver.registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, mediaObserver)
+        resolver.registerContentObserver(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, true, mediaObserver)
     }
 
     fun refresh() {

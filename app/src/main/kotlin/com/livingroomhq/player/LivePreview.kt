@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -37,7 +36,7 @@ import com.livingroomhq.core.ui.theme.HqType
  *  - One [ExoPlayer] app-wide via [LivePreviewEngine]
  *  - TextureView for smooth cross-fades
  *  - Audio disabled — preview is always silent
- *  - Lifecycle-aware pause/resume
+ *  - Lifecycle-aware pause/resume via [LivePreviewEngine] + [ProcessLifecycleOwner]
  */
 @Composable
 fun LivePreview(
@@ -51,7 +50,6 @@ fun LivePreview(
     deferStartupMillis: Long = 0L,
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
     val textureView = remember { TextureView(context) }
     var previewReady by remember(channel?.id, deferStartupMillis) {
@@ -74,19 +72,6 @@ fun LivePreview(
             engine.bind(ownerTag, channel, textureView, maxVideoWidth, maxVideoHeight)
             onDispose { engine.unbind(ownerTag, textureView) }
         }
-    }
-
-    DisposableEffect(lifecycleOwner, previewReady) {
-        if (!previewReady) return@DisposableEffect onDispose {}
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> engine.pause()
-                Lifecycle.Event.ON_RESUME -> engine.resume()
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Box(modifier.background(HqColors.Slate)) {

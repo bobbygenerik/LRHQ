@@ -4,15 +4,22 @@ import com.livingroomhq.core.data.db.ChannelEntity
 import com.livingroomhq.core.data.db.GuideChannelEntity
 import com.livingroomhq.core.data.db.IptvDao
 import com.livingroomhq.core.data.db.ProgramEntity
+import com.livingroomhq.core.data.fault.FaultLog
+import com.livingroomhq.core.data.fault.runLoggedCatching
 import com.livingroomhq.core.data.iptv.M3uParser
 import com.livingroomhq.core.data.iptv.XmltvParser
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
+import com.livingroomhq.core.data.net.ConditionalFetchResult
+import com.livingroomhq.core.data.net.DEFAULT_INGEST_MAX_BYTES
+import com.livingroomhq.core.data.net.LimitedInputStream
+import com.livingroomhq.core.data.net.LrhqHttpClient
+import com.livingroomhq.core.data.net.HttpSyncMetadata
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,8 +34,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okhttp3.Request
+import java.io.IOException
 import java.io.InputStream
-import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.GZIPInputStream
 
@@ -38,15 +46,11 @@ private const val EPG_PREFETCH_CHANNEL_CAP = 48
 /** Size of the recents ring buffer. */
 private const val RECENTS_CAP = 8
 
+/** Room upsert batch size for streaming XMLTV ingest. */
+private const val EPG_UPSERT_BATCH_SIZE = 500
+
 /**
  * [ChannelRepository] with persisted favorites, recents, playlist and EPG.
- *
- * Safe design:
- * - In-memory channel cache avoids redundant Room reads.
- * - All I/O dispatched to [workDispatcher] (background).
- * - Mutex-guarded mutations prevent race conditions on the EPG cache.
- * - Atomic state updates via snapshots rather than in-place mutation.
- * - Startup loading is explicit via [restore].
  */
 class PersistentChannelRepository(
     private val iptvDao: IptvDao,
@@ -55,10 +59,10 @@ class PersistentChannelRepository(
     private val nowMillis: () -> Long = System::currentTimeMillis,
     private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val fetchPlaylistStream: suspend (String) -> InputStream = ::httpGetStream,
+    private val conditionalFetch: (suspend (String, HttpSyncMetadata?) -> ConditionalFetchResult)? = null,
 ) : ChannelRepository {
 
     private val epgMutex = Mutex()
-    private val dbFallbackMutex = Mutex()
     private val recentsMutex = Mutex()
     private val restoreGuard = java.util.concurrent.atomic.AtomicBoolean(false)
 
@@ -72,6 +76,9 @@ class PersistentChannelRepository(
     private val unmappedGuideChannels = ConcurrentHashMap.newKeySet<String>()
     private val dbFallbackRequested = ConcurrentHashMap.newKeySet<String>()
 
+    private val _nowNextCache = MutableStateFlow<Map<String, Pair<Program?, Program?>>>(emptyMap())
+    private var nowNextInvalidationJob: Job? = null
+
     override val epgRevision: StateFlow<Long> = _epgRevision.asStateFlow()
 
     private val _channelById = MutableStateFlow<Map<String, Channel>>(emptyMap())
@@ -84,8 +91,6 @@ class PersistentChannelRepository(
                 models
             }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
-
-    private val _nowNextCache = MutableStateFlow<Map<String, Pair<Program?, Program?>>>(emptyMap())
 
     override val groups: StateFlow<List<String>> =
         channels
@@ -108,19 +113,18 @@ class PersistentChannelRepository(
         }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun epgNowNext(channelId: String): Pair<Program?, Program?> {
-        _nowNextCache.value[channelId]?.let { return it }
+        _nowNextCache.value[channelId]?.let { cached ->
+            if (!GuideMatcher.isNowNextStale(cached, nowMillis())) return cached
+        }
         val programs = programsForChannel(channelId)
         if (programs.isEmpty()) return null to null
-        val now = nowMillis()
-        val current = programs.firstOrNull { now in it.startMillis until it.endMillis }
-        val next = programs.firstOrNull { it.startMillis >= (current?.endMillis ?: now) }
-        return current to next
+        return GuideMatcher.computeNowNext(programs, nowMillis())
     }
 
     override fun markWatched(channelId: String) {
         scope.launch(workDispatcher) {
             recentsMutex.withLock {
-                runCatching {
+                runLoggedCatching("recents") {
                     val current = prefs.recents.first()
                     val updated = (listOf(channelId) + current.filterNot { it == channelId }).take(RECENTS_CAP)
                     prefs.setRecents(updated)
@@ -131,71 +135,124 @@ class PersistentChannelRepository(
 
     override fun toggleFavorite(channelId: String) {
         scope.launch(workDispatcher) {
-            runCatching {
+            runLoggedCatching("toggle_favorite") {
                 val favs = prefs.favorites.first()
                 val newFavs = if (channelId in favs) favs - channelId else favs + channelId
                 prefs.setFavorites(newFavs)
                 iptvDao.updateChannelFavorite(channelId, channelId in newFavs)
-            }.onFailure { e ->
-                android.util.Log.e("PersistentChannelRepo", "toggleFavorite failed for $channelId", e)
             }
         }
     }
 
     override suspend fun loadM3u(playlistUrl: String) = withContext(workDispatcher) {
-        runCatching {
-            val stream = fetchPlaylistStream(playlistUrl)
-            val parsed = M3uParser.parse(stream)
-            if (parsed.isEmpty()) return@runCatching
-            val favs = prefs.favorites.first()
-            val entities = parsed.map { channel ->
-                ChannelEntity.fromModel(channel.copy(isFavorite = channel.id in favs))
+        runLoggedCatching("playlist") {
+            if (conditionalFetch == null) {
+                ingestM3u(fetchPlaylistStream(playlistUrl), playlistUrl, null)
+                return@runLoggedCatching
             }
-            clearGuideMatchCache()
-            iptvDao.replaceChannels(entities)
-            prefs.setPlaylistUrl(playlistUrl)
-        }.getOrThrow()
+            val prior = prefs.playlistSyncMetadata.first()
+            when (val fetch = conditionalFetch(playlistUrl, prior)) {
+                ConditionalFetchResult.NotModified -> {
+                    if (iptvDao.getChannels().isNotEmpty()) return@runLoggedCatching
+                    ingestM3u(fetchPlaylistStream(playlistUrl), playlistUrl, null)
+                }
+                is ConditionalFetchResult.Modified -> {
+                    ingestM3u(fetch.stream, playlistUrl, fetch.metadata)
+                }
+            }
+        }.onSuccess { FaultLog.recordPlaylistSuccess() }
+            .onFailure { FaultLog.recordPlaylistFailure(it) }
+            .getOrThrow()
+    }
+
+    private suspend fun ingestM3u(stream: InputStream, playlistUrl: String, metadata: HttpSyncMetadata?) {
+        val parsed = M3uParser.parse(stream)
+        if (parsed.isEmpty()) return
+        val favs = prefs.favorites.first()
+        val entities = parsed.map { channel ->
+            ChannelEntity.fromModel(channel.copy(isFavorite = channel.id in favs))
+        }
+        clearGuideMatchCache()
+        iptvDao.syncChannels(entities)
+        prefs.setPlaylistUrl(playlistUrl)
+        metadata?.let { prefs.setPlaylistSyncMetadata(it) }
     }
 
     override suspend fun loadXmltv(epgUrl: String) = withContext(workDispatcher) {
-        runCatching {
-            val now = nowMillis()
-            val windowEnd = epgMemoryWindowEnd(now)
-            val memoryCachePrograms = mutableListOf<Program>()
-            val guideAliases = mutableMapOf<String, Set<String>>()
-            val guideDisplayNames = mutableMapOf<String, List<String>>()
-            val parsedPrograms = mutableListOf<ProgramEntity>()
+        runLoggedCatching("guide") {
+            if (conditionalFetch == null) {
+                ingestXmltv(fetchPlaylistStream(epgUrl), epgUrl, null)
+                return@runLoggedCatching
+            }
+            val prior = prefs.epgSyncMetadata.first()
+            when (val fetch = conditionalFetch(epgUrl, prior)) {
+                ConditionalFetchResult.NotModified -> {
+                    if (_loadedEpg.value.isNotEmpty()) return@runLoggedCatching
+                    ingestXmltv(fetchPlaylistStream(epgUrl), epgUrl, null)
+                }
+                is ConditionalFetchResult.Modified -> {
+                    ingestXmltv(fetch.stream, epgUrl, fetch.metadata)
+                }
+            }
+        }.onSuccess { FaultLog.recordGuideSuccess() }
+            .onFailure { FaultLog.recordGuideFailure(it) }
+            .getOrThrow()
+    }
 
-            XmltvParser.parse(
-                inputStream = fetchPlaylistStream(epgUrl),
-                onChannelParsed = { id, displayNames ->
-                    guideDisplayNames[id] = displayNames
-                    guideAliases[id] = guideAliasKeys(id, displayNames)
-                },
-                onProgramParsed = { program ->
-                    parsedPrograms.add(ProgramEntity.fromModel(program))
-                    if (program.endMillis > now && program.startMillis < windowEnd) {
-                        memoryCachePrograms.add(program)
-                    }
-                },
-            )
-            require(parsedPrograms.isNotEmpty()) { "No programmes found in guide" }
+    private suspend fun ingestXmltv(stream: InputStream, epgUrl: String, metadata: HttpSyncMetadata?) {
+        val now = nowMillis()
+        val windowEnd = epgMemoryWindowEnd(now)
+        val memoryCachePrograms = mutableListOf<Program>()
+        val guideAliases = mutableMapOf<String, Set<String>>()
+        val guideDisplayNames = mutableMapOf<String, List<String>>()
+        val batch = ArrayList<ProgramEntity>(EPG_UPSERT_BATCH_SIZE)
+        val seenGuideChannelIds = mutableSetOf<String>()
+        var programCount = 0
 
-            iptvDao.replacePrograms(parsedPrograms)
-            ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, memoryCachePrograms.map { it.channelId })
-            iptvDao.replaceGuideChannels(
-                guideDisplayNames.map { (id, names) ->
-                    GuideChannelEntity.fromAliases(id, names)
-                },
-            )
-            applyGuideCache(
-                programs = memoryCachePrograms,
-                guideAliases = guideAliases,
-            )
-            val threshold = now - 24 * 60 * 60 * 1000L
-            iptvDao.pruneOldPrograms(threshold)
-            prefs.setEpgUrl(epgUrl)
-        }.getOrThrow()
+        suspend fun flushBatch() {
+            if (batch.isNotEmpty()) {
+                iptvDao.insertPrograms(batch.toList())
+                batch.clear()
+            }
+        }
+
+        XmltvParser.parse(
+            inputStream = stream,
+            onChannelParsed = { id, displayNames ->
+                guideDisplayNames[id] = displayNames
+                guideAliases[id] = GuideMatcher.guideAliasKeys(id, displayNames)
+                seenGuideChannelIds.add(id)
+            },
+            onProgramParsed = { program ->
+                programCount++
+                seenGuideChannelIds.add(program.channelId)
+                batch.add(ProgramEntity.fromModel(program))
+                if (batch.size >= EPG_UPSERT_BATCH_SIZE) flushBatch()
+                if (program.endMillis > now && program.startMillis < windowEnd) {
+                    memoryCachePrograms.add(program)
+                }
+            },
+        )
+        flushBatch()
+        require(programCount > 0) { "No programmes found in guide" }
+
+        val threshold = now - 24 * 60 * 60 * 1000L
+        iptvDao.pruneOldPrograms(threshold)
+        if (seenGuideChannelIds.isNotEmpty()) {
+            iptvDao.pruneProgramsBeforeWindow(seenGuideChannelIds.toList(), threshold)
+        }
+        ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, seenGuideChannelIds)
+        iptvDao.syncGuideChannels(
+            guideDisplayNames.map { (id, names) ->
+                GuideChannelEntity.fromAliases(id, names)
+            },
+        )
+        applyGuideCache(
+            programs = memoryCachePrograms,
+            guideAliases = guideAliases,
+        )
+        prefs.setEpgUrl(epgUrl)
+        metadata?.let { prefs.setEpgSyncMetadata(it) }
     }
 
     private suspend fun applyGuideCache(
@@ -205,29 +262,42 @@ class PersistentChannelRepository(
         val now = nowMillis()
         _loadedEpg.value = groupProgramsByChannel(filterProgramsForMemoryCache(programs, now))
         _loadedEpgAliases.value = guideAliases
-        _loadedEpgAliasIndex.value = buildGuideAliasIndex(guideAliases)
+        _loadedEpgAliasIndex.value = GuideMatcher.buildAliasIndex(guideAliases)
         clearGuideMatchCache()
         _epgRevision.value++
         rebuildNowNextCache()
+        scheduleNowNextInvalidation()
     }
 
-    private suspend fun refreshMemoryEpgFromDatabase() = epgMutex.withLock {
+    /** Called by [com.livingroomhq.core.data.sync.IptvSyncWorker] on a 15-minute cadence. */
+    suspend fun refreshMemoryEpgFromDatabase() = epgMutex.withLock {
         val now = nowMillis()
         val programs = iptvDao.getProgramsInWindow(now, epgMemoryWindowEnd(now))
         if (programs.isEmpty() && _loadedEpg.value.isEmpty()) return@withLock
-        _loadedEpg.value = groupProgramsByChannel(filterProgramsForMemoryCache(
-            programs.map { Program(channelId = it.channelId, title = it.title, description = "", startMillis = it.startMillis, endMillis = it.endMillis) },
-            now,
-        ))
+        _loadedEpg.value = groupProgramsByChannel(
+            filterProgramsForMemoryCache(
+                programs.map {
+                    Program(
+                        channelId = it.channelId,
+                        title = it.title,
+                        description = "",
+                        startMillis = it.startMillis,
+                        endMillis = it.endMillis,
+                    )
+                },
+                now,
+            ),
+        )
         _epgRevision.value++
         rebuildNowNextCache()
+        scheduleNowNextInvalidation()
     }
 
     private fun scheduleDbFallback(playlistChannelId: String, guideChannelId: String) {
         val requestKey = "$playlistChannelId->$guideChannelId"
         if (!dbFallbackRequested.add(requestKey)) return
-        scope.launch(workDispatcher + SupervisorJob()) {
-            runCatching {
+        scope.launch(workDispatcher) {
+            val result = runLoggedCatching("epg_db_fallback") {
                 val now = nowMillis()
                 val programs = iptvDao.getProgramsForChannelInWindow(
                     guideChannelId,
@@ -237,22 +307,39 @@ class PersistentChannelRepository(
                 if (programs.isNotEmpty()) {
                     val sortedPrograms = programs.sortedBy { it.startMillis }
                     epgMutex.withLock {
-                        val currentEpg = _loadedEpg.value
-                        if (currentEpg[guideChannelId] != sortedPrograms) {
-                            _loadedEpg.value = currentEpg.toMutableMap().apply {
-                                put(guideChannelId, sortedPrograms)
-                            }
-                            _epgRevision.value++
-                        }
-                            resolvedGuideChannelIds[playlistChannelId] = guideChannelId
-                            unmappedGuideChannels.remove(playlistChannelId)
-                            rebuildNowNextCache()
+                        mergeEpgChannel(guideChannelId, sortedPrograms)
+                        resolvedGuideChannelIds[playlistChannelId] = guideChannelId
+                        unmappedGuideChannels.remove(playlistChannelId)
+                        updateNowNextForGuide(guideChannelId, sortedPrograms)
                     }
                 } else {
                     unmappedGuideChannels.add(playlistChannelId)
                 }
             }
+            if (result.isFailure) {
+                dbFallbackRequested.remove(requestKey)
+            }
         }
+    }
+
+    private fun mergeEpgChannel(guideChannelId: String, programs: List<Program>) {
+        val currentEpg = _loadedEpg.value
+        if (currentEpg[guideChannelId] != programs) {
+            _loadedEpg.value = currentEpg.toMutableMap().apply { put(guideChannelId, programs) }
+            _epgRevision.value++
+        }
+    }
+
+    private fun updateNowNextForGuide(guideChannelId: String, programs: List<Program>) {
+        val now = nowMillis()
+        val entry = GuideMatcher.computeNowNext(programs, now)
+        val updated = _nowNextCache.value.toMutableMap()
+        updated[guideChannelId] = entry
+        for ((playlistId, resolvedId) in resolvedGuideChannelIds) {
+            if (resolvedId == guideChannelId) updated[playlistId] = entry
+        }
+        _nowNextCache.value = updated
+        scheduleNowNextInvalidation()
     }
 
     private fun rebuildNowNextCache() {
@@ -260,9 +347,7 @@ class PersistentChannelRepository(
         val epg = _loadedEpg.value
         val cache = mutableMapOf<String, Pair<Program?, Program?>>()
         for ((guideId, programs) in epg) {
-            val current = programs.firstOrNull { now in it.startMillis until it.endMillis }
-            val next = programs.firstOrNull { it.startMillis >= (current?.endMillis ?: now) }
-            cache[guideId] = current to next
+            cache[guideId] = GuideMatcher.computeNowNext(programs, now)
         }
         for ((playlistId, guideId) in resolvedGuideChannelIds.entries.toList()) {
             cache[playlistId] = cache[guideId] ?: (null to null)
@@ -270,15 +355,48 @@ class PersistentChannelRepository(
         _nowNextCache.value = cache
     }
 
+    private fun scheduleNowNextInvalidation() {
+        val nextAt = GuideMatcher.nextInvalidationMillis(_nowNextCache.value, nowMillis()) ?: return
+        nowNextInvalidationJob?.cancel()
+        nowNextInvalidationJob = scope.launch(workDispatcher) {
+            delay((nextAt - nowMillis()).coerceAtLeast(0))
+            epgMutex.withLock { invalidateStaleNowNext() }
+            scheduleNowNextInvalidation()
+        }
+    }
+
+    private fun invalidateStaleNowNext() {
+        val now = nowMillis()
+        val epg = _loadedEpg.value
+        val updated = _nowNextCache.value.toMutableMap()
+        var changed = false
+        for ((id, pair) in _nowNextCache.value) {
+            if (!GuideMatcher.isNowNextStale(pair, now)) continue
+            val programs = epg[id] ?: resolvedGuideChannelIds[id]?.let { epg[it] } ?: continue
+            val fresh = GuideMatcher.computeNowNext(programs, now)
+            if (fresh != pair) {
+                updated[id] = fresh
+                changed = true
+            }
+        }
+        for ((playlistId, guideId) in resolvedGuideChannelIds) {
+            updated[playlistId] = updated[guideId] ?: (null to null)
+        }
+        if (changed) {
+            _nowNextCache.value = updated
+            _epgRevision.value++
+        }
+    }
+
     private fun programsForChannel(channelId: String): List<Program> {
         if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return emptyList()
 
         val guide = _loadedEpg.value
-        lookupGuidePrograms(guide, channelId)?.let { programs ->
+        GuideMatcher.lookupGuidePrograms(guide, channelId)?.let { programs ->
             if (programs.isNotEmpty()) return programs
         }
         resolvedGuideChannelIds[channelId]?.let { resolvedId ->
-            lookupGuidePrograms(guide, resolvedId)?.let { programs ->
+            GuideMatcher.lookupGuidePrograms(guide, resolvedId)?.let { programs ->
                 if (programs.isNotEmpty()) return programs
                 scheduleDbFallback(channelId, resolvedId)
             }
@@ -286,26 +404,16 @@ class PersistentChannelRepository(
         }
 
         val channel = _channelById.value[channelId] ?: return emptyList()
-        val aliases = channel.matchAliases()
-
-        aliases.firstNotNullOfOrNull { alias -> _loadedEpgAliasIndex.value[alias] }?.let { matchedGuideId ->
-            resolvedGuideChannelIds[channelId] = matchedGuideId
-            lookupGuidePrograms(guide, matchedGuideId)?.let { programs ->
-                if (programs.isNotEmpty()) return programs
-            }
-            scheduleDbFallback(channelId, matchedGuideId)
-            return emptyList()
-        }
-
-        val matchedGuideId = _loadedEpgAliases.value.entries.firstOrNull { (guideChannelId, guideAliases) ->
-            guideChannelId.guideMatchKeys().any { it.matchesAnyAlias(aliases) } ||
-                guideAliases.any { it.matchesAnyAlias(aliases) }
-        }?.key
+        val matchedGuideId = GuideMatcher.resolveGuideChannelId(
+            channel = channel,
+            guideAliases = _loadedEpgAliases.value,
+            aliasIndex = _loadedEpgAliasIndex.value,
+        )
         if (matchedGuideId == null) {
             unresolvedGuideChannelIds += channelId
         } else {
             resolvedGuideChannelIds[channelId] = matchedGuideId
-            lookupGuidePrograms(guide, matchedGuideId)?.let { programs ->
+            GuideMatcher.lookupGuidePrograms(guide, matchedGuideId)?.let { programs ->
                 if (programs.isNotEmpty()) return programs
                 scheduleDbFallback(channelId, matchedGuideId)
             }
@@ -329,7 +437,8 @@ class PersistentChannelRepository(
             _loadedEpgAliasIndex.value = emptyMap()
             clearGuideMatchCache()
             rebuildNowNextCache()
-            }
+            nowNextInvalidationJob?.cancel()
+        }
         prefs.setEpgUrl(null)
     }
 
@@ -339,7 +448,9 @@ class PersistentChannelRepository(
         iptvDao.pruneOldPrograms(threshold)
 
         prefs.epgUrl.first()?.let { url ->
-            runCatching { loadXmltv(url) }
+            runLoggedCatching("guide_maintenance") { loadXmltv(url) }
+                .onSuccess { FaultLog.recordGuideSuccess() }
+                .onFailure { FaultLog.recordGuideFailure(it) }
         }
     }
 
@@ -355,14 +466,8 @@ class PersistentChannelRepository(
         if (programs.isNotEmpty()) {
             val sortedPrograms = programs.sortedBy { it.startMillis }
             epgMutex.withLock {
-                val currentEpg = _loadedEpg.value
-                if (currentEpg[resolvedId] != sortedPrograms) {
-                    _loadedEpg.value = currentEpg.toMutableMap().apply {
-                        put(resolvedId, sortedPrograms)
-                    }
-                    _epgRevision.value++
-                    rebuildNowNextCache()
-                }
+                mergeEpgChannel(resolvedId, sortedPrograms)
+                updateNowNextForGuide(resolvedId, sortedPrograms)
             }
         }
     }
@@ -377,20 +482,21 @@ class PersistentChannelRepository(
                 resolvedGuideChannelIds[channelId]?.let { return@mapNotNull it }
 
                 val channel = _channelById.value[channelId] ?: return@mapNotNull null
-                val aliases = channel.matchAliases()
-
-                aliases.firstNotNullOfOrNull { alias -> indexSnapshot[alias] }?.let { matchedGuideId ->
+                GuideMatcher.resolveGuideChannelId(
+                    channel = channel,
+                    guideAliases = _loadedEpgAliases.value,
+                    aliasIndex = indexSnapshot,
+                )?.also { matchedGuideId ->
                     resolvedGuideChannelIds[channelId] = matchedGuideId
-                    return@mapNotNull matchedGuideId
+                } ?: run {
+                    unresolvedGuideChannelIds += channelId
+                    null
                 }
-
-                unresolvedGuideChannelIds += channelId
-                null
             }.distinct()
 
             if (guideChannelIds.isEmpty()) return@withContext
 
-            runCatching {
+            runLoggedCatching("epg_prefetch") {
                 val now = nowMillis()
                 val programs = iptvDao.getProgramsForChannelsInWindow(
                     guideChannelIds,
@@ -421,11 +527,11 @@ class PersistentChannelRepository(
                             }
                         }
                         if (changed) {
-                            _loadedEpg.value = currentEpg.toMutableMap().apply {
-                                putAll(grouped)
-                            }
+                            _loadedEpg.value = currentEpg.toMutableMap().apply { putAll(grouped) }
                             _epgRevision.value++
-                            rebuildNowNextCache()
+                            for ((guideId, progs) in grouped) {
+                                updateNowNextForGuide(guideId, progs)
+                            }
                         }
                     }
                 }
@@ -458,11 +564,10 @@ class PersistentChannelRepository(
             .toList()
     }
 
-    /** Re-applies the persisted playlist and EPG guide with background retry loop. */
     fun restore() {
         if (!restoreGuard.compareAndSet(false, true)) return
         scope.launch(workDispatcher) {
-            runCatching {
+            runLoggedCatching("restore_epg_cache") {
                 val guideDisplayNames = iptvDao.getAllGuideChannels()
                     .associate { entity -> entity.id to entity.displayNameList() }
                     .toMutableMap()
@@ -472,7 +577,7 @@ class PersistentChannelRepository(
                     }
                 }
                 val guideAliases = guideDisplayNames.mapValues { (id, names) ->
-                    guideAliasKeys(id, names)
+                    GuideMatcher.guideAliasKeys(id, names)
                 }.toMutableMap()
                 val active = iptvDao.getProgramsInWindow(nowMillis(), epgMemoryWindowEnd(nowMillis()))
                 ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, active.map { it.channelId })
@@ -484,21 +589,6 @@ class PersistentChannelRepository(
         }
 
         scope.launch(workDispatcher) {
-            while (true) {
-                delay(15 * 60 * 1000L)
-                runCatching { refreshMemoryEpgFromDatabase() }
-            }
-        }
-
-        scope.launch(workDispatcher) {
-            while (true) {
-                delay(12 * 60 * 60 * 1000L)
-                runCatching { runMaintenance() }
-            }
-        }
-
-        // Collect playlist URL and reload/clear accordingly
-        scope.launch(workDispatcher) {
             prefs.playlistUrl.collectLatest { url ->
                 if (url == null) {
                     iptvDao.clearChannels()
@@ -508,7 +598,6 @@ class PersistentChannelRepository(
             }
         }
 
-        // Collect EPG URL and reload/clear accordingly
         scope.launch(workDispatcher) {
             prefs.epgUrl.collectLatest { url ->
                 if (url == null) {
@@ -528,37 +617,12 @@ private suspend fun retryWithBackoff(block: suspend () -> Unit) {
             block()
             break
         } catch (e: Exception) {
-            runCatching { android.util.Log.w("PersistentChannelRepo", "retry failed, retrying in ${delayMillis}ms", e) }
+            FaultLog.record("retry_backoff", e)
             delay(delayMillis)
             delayMillis = (delayMillis * 2).coerceAtMost(30_000L)
         }
     }
 }
-
-private fun Channel.matchAliases(): Set<String> =
-    buildSet {
-        addAll(id.normalizedGuideKeys())
-        addAll(id.guideMatchKeys())
-        addAll(name.normalizedGuideKeys())
-        addAll(name.substringBefore('(').normalizedGuideKeys())
-        addAll(name.substringBefore('-').normalizedGuideKeys())
-        tvgId?.let {
-            addAll(it.normalizedGuideKeys())
-            addAll(it.guideMatchKeys())
-        }
-        tvgName?.let { addAll(it.normalizedGuideKeys()) }
-        tvgChno?.let { chno ->
-            add(chno)
-            add(chno.normalizedGuideKey())
-        }
-        add(number.toString())
-    }.filterTo(mutableSetOf()) { it.isNotEmpty() }
-
-private fun guideAliasKeys(id: String, displayNames: Collection<String>): Set<String> =
-    buildSet {
-        id.guideMatchKeys().forEach { add(it) }
-        displayNames.forEach { name -> addAll(name.normalizedGuideKeys()) }
-    }
 
 private fun ensureGuideAliasesForPrograms(
     guideAliases: MutableMap<String, Set<String>>,
@@ -569,75 +633,33 @@ private fun ensureGuideAliasesForPrograms(
         if (channelId.isBlank()) return@forEach
         guideDisplayNames.putIfAbsent(channelId, emptyList())
         val displayNames = guideDisplayNames.getValue(channelId)
-        guideAliases[channelId] = guideAliasKeys(channelId, displayNames)
+        guideAliases[channelId] = GuideMatcher.guideAliasKeys(channelId, displayNames)
     }
 }
-
-private fun lookupGuidePrograms(
-    guide: Map<String, List<Program>>,
-    key: String,
-): List<Program>? {
-    if (key.isBlank()) return null
-    guide[key]?.let { return it }
-    val stripped = key.substringBefore('@')
-    if (stripped != key) {
-        guide[stripped]?.let { return it }
-    }
-    return guide.entries.firstOrNull { (guideId, _) ->
-        guideId.equals(key, ignoreCase = true) ||
-            guideId.substringBefore('@').equals(key, ignoreCase = true) ||
-            (stripped.isNotEmpty() && guideId.equals(stripped, ignoreCase = true))
-    }?.value
-}
-
-private fun buildGuideAliasIndex(guideAliases: Map<String, Set<String>>): Map<String, String> =
-    buildMap {
-        guideAliases.forEach { (guideChannelId, aliases) ->
-            aliases.forEach { alias -> putIfAbsent(alias, guideChannelId) }
-        }
-    }
-
-private fun String.guideMatchKeys(): Set<String> {
-    val stripped = substringBefore('@')
-    return buildSet {
-        add(this@guideMatchKeys)
-        add(stripped)
-        add(normalizedGuideKey())
-        if (stripped != this@guideMatchKeys) add(stripped.normalizedGuideKey())
-    }.filterTo(mutableSetOf()) { it.isNotEmpty() }
-}
-
-private fun String.normalizedGuideKeys(): Set<String> {
-    val full = normalizedGuideKey()
-    val tokens = split(Regex("[^A-Za-z0-9]+"))
-        .map { it.normalizedGuideKey() }
-        .filter { it.length >= 3 }
-    return (listOf(full) + tokens).filterTo(mutableSetOf()) { it.isNotEmpty() }
-}
-
-private fun String.normalizedGuideKey(): String =
-    lowercase()
-        .replace(Regex("\\b(hd|fhd|uhd|sd|us|usa|east|west)\\b"), " ")
-        .replace(Regex("[^a-z0-9]+"), "")
-
-private fun String.matchesAnyAlias(aliases: Set<String>): Boolean =
-    isNotEmpty() && aliases.any { alias ->
-        this == alias || (length >= 4 && alias.contains(this)) || (alias.length >= 4 && contains(alias))
-    }
 
 private suspend fun httpGetStream(url: String): InputStream = withContext(Dispatchers.IO) {
-    val connection = URL(url).openConnection().apply {
-        connectTimeout = 15_000
-        readTimeout = 15_000
-        setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    val request = Request.Builder()
+        .url(url)
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        )
+        .build()
+    val response = LrhqHttpClient.client.newCall(request).execute()
+    if (!response.isSuccessful) {
+        response.close()
+        throw IOException("HTTP ${response.code} for $url")
     }
-    val stream = connection.getInputStream()
-    val contentEncoding = connection.contentEncoding.orEmpty()
+    val body = response.body ?: run {
+        response.close()
+        throw IOException("Empty response body for $url")
+    }
+    val raw = LimitedInputStream(body.byteStream(), DEFAULT_INGEST_MAX_BYTES)
+    val contentEncoding = response.header("Content-Encoding").orEmpty()
     if (contentEncoding.equals("gzip", ignoreCase = true) || url.endsWith(".gz", ignoreCase = true)) {
-        GZIPInputStream(stream)
+        GZIPInputStream(raw)
     } else {
-        stream
+        raw
     }
 }
-
 

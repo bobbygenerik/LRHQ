@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Memory
@@ -30,6 +29,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
@@ -55,41 +56,80 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
-import com.livingroomhq.ui.UiMessages
+import com.livingroomhq.screens.commandcenter.CommandCenterEffect
+import com.livingroomhq.screens.commandcenter.CommandCenterEvent
+import com.livingroomhq.screens.commandcenter.CommandCenterUiState
+import com.livingroomhq.screens.commandcenter.CommandCenterViewModel
+import com.livingroomhq.ui.LocalSnackbarController
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-/**
- * Read-out of real device state. Every tile shows live data — no mock numbers —
- * and is actionable: OK opens the matching Android settings screen, so a
- * focusable card always does something.
- */
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-fun CommandCenterScreen(app: HqApplication) {
+fun CommandCenterScreen(
+    viewModel: CommandCenterViewModel = viewModel(
+        factory = run {
+            val app = LocalContext.current.applicationContext as HqApplication
+            val context = LocalContext.current
+            CommandCenterViewModel.factory(
+                app.systemMonitor,
+                CommandCenterUiState(
+                    localIp = getLocalIpAddress(),
+                    tailscaleIp = getTailscaleIpAddress(),
+                    deviceModel = Build.MODEL.ifEmpty { "Android TV Device" },
+                    appVersion = runCatching {
+                        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+                    }.getOrNull() ?: "—",
+                    androidRelease = Build.VERSION.RELEASE,
+                    sdkInt = Build.VERSION.SDK_INT,
+                    securityPatch = Build.VERSION.SECURITY_PATCH,
+                ),
+            )
+        },
+    ),
+) {
     val context = LocalContext.current
-    val stats by remember { app.systemMonitor.stats() }
-        .collectAsState(initial = null)
+    val snackbar = LocalSnackbarController.current
+    val state by viewModel.uiState.collectAsState()
     val firstCardFocusRequester = remember { FocusRequester() }
 
-    val localIp = remember { getLocalIpAddress() }
-    val tailscaleIp = remember { getTailscaleIpAddress() }
-    val deviceModel = remember { Build.MODEL.ifEmpty { "Android TV Device" } }
-    val appVersion = remember {
-        runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: "—"
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is CommandCenterEffect.OpenSettings -> {
+                    val launched = runCatching {
+                        context.startActivity(
+                            Intent(effect.action).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                effect.data?.let { data = it }
+                            },
+                        )
+                        true
+                    }.getOrDefault(false)
+                    if (!launched) {
+                        val fallback = runCatching {
+                            context.startActivity(
+                                Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                            true
+                        }.getOrDefault(false)
+                        if (!fallback) snackbar.post("Couldn't open settings")
+                    }
+                }
+                CommandCenterEffect.SettingsOpenFailed -> snackbar.post("Couldn't open settings")
+            }
+        }
     }
 
-    val statsReady = stats != null
-
-    fun open(action: String, data: Uri? = null) = context.openSettings(action, data)
+    val statsReady = state.stats != null
+    fun open(action: String, data: Uri? = null) =
+        viewModel.onEvent(CommandCenterEvent.OpenSettings(action, data))
 
     Column(
         Modifier
             .fillMaxSize()
             .zonePadding()
-            .focusProperties { enter = { firstCardFocusRequester } }
+            .focusProperties { enter = { firstCardFocusRequester } },
     ) {
         Text("Command Center", style = HqType.Title)
         Spacer(Modifier.height(16.dp))
@@ -104,34 +144,41 @@ fun CommandCenterScreen(app: HqApplication) {
                 top = HqDimens.GridEdgeInset,
                 bottom = 36.dp,
             ),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
-            // 1. System — model + live CPU.
             item {
-                val cpu = stats?.cpuPercent ?: 0f
+                val cpu = state.stats?.cpuPercent ?: 0f
+                val cpuAvailable = state.stats?.cpuAvailable != false
                 MetricCard(
                     title = "System",
                     icon = Icons.Default.Computer,
-                    description = "System, ${deviceModel}, CPU ${cpu.toInt()} percent",
+                    description = "System, ${state.deviceModel}, CPU ${if (cpuAvailable) "${cpu.toInt()} percent" else "unavailable"}",
                     onClick = { open(Settings.ACTION_SETTINGS) },
                     modifier = Modifier.tvInitialFocus(firstCardFocusRequester),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            if (statsReady) deviceModel else "Collecting…",
+                            if (statsReady) state.deviceModel else "Collecting…",
                             style = HqType.CardTitle,
                             maxLines = 1,
                         )
-                        StatBar("CPU", if (statsReady) "${cpu.toInt()}%" else "…", if (statsReady) cpu / 100f else 0.25f)
+                        StatBar(
+                            "CPU",
+                            when {
+                                !statsReady -> "…"
+                                !cpuAvailable -> "N/A"
+                                else -> "${cpu.toInt()}%"
+                            },
+                            if (statsReady && cpuAvailable) cpu / 100f else 0.25f,
+                        )
                     }
                 }
             }
 
-            // 2. Memory — live RAM.
             item {
-                val used = stats?.ramUsedMb ?: 0L
-                val total = stats?.ramTotalMb ?: 0L
-                val pct = stats?.ramPercent ?: 0f
+                val used = state.stats?.ramUsedMb ?: 0L
+                val total = state.stats?.ramTotalMb ?: 0L
+                val pct = state.stats?.ramPercent ?: 0f
                 MetricCard(
                     title = "Memory",
                     icon = Icons.Default.Memory,
@@ -149,11 +196,10 @@ fun CommandCenterScreen(app: HqApplication) {
                 }
             }
 
-            // 3. Storage — live internal storage.
             item {
-                val totalBytes = stats?.storageTotalBytes ?: 0L
-                val usedBytes = stats?.storageUsedBytes ?: 0L
-                val usedPct = stats?.storagePercent ?: 0f
+                val totalBytes = state.stats?.storageTotalBytes ?: 0L
+                val usedBytes = state.stats?.storageUsedBytes ?: 0L
+                val usedPct = state.stats?.storagePercent ?: 0f
                 val totalGb = totalBytes / (1024 * 1024 * 1024)
                 val freeGb = (totalBytes - usedBytes) / (1024 * 1024 * 1024)
                 MetricCard(
@@ -173,27 +219,25 @@ fun CommandCenterScreen(app: HqApplication) {
                 }
             }
 
-            // 4. Network — real IP + live throughput.
             item {
-                val down = stats?.networkDownKbps ?: 0L
-                val up = stats?.networkUpKbps ?: 0L
+                val down = state.stats?.networkDownKbps ?: 0L
+                val up = state.stats?.networkUpKbps ?: 0L
                 MetricCard(
                     title = "Network",
                     icon = Icons.Default.Wifi,
-                    description = "Network, local IP $localIp",
+                    description = "Network, local IP ${state.localIp}",
                     onClick = { open(Settings.ACTION_WIFI_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Home Network", style = HqType.CardTitle)
-                        StatusRow("LOCAL IP", localIp, HqColors.TextPrimary)
+                        StatusRow("LOCAL IP", state.localIp, HqColors.TextPrimary)
                         StatusRow("THROUGHPUT", "↓ $down · ↑ $up KB/s", HqColors.TextSecondary)
                     }
                 }
             }
 
-            // 5. VPN — real transport state.
             item {
-                val vpnActive = stats?.vpnActive == true
+                val vpnActive = state.stats?.vpnActive == true
                 MetricCard(
                     title = "VPN",
                     icon = Icons.Default.Lock,
@@ -212,9 +256,8 @@ fun CommandCenterScreen(app: HqApplication) {
                 }
             }
 
-            // 6. Tailscale — present only if a tailscale/tun interface holds an IP.
             item {
-                val connected = tailscaleIp != null
+                val connected = state.tailscaleIp != null
                 MetricCard(
                     title = "Tailscale",
                     icon = Icons.Default.Security,
@@ -224,14 +267,13 @@ fun CommandCenterScreen(app: HqApplication) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Mesh Network", style = HqType.Headline)
                         StatusRow("STATUS", if (connected) "Connected" else "Not detected", if (connected) HqColors.Positive else HqColors.TextTertiary)
-                        StatusRow("TAIL IP", tailscaleIp ?: "—", HqColors.TextPrimary)
+                        StatusRow("TAIL IP", state.tailscaleIp ?: "—", HqColors.TextPrimary)
                     }
                 }
             }
 
-            // 7. Uptime — real elapsed-realtime since boot/launcher start.
             item {
-                val uptime = stats?.uptimeMillis ?: 0L
+                val uptime = state.stats?.uptimeMillis ?: 0L
                 MetricCard(
                     title = "Uptime",
                     icon = Icons.Default.Schedule,
@@ -248,28 +290,26 @@ fun CommandCenterScreen(app: HqApplication) {
                 }
             }
 
-            // 8. Android — real build info.
             item {
                 MetricCard(
                     title = "Android",
                     icon = Icons.Default.Android,
-                    description = "Android version ${Build.VERSION.RELEASE}",
+                    description = "Android version ${state.androidRelease}",
                     onClick = { open(Settings.ACTION_DEVICE_INFO_SETTINGS) },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Platform", style = HqType.CardTitle)
-                        StatusRow("VERSION", "Android ${Build.VERSION.RELEASE}", HqColors.TextPrimary)
-                        StatusRow("API / PATCH", "${Build.VERSION.SDK_INT} · ${Build.VERSION.SECURITY_PATCH}", HqColors.TextSecondary)
+                        StatusRow("VERSION", "Android ${state.androidRelease}", HqColors.TextPrimary)
+                        StatusRow("API / PATCH", "${state.sdkInt} · ${state.securityPatch}", HqColors.TextSecondary)
                     }
                 }
             }
 
-            // 9. Launcher — this app's real version.
             item {
                 MetricCard(
                     title = "Launcher",
                     icon = Icons.Default.Apps,
-                    description = "LivingRoom HQ version $appVersion",
+                    description = "LivingRoom HQ version ${state.appVersion}",
                     onClick = {
                         open(
                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -279,8 +319,8 @@ fun CommandCenterScreen(app: HqApplication) {
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("LivingRoom HQ", style = HqType.CardTitle)
-                        StatusRow("VERSION", appVersion, HqColors.TextPrimary)
-                        StatusRow("MODEL", deviceModel, HqColors.TextSecondary)
+                        StatusRow("VERSION", state.appVersion, HqColors.TextPrimary)
+                        StatusRow("MODEL", state.deviceModel, HqColors.TextSecondary)
                     }
                 }
             }
@@ -303,7 +343,7 @@ private fun MetricCard(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     FocusableGlassCard(
         onClick = onClick,
@@ -312,51 +352,35 @@ private fun MetricCard(
             .fillMaxWidth()
             .height(160.dp),
         cornerRadius = 12.dp,
-        contentPadding = PaddingValues(16.dp)
+        contentPadding = PaddingValues(16.dp),
     ) { focused ->
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(title.uppercase(), style = HqType.Label)
-                // Neutral icon badge; lights up with the brand accent on focus.
                 Box(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
                         .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else Color(0x0FFFFFFF)),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
             content()
         }
-    }
-}
-
-/** Opens an Android settings screen, falling back to the top-level settings. */
-private fun android.content.Context.openSettings(action: String, data: Uri? = null) {
-    val intent = Intent(action).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (data != null) this.data = data
-    }
-    val launched = runCatching { startActivity(intent); true }.getOrDefault(false)
-    if (!launched) {
-        val fallback = runCatching {
-            startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true
-        }.getOrDefault(false)
-        if (!fallback) UiMessages.post("Couldn't open settings")
     }
 }
 
@@ -372,22 +396,20 @@ private fun formatUptime(millis: Long): String {
     }
 }
 
-private fun getLocalIpAddress(): String {
-    return runCatching {
+private fun getLocalIpAddress(): String =
+    runCatching {
         NetworkInterface.getNetworkInterfaces().asSequence()
             .flatMap { it.inetAddresses.asSequence() }
             .filterIsInstance<Inet4Address>()
             .filter { !it.isLoopbackAddress }
             .firstOrNull()?.hostAddress ?: "Unavailable"
     }.getOrDefault("Unavailable")
-}
 
-private fun getTailscaleIpAddress(): String? {
-    return runCatching {
+private fun getTailscaleIpAddress(): String? =
+    runCatching {
         NetworkInterface.getNetworkInterfaces().asSequence()
             .filter { it.name.contains("tun") || it.name.contains("tailscale") }
             .flatMap { it.inetAddresses.asSequence() }
             .filterIsInstance<Inet4Address>()
             .firstOrNull()?.hostAddress
     }.getOrNull()
-}

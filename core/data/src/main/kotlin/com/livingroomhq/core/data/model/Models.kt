@@ -51,6 +51,7 @@ data class MediaItem(
 /** Live system metrics for the Command Center. */
 data class SystemStats(
     val cpuPercent: Float,
+    val cpuAvailable: Boolean = true,
     val ramUsedMb: Long,
     val ramTotalMb: Long,
     val storageUsedBytes: Long,

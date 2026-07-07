@@ -2,11 +2,15 @@ package com.livingroomhq.player
 
 import android.content.Context
 import android.view.TextureView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.livingroomhq.core.data.fault.FaultLog
 import com.livingroomhq.core.data.model.Channel
 
 /**
@@ -16,17 +20,49 @@ import com.livingroomhq.core.data.model.Channel
  *
  * Fullscreen reuses this same player (surface handoff) so IPTV does not re-buffer
  * when opening a channel that is already playing in preview.
+ *
+ * Lifecycle is owned here via [ProcessLifecycleOwner] — composables must not
+ * pause/resume the engine themselves.
  */
+sealed class PlayerState {
+    data object Idle : PlayerState()
+
+    data class Preview(
+        val owner: String,
+        val url: String?,
+        val maxVideoWidth: Int,
+        val maxVideoHeight: Int,
+    ) : PlayerState()
+
+    data class Fullscreen(val url: String) : PlayerState()
+
+    /** Preview slot retained while the process is backgrounded. */
+    data class Suspended(
+        val owner: String,
+        val url: String?,
+        val maxVideoWidth: Int,
+        val maxVideoHeight: Int,
+    ) : PlayerState()
+}
+
+private data class PreviewSlot(
+    val owner: String,
+    val textureView: TextureView,
+    val maxVideoWidth: Int,
+    val maxVideoHeight: Int,
+)
+
 class LivePreviewEngine(context: Context) {
     private val appContext = context.applicationContext
-    private var boundOwner: String? = null
+    private var state: PlayerState = PlayerState.Idle
+    private var previewSlot: PreviewSlot? = null
     private var boundView: TextureView? = null
-    private var previewTextureView: TextureView? = null
     private var _fullscreenPlayerView: PlayerView? = null
     private var boundUrl: String? = null
-    private var previewMaxVideoWidth: Int = 1280
-    private var previewMaxVideoHeight: Int = 720
-    var fullscreenActive = false
+    private var appInForeground = true
+
+    val fullscreenActive: Boolean
+        get() = state is PlayerState.Fullscreen
 
     /** Exposed for ChannelPlayerActivity to rebind during channel zapping. */
     val activePlayerView: PlayerView?
@@ -35,8 +71,22 @@ class LivePreviewEngine(context: Context) {
     val player: ExoPlayer = IptvExoPlayer.create(appContext).apply {
         playWhenReady = true
         addListener(object : Player.Listener {
-            override fun onPlayerError(error: PlaybackException) = Unit
+            override fun onPlayerError(error: PlaybackException) {
+                FaultLog.record("LivePreviewEngine", error)
+            }
         })
+    }
+
+    init {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_STOP -> onAppBackgrounded()
+                    Lifecycle.Event.ON_START -> onAppForegrounded()
+                    else -> Unit
+                }
+            },
+        )
     }
 
     fun bind(
@@ -46,52 +96,69 @@ class LivePreviewEngine(context: Context) {
         maxVideoWidth: Int,
         maxVideoHeight: Int,
     ) {
-        previewMaxVideoWidth = maxVideoWidth
-        previewMaxVideoHeight = maxVideoHeight
-        previewTextureView = textureView
-        boundOwner = owner
+        val url = channel?.streamUrl?.takeIf { it.isNotBlank() }
+        previewSlot = PreviewSlot(owner, textureView, maxVideoWidth, maxVideoHeight)
 
-        if (fullscreenActive) return
-
-        if (boundView != null && boundView !== textureView) {
-            player.clearVideoTextureView(boundView)
+        when (val current = state) {
+            is PlayerState.Fullscreen -> return
+            is PlayerState.Suspended -> {
+                if (current.owner != owner) return
+                state = PlayerState.Suspended(owner, url, maxVideoWidth, maxVideoHeight)
+                return
+            }
+            else -> Unit
         }
-        boundView = textureView
-        player.setVideoTextureView(textureView)
-        IptvExoPlayer.configureForPreview(player, maxVideoWidth, maxVideoHeight)
-        prepareChannel(channel?.streamUrl?.takeIf { it.isNotBlank() })
+
+        attachPreviewSurface(owner, textureView, maxVideoWidth, maxVideoHeight)
+        state = PlayerState.Preview(owner, url, maxVideoWidth, maxVideoHeight)
+        if (appInForeground) {
+            prepareChannel(url)
+            resumePreviewPlayback()
+        } else {
+            player.pause()
+        }
     }
 
     fun unbind(owner: String, textureView: TextureView) {
-        if (boundOwner != owner) return
-        if (fullscreenActive) {
-            previewTextureView = textureView
-            return
+        val slot = previewSlot
+        if (slot?.owner != owner || slot.textureView !== textureView) return
+
+        when (val current = state) {
+            is PlayerState.Fullscreen -> {
+                previewSlot = null
+                return
+            }
+            is PlayerState.Suspended -> {
+                if (current.owner == owner) {
+                    previewSlot = null
+                    state = PlayerState.Idle
+                }
+                return
+            }
+            else -> Unit
         }
-        if (boundView !== textureView) return
-        player.clearVideoTextureView(textureView)
-        player.stop()
-        player.clearMediaItems()
-        boundOwner = null
-        boundView = null
-        previewTextureView = null
-        boundUrl = null
+
+        detachPreviewSurface(textureView)
+        previewSlot = null
+        stopPreviewDecoder()
+        state = PlayerState.Idle
     }
 
     /** Move the live decoder to a fullscreen [PlayerView] without restarting the stream. */
     fun promoteToFullscreen(playerView: PlayerView, channel: Channel) {
         val url = channel.streamUrl.takeIf { it.isNotBlank() } ?: return
-        if (fullscreenActive && _fullscreenPlayerView === playerView && boundUrl == url) {
+        val current = state
+        if (current is PlayerState.Fullscreen && _fullscreenPlayerView === playerView && boundUrl == url) {
             if (playerView.player != player) playerView.player = player
             return
         }
 
-        fullscreenActive = true
         boundView?.let { player.clearVideoTextureView(it) }
         boundView = null
 
         _fullscreenPlayerView = playerView
         playerView.player = player
+        state = PlayerState.Fullscreen(url)
 
         IptvExoPlayer.configureForFullscreen(player)
         prepareChannel(url)
@@ -100,82 +167,163 @@ class LivePreviewEngine(context: Context) {
     }
 
     fun demoteFromFullscreen() {
-        if (!fullscreenActive) return
-        fullscreenActive = false
+        if (state !is PlayerState.Fullscreen) return
 
         player.pause()
         player.volume = 0f
         _fullscreenPlayerView?.player = null
         _fullscreenPlayerView = null
 
-        val textureView = previewTextureView ?: boundView
-        if (textureView != null) {
-            boundView = textureView
-            player.setVideoTextureView(textureView)
-            IptvExoPlayer.configureForPreview(player, previewMaxVideoWidth, previewMaxVideoHeight)
-            player.playWhenReady = true
-            player.play()
+        val slot = previewSlot
+        if (slot != null && appInForeground) {
+            attachPreviewSurface(slot.owner, slot.textureView, slot.maxVideoWidth, slot.maxVideoHeight)
+            val url = boundUrl
+            state = PlayerState.Preview(slot.owner, url, slot.maxVideoWidth, slot.maxVideoHeight)
+            IptvExoPlayer.configureForPreview(player, slot.maxVideoWidth, slot.maxVideoHeight)
+            resumePreviewPlayback()
+        } else if (slot != null) {
+            stopPreviewDecoder()
+            state = PlayerState.Suspended(
+                slot.owner,
+                boundUrl,
+                slot.maxVideoWidth,
+                slot.maxVideoHeight,
+            )
         } else {
-            IptvExoPlayer.configureForPreview(player, previewMaxVideoWidth, previewMaxVideoHeight)
-            player.stop()
-            player.clearMediaItems()
-            boundUrl = null
+            stopPreviewDecoder()
+            state = PlayerState.Idle
         }
-        previewTextureView = null
     }
 
     /** Retry playback after a [PlaybackException] without creating a new media item. */
     fun retryFullscreen() {
-        if (!fullscreenActive) return
+        if (state !is PlayerState.Fullscreen) return
         runCatching { player.prepare() }
     }
 
     /** Release decoder resources under memory pressure without fully destroying the player. */
     fun trimMemory() {
-        if (fullscreenActive) return
-        player.stop()
-        player.clearMediaItems()
-        boundUrl = null
+        if (state is PlayerState.Fullscreen) return
+        stopPreviewDecoder()
+        state = when (val current = state) {
+            is PlayerState.Suspended -> current
+            is PlayerState.Preview -> PlayerState.Suspended(
+                current.owner,
+                current.url,
+                current.maxVideoWidth,
+                current.maxVideoHeight,
+            )
+            else -> PlayerState.Idle
+        }
     }
 
     fun ensureFullscreenAudio(tracks: Tracks) {
-        if (!fullscreenActive) return
+        if (state !is PlayerState.Fullscreen) return
         IptvExoPlayer.ensureFullscreenAudio(player, tracks)
     }
 
     fun pause() {
-        if (fullscreenActive) return
+        if (state is PlayerState.Fullscreen) return
         player.pause()
     }
 
     fun resume() {
-        if (fullscreenActive) return
+        if (state is PlayerState.Fullscreen) return
         if (boundView == null) return
-        if (player.mediaItemCount == 0) {
-            val url = boundUrl
-            if (url != null) {
-                boundUrl = null
-                prepareChannel(url)
-            }
-        }
-        player.play()
+        resumePreviewPlayback()
     }
 
     fun release() {
         demoteFromFullscreen()
         boundView?.let { player.clearVideoTextureView(it) }
         player.release()
-        boundOwner = null
+        previewSlot = null
         boundView = null
-        previewTextureView = null
+        boundUrl = null
+        state = PlayerState.Idle
+    }
+
+    private fun onAppBackgrounded() {
+        appInForeground = false
+        if (state is PlayerState.Fullscreen) return
+        player.pause()
+        when (val current = state) {
+            is PlayerState.Preview -> {
+                stopPreviewDecoder()
+                state = PlayerState.Suspended(
+                    current.owner,
+                    current.url,
+                    current.maxVideoWidth,
+                    current.maxVideoHeight,
+                )
+            }
+            else -> Unit
+        }
+    }
+
+    private fun onAppForegrounded() {
+        appInForeground = true
+        when (val current = state) {
+            is PlayerState.Suspended -> {
+                val slot = previewSlot ?: return
+                if (slot.owner != current.owner) return
+                attachPreviewSurface(slot.owner, slot.textureView, slot.maxVideoWidth, slot.maxVideoHeight)
+                state = PlayerState.Preview(
+                    current.owner,
+                    current.url,
+                    current.maxVideoWidth,
+                    current.maxVideoHeight,
+                )
+                prepareChannel(current.url)
+                resumePreviewPlayback()
+            }
+            is PlayerState.Preview -> resumePreviewPlayback()
+            else -> Unit
+        }
+    }
+
+    private fun attachPreviewSurface(
+        owner: String,
+        textureView: TextureView,
+        maxVideoWidth: Int,
+        maxVideoHeight: Int,
+    ) {
+        if (boundView != null && boundView !== textureView) {
+            player.clearVideoTextureView(boundView)
+        }
+        boundView = textureView
+        player.setVideoTextureView(textureView)
+        IptvExoPlayer.configureForPreview(player, maxVideoWidth, maxVideoHeight)
+        previewSlot = PreviewSlot(owner, textureView, maxVideoWidth, maxVideoHeight)
+    }
+
+    private fun detachPreviewSurface(textureView: TextureView) {
+        if (boundView === textureView) {
+            player.clearVideoTextureView(textureView)
+            boundView = null
+        }
+    }
+
+    private fun resumePreviewPlayback() {
+        if (!appInForeground || state is PlayerState.Fullscreen) return
+        if (boundView == null) return
+        if (player.mediaItemCount == 0) {
+            val url = (state as? PlayerState.Preview)?.url ?: (state as? PlayerState.Suspended)?.url
+            if (url != null) prepareChannel(url)
+        }
+        player.playWhenReady = true
+        player.play()
+    }
+
+    private fun stopPreviewDecoder() {
+        player.stop()
+        player.clearMediaItems()
         boundUrl = null
     }
 
     private fun prepareChannel(url: String?) {
         if (url == null) {
-            player.stop()
-            player.clearMediaItems()
-            boundUrl = null
+            stopPreviewDecoder()
             return
         }
         if (url == boundUrl) return
@@ -183,6 +331,6 @@ class LivePreviewEngine(context: Context) {
             player.setMediaItem(IptvExoPlayer.mediaItemForUrl(url))
             player.prepare()
             boundUrl = url
-        }
+        }.onFailure { FaultLog.record("LivePreviewEngine.prepare", it) }
     }
 }

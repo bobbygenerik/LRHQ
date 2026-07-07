@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.hqAccent
 
 /**
  * Compact labelled progress bar used inside cards (storage %, download
@@ -37,11 +38,12 @@ fun StatBar(
     modifier: Modifier = Modifier,
     tint: Color? = null,
 ) {
+    val accent = hqAccent()
     val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(400), label = "statBar")
     val barColor = tint ?: when {
         progress > 0.9f -> HqColors.Critical
         progress > 0.75f -> HqColors.Warning
-        else -> HqColors.Accent
+        else -> accent
     }
     // Glyph backs up the colour so severity survives colour-blindness. Only
     // auto-derived severity gets a glyph; explicit tints stay clean.

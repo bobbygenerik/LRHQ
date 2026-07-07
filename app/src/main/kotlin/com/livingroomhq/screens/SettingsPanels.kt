@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.hqAccent
 
 @Composable
 internal fun LiveTvSettingsPanel(
@@ -59,6 +60,7 @@ internal fun LiveTvSettingsPanel(
     onEpgUrlChange: (String) -> Unit,
     onLoadGuide: () -> Unit,
     onClearGuide: () -> Unit,
+    syncStatusText: String = "",
     firstFocusRequester: FocusRequester,
 ) {
     Text("LIVE TV & EPG GUIDE", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
@@ -129,6 +131,12 @@ internal fun LiveTvSettingsPanel(
                     } else {
                         Text(epgStatus, style = HqType.Body.copy(color = HqColors.TextPrimary))
                     }
+                }
+                if (syncStatusText.isNotEmpty()) {
+                    Text(
+                        syncStatusText,
+                        style = HqType.CardCaption.copy(color = HqColors.TextSecondary),
+                    )
                 }
             }
         }
@@ -435,6 +443,60 @@ private fun AppearanceRow(
     ) {
         Text(label, style = HqType.Label)
         control()
+    }
+}
+
+@Composable
+internal fun AppsAndCaptionsSettingsPanel(
+    pinnedPackagesText: String,
+    onPinnedPackagesTextChange: (String) -> Unit,
+    onSavePinnedPackages: () -> Unit,
+    captionServerUrl: String,
+    onCaptionServerUrlChange: (String) -> Unit,
+    onSaveCaptionUrl: () -> Unit,
+) {
+    val accent = hqAccent()
+    Text("APPS & LIVE CAPTIONS", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    GlassPanel(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Pinned app packages", style = HqType.CardTitle)
+                Text(
+                    "One Android package name per line. Use this for sideloaded TV apps that do not appear in the normal scan (for example TizenTube).",
+                    style = HqType.CardCaption,
+                )
+                GlassTextField(
+                    value = pinnedPackagesText,
+                    onValueChange = onPinnedPackagesTextChange,
+                    placeholder = "io.github.reisxd.tizentube.cobalt",
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = false,
+                )
+                SettingsActionButton(
+                    label = "Save pinned apps",
+                    color = accent,
+                    onClick = onSavePinnedPackages,
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Live caption server", style = HqType.CardTitle)
+                Text(
+                    "LAN URL for the LRHQ caption worker (see tools/live-caption-server). Overrides the build-time default from local.properties.",
+                    style = HqType.CardCaption,
+                )
+                GlassTextField(
+                    value = captionServerUrl,
+                    onValueChange = onCaptionServerUrlChange,
+                    placeholder = "http://192.168.1.10:8765",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SettingsActionButton(
+                    label = "Save caption server",
+                    color = accent,
+                    onClick = onSaveCaptionUrl,
+                )
+            }
+        }
     }
 }
 

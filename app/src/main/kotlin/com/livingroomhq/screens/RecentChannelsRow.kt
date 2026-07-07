@@ -40,9 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
-import com.livingroomhq.HqApplication
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
+import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.core.ui.components.tvFocusScale
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -52,7 +52,7 @@ import androidx.compose.foundation.focusable
 
 @Composable
 internal fun RecentChannelsRow(
-    app: HqApplication,
+    focusReturn: FullscreenFocusReturn,
     channels: List<Channel>,
     recents: List<Channel>,
     firstItemFocusRequester: FocusRequester? = null,
@@ -77,7 +77,7 @@ internal fun RecentChannelsRow(
                     channel = channel,
                     onClick = { onChannelSelected(channel) },
                     modifier = Modifier
-                        .restoreFocusOnReturn(app.fullscreenFocusReturn, homeRecentFocusTarget(channel.id))
+                        .restoreFocusOnReturn(focusReturn, homeRecentFocusTarget(channel.id))
                         .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
                         .onPreviewKeyEvent { keyEvent ->
                             if (onUpPressed != null && keyEvent.key == Key.DirectionUp && keyEvent.type == KeyEventType.KeyDown) {

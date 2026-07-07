@@ -30,10 +30,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
-import com.livingroomhq.HqApplication
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
+import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -41,7 +41,7 @@ import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
 internal fun OnNowRail(
-    app: HqApplication,
+    focusReturn: FullscreenFocusReturn,
     items: List<Pair<Channel, Program>>,
     nowMillis: Long,
     firstItemFocusRequester: FocusRequester? = null,
@@ -59,7 +59,7 @@ internal fun OnNowRail(
     ) {
         itemsIndexed(items, key = { index, (channel, _) -> channel.id }) { index, (channel, program) ->
             OnNowCard(
-                app = app,
+                focusReturn = focusReturn,
                 channel = channel,
                 program = program,
                 nowMillis = nowMillis,
@@ -76,7 +76,7 @@ internal fun OnNowRail(
 
 @Composable
 private fun OnNowCard(
-    app: HqApplication,
+    focusReturn: FullscreenFocusReturn,
     channel: Channel,
     program: Program,
     nowMillis: Long,
@@ -91,7 +91,7 @@ private fun OnNowCard(
             .clickable { onClick() }
             .width(200.dp)
             .height(124.dp)
-            .restoreFocusOnReturn(app.fullscreenFocusReturn, homeOnNowFocusTarget(channel.id)),
+            .restoreFocusOnReturn(focusReturn, homeOnNowFocusTarget(channel.id)),
         focused = focused,
         cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(14.dp),

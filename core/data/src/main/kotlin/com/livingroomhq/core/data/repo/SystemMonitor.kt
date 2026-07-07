@@ -19,8 +19,9 @@ import java.io.RandomAccessFile
 /**
  * Polls device metrics for the Command Center dashboard. Emits a fresh
  * [SystemStats] every [intervalMillis] without waking anything expensive:
- * /proc for CPU, ActivityManager for RAM, StatFs for storage and
- * TrafficStats deltas for network throughput.
+ * ActivityManager for RAM, StatFs for storage and TrafficStats deltas for
+ * network throughput. CPU via /proc/stat is blocked on modern Android — when
+ * unavailable [SystemStats.cpuAvailable] is false.
  */
 class SystemMonitor(
     private val context: Context,
@@ -29,6 +30,7 @@ class SystemMonitor(
 
     fun stats(): Flow<SystemStats> = flow {
         var lastCpu = readCpuTicks()
+        var cpuAvailable = lastCpu.second > 0L
         var lastRx = TrafficStats.getTotalRxBytes()
         var lastTx = TrafficStats.getTotalTxBytes()
         var lastAt = SystemClock.elapsedRealtime()
@@ -37,7 +39,10 @@ class SystemMonitor(
             delay(intervalMillis)
 
             val cpu = readCpuTicks()
-            val cpuPercent = cpuPercent(lastCpu, cpu)
+            if (cpu.second <= 0L) {
+                cpuAvailable = false
+            }
+            val cpuPercent = if (cpuAvailable) cpuPercent(lastCpu, cpu) else 0f
             lastCpu = cpu
 
             val rx = TrafficStats.getTotalRxBytes()
@@ -51,6 +56,7 @@ class SystemMonitor(
             emit(
                 SystemStats(
                     cpuPercent = cpuPercent,
+                    cpuAvailable = cpuAvailable,
                     ramUsedMb = ramUsedMb(),
                     ramTotalMb = ramTotalMb(),
                     storageUsedBytes = storageUsed(),
@@ -64,7 +70,7 @@ class SystemMonitor(
         }
     }.flowOn(Dispatchers.IO)
 
-    /** (idle, total) jiffies from /proc/stat; unreadable on some SELinux policies, falls back to 0s. */
+    /** (idle, total) jiffies from /proc/stat; unreadable on modern Android SELinux policies. */
     private fun readCpuTicks(): Pair<Long, Long> = runCatching {
         RandomAccessFile("/proc/stat", "r").use { file ->
             val parts = file.readLine().split(Regex("\\s+")).drop(1).map { it.toLong() }

@@ -2,11 +2,6 @@ package com.livingroomhq.core.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +27,15 @@ data class CustomSettings(
 
 val LocalCustomSettings = staticCompositionLocalOf { CustomSettings() }
 
+/** User-selected accent from Settings; prefer [hqAccent] in composables over [HqColors.Accent]. */
+val LocalAccentColor = staticCompositionLocalOf { Color(0xFF2BE080) }
+
+fun accentColorFor(preference: String): Color =
+    if (preference == "Blue") Color(0xFF6FB6FF) else Color(0xFF2BE080)
+
+@Composable
+fun hqAccent(): Color = LocalAccentColor.current
+
 /**
  * LivingRoom HQ palette. True black base for OLED, cool glass tints,
  * a single warm accent so focus reads instantly from the couch.
@@ -44,10 +48,13 @@ object HqColors {
     val GlassFill = Color(0x990C1018) // Dark translucent slate (60% alpha)
     val GlassFillFocused = Color(0xCC0C1018) // Dark translucent slate focused (80% alpha)
     val GlassStroke = Color(0x14FFFFFF) // Hairline stroke (8% white)
-    
-    // Dynamic Accent color matching user customization setting
-    var Accent by mutableStateOf(Color(0xFF2BE080))
-    
+
+    /** @see LocalAccentColor — kept for legacy call sites; synced at the composition root. */
+    private val accentState = androidx.compose.runtime.mutableStateOf(Color(0xFF2BE080))
+    var Accent: Color
+        get() = accentState.value
+        set(value) { accentState.value = value }
+
     // GlassStrokeFocused follows Accent color
     val GlassStrokeFocused: Color get() = Accent
 

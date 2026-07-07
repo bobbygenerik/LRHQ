@@ -1,0 +1,40 @@
+[
+  {
+    "name": "exact tvg-id match",
+    "channel": { "id": "one", "name": "One", "tvgId": "one", "tvgName": null, "tvgChno": null },
+    "guideAliases": { "one": ["one"] },
+    "aliasIndex": { "one": "one" },
+    "expectedGuideId": "one"
+  },
+  {
+    "name": "east west stay distinct",
+    "channel": { "id": "espn-east", "name": "ESPN East", "tvgId": null, "tvgName": "ESPN East", "tvgChno": null },
+    "guideAliases": {
+      "espn.east": ["espnespn", "east"],
+      "espn.west": ["espnespn", "west"]
+    },
+    "aliasIndex": { "espnespn": "espn.east", "east": "espn.east", "west": "espn.west" },
+    "expectedGuideId": "espn.east"
+  },
+  {
+    "name": "hd suffix normalized",
+    "channel": { "id": "abc", "name": "ABC", "tvgId": null, "tvgName": "ABC", "tvgChno": null },
+    "guideAliases": { "abchd": ["abchd", "abc"] },
+    "aliasIndex": { "abc": "abchd", "abchd": "abchd" },
+    "expectedGuideId": "abchd"
+  },
+  {
+    "name": "no bare number false positive",
+    "channel": { "id": "wnyt", "name": "WNYT", "tvgId": "wnyt", "tvgName": null, "tvgChno": null },
+    "guideAliases": { "5": ["5", "guidechannelfive"] },
+    "aliasIndex": { "5": "5", "guidechannelfive": "5" },
+    "expectedGuideId": null
+  },
+  {
+    "name": "xmltv suffix channel id",
+    "channel": { "id": "local", "name": "WXYZ", "tvgId": null, "tvgName": "WXYZ HD", "tvgChno": null },
+    "guideAliases": { "wxyz.us@provider": ["wxyzusprovider", "wxyz", "wxyzhd"] },
+    "aliasIndex": { "wxyzhd": "wxyz.us@provider", "wxyz": "wxyz.us@provider" },
+    "expectedGuideId": "wxyz.us@provider"
+  }
+]

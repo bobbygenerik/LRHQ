@@ -12,37 +12,31 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ClosedCaption
 import androidx.compose.material.icons.filled.ClosedCaptionDisabled
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.focus.onFocusChanged
-import com.livingroomhq.core.ui.components.GlassPanel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.tv.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,45 +45,49 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.ui.PlayerView
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import com.livingroomhq.BuildConfig
 import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.translate.SubtitleCue
-import com.livingroomhq.translate.SubtitleFetcher
-import com.livingroomhq.translate.TranslationOverlay
+import com.livingroomhq.core.ui.theme.hqAccent
+import com.livingroomhq.translate.LiveCaptionClient
+import com.livingroomhq.player.CaptionOverlay
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-private const val TRANSLATION_FEATURE_ENABLED = false
 private const val INFO_OVERLAY_DURATION_MS = 4_000L
-private const val SUBTITLE_DETECTION_DELAY_MS = 3_000L
-private const val PROGRESS_TICK_MS = 100L
+private const val WATCH_DEBOUNCE_MS = 5_000L
+private const val CAPTION_POLL_MS = 500L
 
 class ChannelPlayerActivity : ComponentActivity() {
 
@@ -137,7 +135,6 @@ class ChannelPlayerActivity : ComponentActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Trim memory on low-memory conditions (Android TV common scenario).
         val cb = object : ComponentCallbacks2 {
             override fun onTrimMemory(level: Int) {
                 if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
@@ -164,26 +161,24 @@ class ChannelPlayerActivity : ComponentActivity() {
         super.onDestroy()
         memoryCallback?.let { unregisterComponentCallbacks(it) }
         memoryCallback = null
-        if (!playerReleased) {
-            val app = application as HqApplication
-            app.livePreviewEngine.demoteFromFullscreen()
-            playerReleased = true
-        }
+        releasePlayerIfNeeded()
     }
 
     override fun finish() {
-        // Ensure player is released back to preview mode before exit
-        if (!playerReleased) {
-            val app = application as HqApplication
-            app.livePreviewEngine.demoteFromFullscreen()
-            playerReleased = true
-        }
+        releasePlayerIfNeeded()
         super.finish()
         if (android.os.Build.VERSION.SDK_INT >= 34) {
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
         } else {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
+        }
+    }
+
+    private fun releasePlayerIfNeeded() {
+        if (!playerReleased) {
+            (application as HqApplication).livePreviewEngine.demoteFromFullscreen()
+            playerReleased = true
         }
     }
 }
@@ -195,16 +190,21 @@ private fun ChannelPlayerScreen(
     initialChannel: Channel,
 ) {
     val context = LocalContext.current
+    val accent = hqAccent()
     val engine = remember { app.livePreviewEngine }
-    val subtitleFetcher = remember { SubtitleFetcher() }
     var currentChannel by remember(initialChannel) { mutableStateOf(initialChannel) }
     var playbackError by remember { mutableStateOf<String?>(null) }
     var retryNonce by remember { mutableIntStateOf(0) }
 
-    var translatedCues by remember { mutableStateOf<List<SubtitleCue>>(emptyList()) }
-    var currentSubtitle by remember { mutableStateOf<String?>(null) }
-    var subtitlesEnabled by remember { mutableStateOf(false) }
-    var subtitleStatus by remember { mutableStateOf<String?>(null) }
+    val settingsCaptionUrl by app.prefs.liveCaptionServerUrl.collectAsState(initial = null)
+    val captionBaseUrl = remember(settingsCaptionUrl) {
+        settingsCaptionUrl?.takeIf { it.isNotBlank() }
+            ?: BuildConfig.CAPTION_SERVER_URL.takeIf { it.isNotBlank() }
+    }
+    val captionsAvailable = !captionBaseUrl.isNullOrBlank()
+    var captionsEnabled by remember { mutableStateOf(false) }
+    var captionText by remember { mutableStateOf<String?>(null) }
+    var captionStatus by remember { mutableStateOf<String?>(null) }
 
     val allChannels by app.channels.channels.collectAsState(initial = emptyList())
     val channelsList = remember(allChannels, currentChannel) {
@@ -228,8 +228,12 @@ private fun ChannelPlayerScreen(
         val nextIndex = (currentIndex + delta + size) % size
         playbackError = null
         currentChannel = channelsList[nextIndex]
-        app.channels.markWatched(currentChannel.id)
         interactionNonce++
+    }
+
+    LaunchedEffect(currentChannel.id) {
+        delay(WATCH_DEBOUNCE_MS)
+        app.channels.markWatched(currentChannel.id)
     }
 
     LaunchedEffect(interactionNonce) {
@@ -238,7 +242,6 @@ private fun ChannelPlayerScreen(
         infoVisible = false
     }
 
-    // Initial focus with frame yield (Shield TV workaround)
     LaunchedEffect(Unit) {
         withFrameNanos { }
         runCatching { focusRequester.requestFocus() }
@@ -250,77 +253,40 @@ private fun ChannelPlayerScreen(
         }
     }
 
-    LaunchedEffect(currentChannel.id, subtitlesEnabled) {
-        translatedCues = emptyList()
-        currentSubtitle = null
-        if (!TRANSLATION_FEATURE_ENABLED || !subtitlesEnabled) {
-            subtitleStatus = null
-            return@LaunchedEffect
-        }
-        subtitleStatus = "Detecting subtitles..."
-        delay(SUBTITLE_DETECTION_DELAY_MS)
-        val tracks = engine.player.currentTracks
-        val subtitleGroup = tracks.groups.firstOrNull { group ->
-            group.type == C.TRACK_TYPE_TEXT && group.isSupported
-        }
-        if (subtitleGroup == null) {
-            subtitleStatus = "No subtitles available"
-            delay(2_000)
-            subtitleStatus = null
-            return@LaunchedEffect
-        }
-        val format = subtitleGroup.getTrackFormat(0)
-        val lang = format.language ?: run {
-            subtitleStatus = "Unknown subtitle language"
-            delay(2_000)
-            subtitleStatus = null
-            return@LaunchedEffect
-        }
-        subtitleStatus = "Subtitles detected: $lang"
-        val loaded = app.translationEngine.loadModel(lang, "en")
-        if (!loaded) {
-            subtitleStatus = "Translation model not available for $lang"
-            delay(3_000)
-            subtitleStatus = null
-            return@LaunchedEffect
-        }
-        subtitleStatus = "Fetching subtitles..."
-        val subtitleTracks = subtitleFetcher.fetchSubtitleTracks(currentChannel.streamUrl)
-        val matchingTrack = subtitleTracks.firstOrNull { it.language == lang }
-        if (matchingTrack == null) {
-            subtitleStatus = "Could not fetch subtitle track"
-            delay(2_000)
-            subtitleStatus = null
-            return@LaunchedEffect
-        }
-        subtitleStatus = "Translating subtitles..."
-        val cues = subtitleFetcher.fetchCues(matchingTrack.url)
-        val translated = cues.map { cue ->
-            val translatedText = app.translationEngine.translate(cue.text)
-            cue.copy(text = translatedText)
-        }
-        translatedCues = translated
-        subtitleStatus = "Subtitles enabled"
-        delay(1_500)
-        subtitleStatus = null
-    }
+    LaunchedEffect(currentChannel.id, captionBaseUrl, captionsEnabled) {
+        captionText = null
+        captionStatus = null
+        if (!captionsEnabled || captionBaseUrl.isNullOrBlank()) return@LaunchedEffect
 
-    LaunchedEffect(translatedCues) {
-        if (translatedCues.isEmpty()) {
-            currentSubtitle = null
-            return@LaunchedEffect
-        }
-        while (true) {
-            val position = engine.player.currentPosition
-            val activeCue = translatedCues.firstOrNull {
-                position in it.startMs..it.endMs
+        val client = LiveCaptionClient(captionBaseUrl)
+        if (!client.isConfigured) return@LaunchedEffect
+
+        var sessionId: String? = null
+        try {
+            captionStatus = "Starting captions..."
+            val session = client.startSession(
+                channelId = currentChannel.id,
+                channelName = currentChannel.name,
+                streamUrl = currentChannel.streamUrl,
+            )
+            sessionId = session.id
+            captionStatus = "Captions active"
+            var sinceSeq = 0L
+            while (true) {
+                val snapshot = client.fetchSnapshot(session.id, sinceSeq)
+                sinceSeq = snapshot.cues.maxOfOrNull { it.seq } ?: sinceSeq
+                val position = engine.player.currentPosition
+                val activeCue = snapshot.cues.lastOrNull { position in it.startMs..it.endMs }
+                captionText = activeCue?.text ?: snapshot.activeText
+                delay(CAPTION_POLL_MS)
             }
-            currentSubtitle = activeCue?.text
-            delay(PROGRESS_TICK_MS)
+        } catch (e: Exception) {
+            captionStatus = e.localizedMessage ?: "Captions unavailable"
+        } finally {
+            sessionId?.let { runCatching { client.stopSession(it) } }
         }
     }
 
-    // Single listener registration — uses rememberUpdatedState to avoid stale refs
     DisposableEffect(engine) {
         val listener = object : Player.Listener {
             override fun onTracksChanged(tracks: Tracks) {
@@ -416,7 +382,7 @@ private fun ChannelPlayerScreen(
                         Text(
                             "Retry",
                             style = HqType.Label.copy(
-                                color = if (focused) HqColors.Accent else HqColors.TextPrimary,
+                                color = if (focused) accent else HqColors.TextPrimary,
                                 fontWeight = FontWeight.Bold,
                             ),
                         )
@@ -457,14 +423,14 @@ private fun ChannelPlayerScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(HqColors.Accent.copy(alpha = 0.2f))
-                                        .border(1.dp, HqColors.Accent, RoundedCornerShape(6.dp))
+                                        .background(accent.copy(alpha = 0.2f))
+                                        .border(1.dp, accent, RoundedCornerShape(6.dp))
                                         .padding(horizontal = 8.dp, vertical = 3.dp),
                                 ) {
                                     Text(
                                         text = currentChannel.number.toString().ifBlank { "TV" },
                                         style = HqType.Label.copy(
-                                            color = HqColors.Accent,
+                                            color = accent,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 11.sp,
                                             shadow = playerTextShadow(),
@@ -522,7 +488,7 @@ private fun ChannelPlayerScreen(
                                     modifier = Modifier
                                         .fillMaxWidth(progress)
                                         .fillMaxHeight()
-                                        .background(HqColors.Accent),
+                                        .background(accent),
                                 )
                             }
                             nextProgram?.let { next ->
@@ -552,71 +518,58 @@ private fun ChannelPlayerScreen(
                     }
                 }
             }
+        }
 
-            if (TRANSLATION_FEATURE_ENABLED) {
-                AnimatedVisibility(
-                    visible = infoVisible,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    modifier = Modifier.align(Alignment.TopEnd),
+        if (playbackError == null && captionsAvailable) {
+            var ccFocused by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(24.dp)
+                    .onFocusChanged { ccFocused = it.isFocused }
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        when {
+                            captionsEnabled -> accent.copy(alpha = 0.9f)
+                            ccFocused -> Color(0x33FFFFFF)
+                            else -> Color(0xCC000000)
+                        },
+                    )
+                    .border(
+                        width = if (ccFocused) 2.dp else 0.dp,
+                        color = if (ccFocused) accent else Color.Transparent,
+                        shape = RoundedCornerShape(8.dp),
+                    )
+                    .clickable { captionsEnabled = !captionsEnabled }
+                    .focusable()
+                    .padding(12.dp),
+            ) {
+                Icon(
+                    imageVector = if (captionsEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
+                    contentDescription = if (captionsEnabled) "Disable captions" else "Enable captions",
+                    tint = if (captionsEnabled) Color.Black else HqColors.TextPrimary,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            captionStatus?.let { status ->
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 84.dp, end = 24.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xCC000000))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        subtitleStatus?.let { status ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xCC000000))
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                            ) {
-                                Text(
-                                    status,
-                                    style = HqType.Label.copy(
-                                        color = HqColors.TextPrimary,
-                                        fontSize = 12.sp,
-                                        shadow = playerTextShadow(),
-                                    ),
-                                )
-                            }
-                        }
-                        var ccFocused by remember { mutableStateOf(false) }
-                        Box(
-                            modifier = Modifier
-                                .onFocusChanged { ccFocused = it.isFocused }
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    when {
-                                        subtitlesEnabled -> HqColors.Accent.copy(alpha = 0.9f)
-                                        ccFocused -> Color(0x33FFFFFF)
-                                        else -> Color(0xCC000000)
-                                    }
-                                )
-                                .border(
-                                    width = if (ccFocused) 2.dp else 0.dp,
-                                    color = if (ccFocused) HqColors.Accent else Color.Transparent,
-                                    shape = RoundedCornerShape(8.dp),
-                                )
-                                .clickable { subtitlesEnabled = !subtitlesEnabled }
-                                .focusable()
-                                .padding(12.dp),
-                        ) {
-                            Icon(
-                                imageVector = if (subtitlesEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
-                                contentDescription = if (subtitlesEnabled) "Disable subtitles" else "Enable subtitles",
-                                tint = if (subtitlesEnabled) Color.Black else HqColors.TextPrimary,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        }
-                    }
+                    Text(
+                        status,
+                        style = HqType.Label.copy(color = HqColors.TextPrimary, fontSize = 12.sp),
+                    )
                 }
             }
         }
 
-        TranslationOverlay(
-            text = currentSubtitle,
+        CaptionOverlay(
+            text = if (captionsEnabled) captionText else null,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }

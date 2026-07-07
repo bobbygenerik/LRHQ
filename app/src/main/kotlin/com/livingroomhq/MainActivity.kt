@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,9 @@ import com.livingroomhq.components.Sidebar
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.LocalAccentColor
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.core.ui.theme.accentColorFor
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.LauncherNavHost
 import com.livingroomhq.navigation.Zone
@@ -42,8 +45,8 @@ import com.livingroomhq.screens.HomeScreen
 import com.livingroomhq.screens.LiveScreen
 import com.livingroomhq.screens.SettingsScreen
 import com.livingroomhq.screens.ToolsScreen
+import com.livingroomhq.ui.LocalSnackbarController
 import com.livingroomhq.ui.MessageOverlay
-import com.livingroomhq.ui.UiMessages
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -121,10 +124,8 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // Dynamic accent color updating
-            LaunchedEffect(settings.accentColor) {
-                HqColors.Accent = if (settings.accentColor == "Blue") Color(0xFF6FB6FF) else Color(0xFF2BE080)
-            }
+            val accent = remember(settings.accentColor) { accentColorFor(settings.accentColor) }
+            SideEffect { HqColors.Accent = accent }
 
             // Idle ticker that drops the launcher into Ambient Mode.
             LaunchedEffect(settings.idleTimeSeconds) {
@@ -137,7 +138,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalCustomSettings provides settings) {
+            CompositionLocalProvider(
+                LocalCustomSettings provides settings,
+                LocalAccentColor provides accent,
+                LocalSnackbarController provides app.snackbar,
+            ) {
                 Box(Modifier.fillMaxSize()) {
                     // Content is inset by the collapsed rail width; the rail floats
                     // on top and expands over content on focus, so focusing the
@@ -151,12 +156,14 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxSize(),
                         ) { zone ->
                             when (zone) {
-                                Zone.HOME -> HomeScreen(app, controller)
-                                Zone.LIVE -> LiveScreen(app, controller)
-                                Zone.TOOLS -> ToolsScreen(app, controller)
-                                Zone.COMMAND_CENTER -> CommandCenterScreen(app)
+                                Zone.HOME -> HomeScreen(
+                                    nav = controller,
+                                    focusReturn = app.fullscreenFocusReturn,
+                                )
+                                Zone.LIVE -> LiveScreen(nav = controller, focusReturn = app.fullscreenFocusReturn)
+                                Zone.TOOLS -> ToolsScreen(nav = controller)
+                                Zone.COMMAND_CENTER -> CommandCenterScreen()
                                 Zone.SETTINGS -> SettingsScreen(
-                                    app = app,
                                     settings = settings,
                                     onSettingsChanged = { newSettings ->
                                         coroutineScope.launch {
@@ -192,7 +199,7 @@ class MainActivity : ComponentActivity() {
                         exit = fadeOut(tween(AMBIENT_EXIT_MS, easing = FastOutLinearInEasing)),
                         modifier = Modifier.fillMaxSize(),
                     ) {
-                        AmbientScreen(app)
+                        AmbientScreen()
                     }
                     MessageOverlay()
                 }
@@ -252,13 +259,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleHomeBack(eventTime: Long): Boolean {
+        val snackbar = (application as HqApplication).snackbar
         if (homeBackTapCount == 0 || eventTime - homeBackWindowStart > DOUBLE_BACK_TO_AMBIENT_MS) {
             homeBackTapCount = 1
             homeBackWindowStart = eventTime
-            UiMessages.post("Press Back again for ambient")
+            snackbar.post("Press Back again for ambient")
         } else {
             resetHomeBackGesture()
-            UiMessages.clear()
+            snackbar.clear()
             nav.enterAmbientFromIdle()
         }
         return true
