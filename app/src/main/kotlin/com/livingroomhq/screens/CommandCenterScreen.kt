@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
+import com.livingroomhq.components.linkLeftEdgeToSidebar
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.components.tvInitialFocus
@@ -154,7 +155,9 @@ fun CommandCenterScreen(
                     icon = Icons.Default.Computer,
                     description = "System, ${state.deviceModel}, CPU ${if (cpuAvailable) "${cpu.toInt()} percent" else "unavailable"}",
                     onClick = { open(Settings.ACTION_SETTINGS) },
-                    modifier = Modifier.tvInitialFocus(firstCardFocusRequester),
+                    modifier = Modifier
+                        .tvInitialFocus(firstCardFocusRequester)
+                        .linkLeftEdgeToSidebar(),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(

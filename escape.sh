@@ -14,5 +14,6 @@ $ADB_CMD connect "$SHIELD_IP":5555 >/dev/null || {
     echo "Could not connect to $SHIELD_IP:5555"
     exit 1
 }
-$ADB_CMD shell am start -n com.livingroomhq/.MainActivity
+$ADB_CMD shell input keyevent KEYCODE_HOME
+$ADB_CMD shell am start -a android.intent.action.MAIN -c android.intent.category.HOME -n com.livingroomhq/.MainActivity
 echo "LRHQ launched."

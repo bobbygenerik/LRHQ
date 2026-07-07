@@ -24,7 +24,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -68,6 +68,7 @@ import coil.compose.AsyncImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.restoreFocusOnReturn
+import com.livingroomhq.components.linkLeftEdgeToSidebar
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.navigation.FullscreenFocusReturn
@@ -184,7 +185,7 @@ fun LiveScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 contentPadding = PaddingValues(bottom = 24.dp),
             ) {
-                items(categories, key = { it.id ?: "all" }) { cat ->
+                itemsIndexed(categories, key = { _, it -> it.id ?: "all" }) { index, cat ->
                     val isActive = state.selectedCategoryId == cat.id
                     CategoryRailItem(
                         label = cat.name,
@@ -193,7 +194,8 @@ fun LiveScreen(
                         onClick = { viewModel.onEvent(LiveTvEvent.SelectCategory(cat.id)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (isActive) Modifier.zoneFocus(zones[0], initial = true) else Modifier),
+                            .then(if (isActive) Modifier.zoneFocus(zones[0], initial = true) else Modifier)
+                            .then(if (index == 0) Modifier.linkLeftEdgeToSidebar() else Modifier),
                     )
                 }
             }
@@ -296,7 +298,8 @@ private fun LiveChannelGridColumn(
                         onClick = { onChannelClick(channel) },
                         focusRequester = cardRequester,
                         modifier = Modifier
-                            .restoreFocusOnReturn(focusReturn, liveGridFocusTarget(channel.id)),
+                            .restoreFocusOnReturn(focusReturn, liveGridFocusTarget(channel.id))
+                            .then(if (index == 0) Modifier.linkLeftEdgeToSidebar() else Modifier),
                     )
                 }
             }

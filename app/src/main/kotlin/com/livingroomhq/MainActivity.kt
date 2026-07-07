@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import com.livingroomhq.components.Sidebar
 import com.livingroomhq.components.SidebarCollapsedWidth
+import com.livingroomhq.components.LocalSidebarFocusRequester
+import com.livingroomhq.components.rememberSidebarFocusRequesters
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalAccentColor
@@ -127,6 +129,9 @@ class MainActivity : ComponentActivity() {
             val accent = remember(settings.accentColor) { accentColorFor(settings.accentColor) }
             SideEffect { HqColors.Accent = accent }
 
+            val sidebarFocusRequesters = rememberSidebarFocusRequesters()
+            val sidebarFocusRequester = sidebarFocusRequesters[controller.underlyingZone]
+
             // Idle ticker that drops the launcher into Ambient Mode.
             LaunchedEffect(settings.idleTimeSeconds) {
                 val timeoutMillis = settings.idleTimeSeconds * 1000L
@@ -142,6 +147,7 @@ class MainActivity : ComponentActivity() {
                 LocalCustomSettings provides settings,
                 LocalAccentColor provides accent,
                 LocalSnackbarController provides app.snackbar,
+                LocalSidebarFocusRequester provides sidebarFocusRequester,
             ) {
                 Box(Modifier.fillMaxSize()) {
                     // Content is inset by the collapsed rail width; the rail floats
@@ -190,6 +196,7 @@ class MainActivity : ComponentActivity() {
                         Sidebar(
                             currentZone = controller.underlyingZone,
                             onZoneSelected = { zone -> controller.goTo(zone) },
+                            itemFocusRequesters = sidebarFocusRequesters,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -284,9 +291,10 @@ class MainActivity : ComponentActivity() {
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         val app = application as HqApplication
-        if (app.installedApps.launchedExternalApp) return
-        if (::nav.isInitialized && isResumedState) nav.goHome()
+        app.installedApps.onHomePressed()
+        if (::nav.isInitialized) nav.goHome()
     }
 
     override fun onUserInteraction() {

@@ -62,7 +62,9 @@ fun FocusableGlassCard(
     val activation = when {
         !enabled -> Modifier
         onLongClick == null -> {
-            Modifier.clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            Modifier
+                .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+                .focusable(interactionSource = interactionSource)
         }
         else -> {
             Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)

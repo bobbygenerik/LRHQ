@@ -34,7 +34,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +56,10 @@ internal fun RecentChannelsRow(
     channels: List<Channel>,
     recents: List<Channel>,
     firstItemFocusRequester: FocusRequester? = null,
+    leftFocusRequester: FocusRequester? = null,
+    downFocusRequester: FocusRequester? = null,
     onUpPressed: (() -> Unit)? = null,
+    onDownPressed: (() -> Unit)? = null,
     onRowFocused: (() -> Unit)? = null,
     onChannelSelected: (Channel) -> Unit,
 ) {
@@ -73,18 +76,54 @@ internal fun RecentChannelsRow(
             contentPadding = PaddingValues(start = 6.dp, end = 40.dp),
         ) {
             itemsIndexed(recentList, key = { _, channel -> "${channel.id}_${channel.number}" }) { index, channel ->
+                val chipFocusRequester = if (index == 0 && firstItemFocusRequester != null) {
+                    firstItemFocusRequester
+                } else {
+                    remember(channel.id) { FocusRequester() }
+                }
                 RecentChannelChip(
                     channel = channel,
                     onClick = { onChannelSelected(channel) },
                     modifier = Modifier
-                        .restoreFocusOnReturn(focusReturn, homeRecentFocusTarget(channel.id))
-                        .then(if (index == 0 && firstItemFocusRequester != null) Modifier.focusRequester(firstItemFocusRequester) else Modifier)
-                        .onPreviewKeyEvent { keyEvent ->
-                            if (onUpPressed != null && keyEvent.key == Key.DirectionUp && keyEvent.type == KeyEventType.KeyDown) {
-                                onUpPressed()
-                                true
+                        .restoreFocusOnReturn(
+                            focusReturn,
+                            homeRecentFocusTarget(channel.id),
+                            requester = chipFocusRequester,
+                        )
+                        .then(
+                            if (index == 0 && leftFocusRequester != null) {
+                                Modifier.focusProperties { left = leftFocusRequester }
                             } else {
-                                false
+                                Modifier
+                            },
+                        )
+                        .then(
+                            if (downFocusRequester != null) {
+                                Modifier.focusProperties { down = downFocusRequester }
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .onKeyEvent { keyEvent ->
+                            if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
+                            when (keyEvent.key) {
+                                Key.DirectionUp -> {
+                                    if (onUpPressed != null) {
+                                        onUpPressed()
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                Key.DirectionDown -> {
+                                    if (onDownPressed != null) {
+                                        onDownPressed()
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                else -> false
                             }
                         }
                         .then(

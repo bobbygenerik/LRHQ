@@ -56,6 +56,8 @@ fun Modifier.zoneFocus(
  * workaround). Safe to call from any coroutine context (e.g. [LaunchedEffect]).
  */
 suspend fun yieldAndFocus(requester: FocusRequester) {
-    withFrameNanos { }
-    runCatching { requester.requestFocus() }
+    repeat(4) {
+        withFrameNanos { }
+        if (runCatching { requester.requestFocus() }.isSuccess) return
+    }
 }

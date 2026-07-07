@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
+import com.livingroomhq.components.linkLeftEdgeToSidebar
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.ModalGlassPanel
@@ -256,7 +257,13 @@ fun ToolsScreen(
                                     }
                                 else -> Modifier
                             },
-                            modifier = if (index == 0) Modifier.tvInitialFocus(firstItemFocusRequester) else Modifier
+                            modifier = if (index == 0) {
+                                Modifier
+                                    .tvInitialFocus(firstItemFocusRequester)
+                                    .linkLeftEdgeToSidebar()
+                            } else {
+                                Modifier
+                            }
                         )
                     }
                 }

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,8 +39,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
@@ -69,6 +72,31 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.Zone
 
+/** Focus target for the active sidebar tab; wire content's LEFT edge to this. */
+val LocalSidebarFocusRequester = compositionLocalOf<FocusRequester?> { null }
+
+@Composable
+fun rememberSidebarFocusRequesters(): Map<Zone, FocusRequester> = remember {
+    mapOf(
+        Zone.HOME to FocusRequester(),
+        Zone.LIVE to FocusRequester(),
+        Zone.TOOLS to FocusRequester(),
+        Zone.COMMAND_CENTER to FocusRequester(),
+        Zone.SETTINGS to FocusRequester(),
+    )
+}
+
+/** Pins D-pad LEFT from a leading-edge item to the active sidebar tab. */
+@androidx.compose.ui.ExperimentalComposeUiApi
+fun Modifier.linkLeftEdgeToSidebar(): Modifier = composed {
+    val sidebar = LocalSidebarFocusRequester.current
+    if (sidebar == null) {
+        this
+    } else {
+        focusProperties { left = sidebar }
+    }
+}
+
 data class NavigationItem(
     val title: String,
     val icon: ImageVector,
@@ -92,6 +120,7 @@ fun Sidebar(
     currentZone: Zone,
     onZoneSelected: (Zone) -> Unit,
     onExpandedChanged: (Boolean) -> Unit = {},
+    itemFocusRequesters: Map<Zone, FocusRequester>,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -126,17 +155,19 @@ fun Sidebar(
         NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
     )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .drawBehind {
-                if (scrimAlpha > 0f) {
-                    drawRect(color = Color.Black.copy(alpha = scrimAlpha))
-                }
-            }
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (scrimAlpha > 0f) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .drawBehind {
+                        drawRect(color = Color.Black.copy(alpha = scrimAlpha))
+                    },
+            )
+        }
         Box(
             modifier = Modifier
+                .align(Alignment.CenterStart)
                 .fillMaxHeight()
                 .width(width)
                 .background(scrimBrush)
@@ -151,9 +182,6 @@ fun Sidebar(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                val itemFocusRequesters = remember(navItems) {
-                    navItems.associate { it.zone to FocusRequester() }
-                }
                 LaunchedEffect(expanded, currentZone) {
                     if (!expanded) return@LaunchedEffect
                     withFrameNanos { }
@@ -200,8 +228,8 @@ private fun SidebarItem(
     Box(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
-            .clickable { onClick() }
             .focusable()
+            .clickable { onClick() }
             .tvFocusScale(focused)
             .height(40.dp)
             .graphicsLayer {

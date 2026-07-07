@@ -1,43 +1,41 @@
 package com.livingroomhq.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
-import com.livingroomhq.navigation.FullscreenFocusReturn
-import com.livingroomhq.core.ui.components.GlassPanel
+import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.navigation.FullscreenFocusReturn
+import androidx.compose.foundation.background
 
 @Composable
 internal fun OnNowRail(
@@ -45,6 +43,9 @@ internal fun OnNowRail(
     items: List<Pair<Channel, Program>>,
     nowMillis: Long,
     firstItemFocusRequester: FocusRequester? = null,
+    leftFocusRequester: FocusRequester? = null,
+    upFocusRequester: FocusRequester? = null,
+    onUpPressed: (() -> Unit)? = null,
     onChannelSelected: (Channel) -> Unit,
 ) {
     if (items.isEmpty()) return
@@ -52,23 +53,52 @@ internal fun OnNowRail(
     Text("On now", style = HqType.SectionLabel)
     Spacer(Modifier.size(10.dp))
 
-    LazyRow(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(start = 6.dp, end = 40.dp),
     ) {
-        itemsIndexed(items, key = { index, (channel, _) -> channel.id }) { index, (channel, program) ->
+        items.forEachIndexed { index, (channel, program) ->
+            val cardFocusRequester = if (index == 0 && firstItemFocusRequester != null) {
+                firstItemFocusRequester
+            } else {
+                remember(channel.id) { FocusRequester() }
+            }
             OnNowCard(
                 focusReturn = focusReturn,
                 channel = channel,
                 program = program,
                 nowMillis = nowMillis,
+                focusRequester = cardFocusRequester,
                 onClick = { onChannelSelected(channel) },
-                modifier = if (index == 0 && firstItemFocusRequester != null) {
-                    Modifier.focusRequester(firstItemFocusRequester)
-                } else {
-                    Modifier
-                },
+                modifier = Modifier
+                    .then(
+                        if (index == 0 && leftFocusRequester != null) {
+                            Modifier.focusProperties { left = leftFocusRequester }
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .then(
+                        if (upFocusRequester != null) {
+                            Modifier.focusProperties { up = upFocusRequester }
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .then(
+                        if (index == 0 && onUpPressed != null) {
+                            Modifier.onKeyEvent { keyEvent ->
+                                if (keyEvent.key == Key.DirectionUp && keyEvent.type == KeyEventType.KeyDown) {
+                                    onUpPressed()
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ),
             )
         }
     }
@@ -80,23 +110,24 @@ private fun OnNowCard(
     channel: Channel,
     program: Program,
     nowMillis: Long,
+    focusRequester: FocusRequester,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var focused by remember { mutableStateOf(false) }
-    GlassPanel(
+    FocusableGlassCard(
+        onClick = onClick,
         modifier = modifier
-            .focusable()
-            .onFocusChanged { focused = it.isFocused }
-            .clickable { onClick() }
+            .restoreFocusOnReturn(
+                focusReturn,
+                homeOnNowFocusTarget(channel.id),
+                requester = focusRequester,
+            )
             .width(200.dp)
-            .height(124.dp)
-            .restoreFocusOnReturn(focusReturn, homeOnNowFocusTarget(channel.id)),
-        focused = focused,
+            .height(124.dp),
         cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(14.dp),
         sheenOnFocus = false,
-    ) {
+    ) { focused ->
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,

@@ -60,6 +60,13 @@ class InstalledAppsRepository(
         }
     }
 
+    /** HOME was pressed while a third-party app was foregrounded. */
+    fun onHomePressed() {
+        launchedExternalApp = false
+        blockLaunchUntil = System.currentTimeMillis() + RETURN_LAUNCH_GUARD_MS
+        _hostResumeTick.value++
+    }
+
     fun canLaunch(): Boolean = System.currentTimeMillis() >= blockLaunchUntil
 
     suspend fun launchableApps(): List<LaunchableApp> = withContext(Dispatchers.IO) {
@@ -104,9 +111,9 @@ class InstalledAppsRepository(
     /**
      * Launches the app, reporting failure (uninstalled race, no intent, blocked).
      *
-     * Starts on the host activity's back stack when possible so Back returns to
-     * LRHQ. Leanback intents ship with [Intent.FLAG_ACTIVITY_NEW_TASK], which
-     * strands apps like TizenTube in a separate task when left in place.
+     * Third-party apps always run in their own task ([Intent.FLAG_ACTIVITY_NEW_TASK])
+     * so the default-home launcher can be brought back with the hardware HOME button
+     * even after an install/replace while the external app is foregrounded.
      */
     fun launch(packageName: String, launcher: Context? = null): Boolean {
         if (!canLaunch()) return false
@@ -130,12 +137,9 @@ class InstalledAppsRepository(
             return false
         }
 
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
         val targetContext = launcher ?: hostActivity ?: context
-        if (targetContext !is Activity) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        } else {
-            intent.flags = intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK.inv()
-        }
 
         return try {
             targetContext.startActivity(intent)

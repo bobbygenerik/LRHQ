@@ -2,6 +2,7 @@ package com.livingroomhq.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -10,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +46,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,11 +66,13 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
+import com.livingroomhq.components.LocalSidebarFocusRequester
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.tvInitialFocus
+import com.livingroomhq.core.ui.components.yieldAndFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
@@ -84,6 +93,8 @@ import java.util.Locale
 
 private const val HERO_BACKDROP_ASSET_DIR = "hero_backdrops"
 private val HERO_BACKDROP_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "avif")
+/** Clears the pinned compact bar so section headers sit below it when scrolled. */
+private val CompactTopBarHeight = 96.dp
 
 /**
  * Home is the IPTV-first landing zone: a full-bleed live hero with EPG context
@@ -103,6 +114,7 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val customSettings = LocalCustomSettings.current
+    val sidebarFocus = LocalSidebarFocusRequester.current
     val context = LocalContext.current
     val heroBackdrops = remember(context) { bundledHeroBackdrops(context) }
 
@@ -137,6 +149,7 @@ fun HomeScreen(
     val density = LocalDensity.current
     val scrollScope = rememberCoroutineScope()
     val recentFocusRequester = remember { FocusRequester() }
+    val onNowFocusRequester = remember { FocusRequester() }
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -170,6 +183,11 @@ fun HomeScreen(
                 scrollState.value > with(density) { 260.dp.toPx() }
             }
         }
+        val compactBarInset by animateDpAsState(
+            targetValue = if (showCompactTopBar) CompactTopBarHeight else 0.dp,
+            animationSpec = tween(300),
+            label = "compactBarInset",
+        )
 
         val heroFocusRequester = remember { FocusRequester() }
         val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
@@ -227,10 +245,30 @@ fun HomeScreen(
                         .height(viewportHeight)
                         .focusProperties {
                             canFocus = scrollState.value < viewportHeightPx.toInt() / 2
+                            if (state.onNow.isNotEmpty() || state.recents.isNotEmpty() || state.channels.isNotEmpty()) {
+                                down = recentFocusRequester
+                            }
+                            if (sidebarFocus != null) {
+                                left = sidebarFocus
+                            }
                         },
                     focusReturn = focusReturn,
                     focusRequester = heroFocusRequester,
                     requestInitialFocus = true,
+                    onDownPressed = {
+                        scrollScope.launch {
+                            val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
+                            if (scrollState.value < targetScroll) {
+                                scrollState.animateScrollTo(targetScroll)
+                            }
+                            yieldAndFocus(recentFocusRequester)
+                        }
+                    },
+                    onLeftPressed = sidebarFocus?.let { requester ->
+                        {
+                            scrollScope.launch { yieldAndFocus(requester) }
+                        }
+                    },
                     onFocused = {
                         overlaysVisible = true
                         scrollScope.launch { scrollState.animateScrollTo(0) }
@@ -264,6 +302,7 @@ fun HomeScreen(
                                 top = HqDimens.SafeVertical,
                                 bottom = HqDimens.SafeVertical,
                             )
+                            .padding(top = compactBarInset)
                             .focusProperties { enter = { recentFocusRequester } }
                             .onFocusChanged {
                             val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
@@ -277,11 +316,26 @@ fun HomeScreen(
                         channels = state.channels,
                         recents = state.recents,
                         firstItemFocusRequester = recentFocusRequester,
+                        leftFocusRequester = sidebarFocus,
+                        downFocusRequester = if (state.onNow.isNotEmpty()) onNowFocusRequester else null,
                         onUpPressed = {
                             scrollScope.launch {
                                 scrollState.animateScrollTo(0)
                                 heroFocusRequester.requestFocus()
                             }
+                        },
+                        onDownPressed = if (state.onNow.isNotEmpty()) {
+                            {
+                                scrollScope.launch {
+                                    val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
+                                    if (scrollState.value < targetScroll) {
+                                        scrollState.animateScrollTo(targetScroll)
+                                    }
+                                    yieldAndFocus(onNowFocusRequester)
+                                }
+                            }
+                        } else {
+                            null
                         },
                         onChannelSelected = { channel ->
                             viewModel.onEvent(
@@ -296,6 +350,12 @@ fun HomeScreen(
                             focusReturn = focusReturn,
                             items = state.onNow,
                             nowMillis = state.nowMillis,
+                            firstItemFocusRequester = onNowFocusRequester,
+                            leftFocusRequester = sidebarFocus,
+                            upFocusRequester = recentFocusRequester,
+                            onUpPressed = {
+                                scrollScope.launch { yieldAndFocus(recentFocusRequester) }
+                            },
                             onChannelSelected = { channel ->
                                 viewModel.onEvent(
                                     HomeEvent.OpenChannel(channel, "home:on-now:${channel.id}"),
@@ -331,6 +391,8 @@ private fun HomeHero(
     requestInitialFocus: Boolean,
     onFocused: () -> Unit,
     onWatch: () -> Unit,
+    onDownPressed: (() -> Unit)? = null,
+    onLeftPressed: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -343,10 +405,39 @@ private fun HomeHero(
                 if (it.isFocused) onFocused()
             }
             .focusRequester(focusRequester)
+            .focusable(interactionSource = interactionSource)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onWatch,
+            )
+            .then(
+                if (onDownPressed != null || onLeftPressed != null) {
+                    Modifier.onKeyEvent { keyEvent ->
+                        if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
+                        when (keyEvent.key) {
+                            Key.DirectionDown -> {
+                                if (onDownPressed != null) {
+                                    onDownPressed()
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                            Key.DirectionLeft -> {
+                                if (onLeftPressed != null) {
+                                    onLeftPressed()
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                            else -> false
+                        }
+                    }
+                } else {
+                    Modifier
+                },
             )
             .then(if (requestInitialFocus) Modifier.tvInitialFocus(focusRequester) else Modifier),
     ) {

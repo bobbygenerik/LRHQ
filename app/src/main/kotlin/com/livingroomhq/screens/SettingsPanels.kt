@@ -34,6 +34,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.backdrop.AmbientPhotoCacheStats
 import com.livingroomhq.backdrop.GooglePhotosPickerState
+import com.livingroomhq.components.linkLeftEdgeToSidebar
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.LoadingRow
@@ -45,6 +46,7 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
 
+@kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 internal fun LiveTvSettingsPanel(
     m3uUrl: String,
@@ -78,7 +80,8 @@ internal fun LiveTvSettingsPanel(
                     placeholder = "Enter M3U link...",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .tvInitialFocus(firstFocusRequester),
+                        .tvInitialFocus(firstFocusRequester)
+                        .linkLeftEdgeToSidebar(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     SettingsActionButton(
