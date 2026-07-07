@@ -1,10 +1,16 @@
 package com.livingroomhq.core.data.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.livingroomhq.core.data.model.Channel
 
-@Entity(tableName = "channels")
+@Entity(
+    tableName = "channels",
+    indices = [
+        Index(value = ["sourceId"]),
+    ],
+)
 data class ChannelEntity(
     @PrimaryKey val id: String,
     val number: Int,

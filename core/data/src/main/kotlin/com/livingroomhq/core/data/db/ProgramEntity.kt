@@ -13,6 +13,7 @@ import com.livingroomhq.core.data.model.Program
         Index(value = ["endMillis"]),
         Index(value = ["channelId", "endMillis", "startMillis"]),
         Index(value = ["endMillis", "startMillis"]),
+        Index(value = ["sourceId"]),
     ],
 )
 data class ProgramEntity(
