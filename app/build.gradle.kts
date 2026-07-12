@@ -73,7 +73,7 @@ android {
             initWith(getByName("release"))
             isMinifyEnabled = false
             isShrinkResources = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("projectDebug")
             matchingFallbacks.add("release")
         }
     }

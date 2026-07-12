@@ -5,14 +5,10 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -111,118 +107,123 @@ fun SettingsScreen(
             .fillMaxSize()
             .focusProperties { enter = { firstItemFocusRequester } },
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .zonePadding()
-                .verticalScroll(rememberScrollState()),
+                .zonePadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(bottom = HqDimens.SafeVertical),
         ) {
-            Text("Settings", style = HqType.Title)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                Column(modifier = Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LiveTvSettingsPanel(
-                        m3uUrl = m3uUrl,
-                        onM3uUrlChange = { m3uUrl = it },
-                        statusText = playlistUi.text,
-                        isLoading = playlistUi.loading,
-                        isSuccess = playlistUi.success,
-                        onLoadPlaylist = {
-                            if (m3uUrl.trim().isEmpty()) {
-                                snackbar.post("Please enter a playlist URL")
-                                return@LiveTvSettingsPanel
-                            }
-                            viewModel.onEvent(SettingsEvent.LoadPlaylist(m3uUrl))
-                        },
-                        onClearPlaylist = { confirmDialog = ConfirmRequest.ClearPlaylist },
-                        epgUrl = epgUrl,
-                        epgStatus = guideUi.text,
-                        isEpgLoading = guideUi.loading,
-                        onEpgUrlChange = { epgUrl = it },
-                        onLoadGuide = {
-                            if (epgUrl.trim().isEmpty()) {
-                                snackbar.post("Please enter a guide URL")
-                                return@LiveTvSettingsPanel
-                            }
-                            viewModel.onEvent(SettingsEvent.LoadGuide(epgUrl))
-                        },
-                        onClearGuide = { confirmDialog = ConfirmRequest.ClearGuide },
-                        syncStatusText = vmState.syncStatusText,
-                        firstFocusRequester = firstItemFocusRequester,
-                    )
-
-                    SamplePlaylistsPanel(
-                        publicPlaylists = publicPlaylists,
-                        onPublicPlaylistSelected = { playlist ->
-                            m3uUrl = playlist.url
-                            viewModel.onEvent(SettingsEvent.LoadSamplePlaylist(playlist.url, playlist.name))
-                        },
-                        isLoading = playlistUi.loading,
-                    )
-                }
-
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
-                    AppsAndCaptionsSettingsPanel(
-                        pinnedPackagesText = pinnedPackagesText,
-                        onPinnedPackagesTextChange = { pinnedPackagesText = it },
-                        onSavePinnedPackages = {
-                            val packages = pinnedPackagesText.lines()
-                                .map { it.trim() }
-                                .filter { it.isNotEmpty() }
-                            viewModel.onEvent(SettingsEvent.SavePinnedAppPackages(packages))
-                            snackbar.post("Pinned apps saved")
-                        },
-                        captionServerUrl = captionServerUrl,
-                        onCaptionServerUrlChange = { captionServerUrl = it },
-                        onSaveCaptionUrl = {
-                            viewModel.onEvent(
-                                SettingsEvent.SaveLiveCaptionServerUrl(
-                                    captionServerUrl.trim().ifBlank { null },
-                                ),
-                            )
-                            snackbar.post("Caption server saved")
-                        },
-                    )
-                    AmbientPhotosSettingsPanel(
-                        importText = ambientPhotoImportText,
-                        cacheStats = ambientPhotoCacheStats,
-                        pickerState = googlePhotosPickerState,
-                        onImportTextChange = { ambientPhotoImportText = it },
-                        onStartGooglePhotosPicker = { viewModel.startGooglePhotosImport() },
-                        onRefreshGooglePhotosAlbum = { viewModel.refreshGooglePhotosImport() },
-                        onImportPhotos = {
-                            viewModel.importPhotosFromText(ambientPhotoImportText) {
-                                ambientPhotoImportText = ""
-                            }
-                        },
-                        onClearCache = { confirmDialog = ConfirmRequest.ClearCache },
-                    )
-                    DeviceCareAndSystemPanel(
-                        maintenanceStatus = maintenanceUi.text,
-                        isMaintenanceBusy = maintenanceUi.loading,
-                        onRunMaintenance = { viewModel.onEvent(SettingsEvent.RunMaintenance) },
-                        onLaunchDeviceSettings = {
-                            context.launchSettingsIntent(
-                                Intent(Settings.ACTION_SETTINGS),
-                                snackbar,
-                                "Couldn't open device settings",
-                            )
-                        },
-                        onLaunchAppManager = {
-                            context.launchSettingsIntent(
-                                Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
-                                snackbar,
-                                "Couldn't open app manager",
-                            )
-                        },
-                    )
-                }
+            item {
+                Text("Settings", style = HqType.Title)
             }
-            Spacer(Modifier.height(HqDimens.SafeVertical))
+            item {
+                LiveTvSettingsPanel(
+                    m3uUrl = m3uUrl,
+                    onM3uUrlChange = { m3uUrl = it },
+                    statusText = playlistUi.text,
+                    isLoading = playlistUi.loading,
+                    isSuccess = playlistUi.success,
+                    onLoadPlaylist = {
+                        if (m3uUrl.trim().isEmpty()) {
+                            snackbar.post("Please enter a playlist URL")
+                            return@LiveTvSettingsPanel
+                        }
+                        viewModel.onEvent(SettingsEvent.LoadPlaylist(m3uUrl))
+                    },
+                    onClearPlaylist = { confirmDialog = ConfirmRequest.ClearPlaylist },
+                    epgUrl = epgUrl,
+                    epgStatus = guideUi.text,
+                    isEpgLoading = guideUi.loading,
+                    onEpgUrlChange = { epgUrl = it },
+                    onLoadGuide = {
+                        if (epgUrl.trim().isEmpty()) {
+                            snackbar.post("Please enter a guide URL")
+                            return@LiveTvSettingsPanel
+                        }
+                        viewModel.onEvent(SettingsEvent.LoadGuide(epgUrl))
+                    },
+                    onClearGuide = { confirmDialog = ConfirmRequest.ClearGuide },
+                    syncStatusText = vmState.syncStatusText,
+                    firstFocusRequester = firstItemFocusRequester,
+                )
+            }
+            item {
+                SamplePlaylistsPanel(
+                    publicPlaylists = publicPlaylists,
+                    onPublicPlaylistSelected = { playlist ->
+                        m3uUrl = playlist.url
+                        viewModel.onEvent(SettingsEvent.LoadSamplePlaylist(playlist.url, playlist.name))
+                    },
+                    isLoading = playlistUi.loading,
+                )
+            }
+            item {
+                AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
+            }
+            item {
+                AppsAndCaptionsSettingsPanel(
+                    pinnedPackagesText = pinnedPackagesText,
+                    onPinnedPackagesTextChange = { pinnedPackagesText = it },
+                    onSavePinnedPackages = {
+                        val packages = pinnedPackagesText.lines()
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                        viewModel.onEvent(SettingsEvent.SavePinnedAppPackages(packages))
+                        snackbar.post("Pinned apps saved")
+                    },
+                    captionServerUrl = captionServerUrl,
+                    onCaptionServerUrlChange = { captionServerUrl = it },
+                    onSaveCaptionUrl = {
+                        viewModel.onEvent(
+                            SettingsEvent.SaveLiveCaptionServerUrl(
+                                captionServerUrl.trim().ifBlank { null },
+                            ),
+                        )
+                        snackbar.post("Caption server saved")
+                    },
+                )
+            }
+            item {
+                AmbientPhotosSettingsPanel(
+                    importText = ambientPhotoImportText,
+                    cacheStats = ambientPhotoCacheStats,
+                    pickerState = googlePhotosPickerState,
+                    onImportTextChange = { ambientPhotoImportText = it },
+                    onStartGooglePhotosPicker = { viewModel.startGooglePhotosImport() },
+                    onRefreshGooglePhotosAlbum = { viewModel.refreshGooglePhotosImport() },
+                    onImportPhotos = {
+                        viewModel.importPhotosFromText(ambientPhotoImportText) {
+                            ambientPhotoImportText = ""
+                        }
+                    },
+                    onClearCache = { confirmDialog = ConfirmRequest.ClearCache },
+                )
+            }
+            item {
+                DeviceCareAndSystemPanel(
+                    maintenanceStatus = maintenanceUi.text,
+                    isMaintenanceBusy = maintenanceUi.loading,
+                    onRunMaintenance = { viewModel.onEvent(SettingsEvent.RunMaintenance) },
+                    onLaunchDeviceSettings = {
+                        context.launchSettingsIntent(
+                            Intent(Settings.ACTION_SETTINGS),
+                            snackbar,
+                            "Couldn't open device settings",
+                        )
+                    },
+                    onLaunchAppManager = {
+                        context.launchSettingsIntent(
+                            Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS),
+                            snackbar,
+                            "Couldn't open app manager",
+                        )
+                    },
+                )
+            }
+            item {
+                Box(Modifier.height(HqDimens.SafeVertical))
+            }
         }
 
         when (val req = confirmDialog) {

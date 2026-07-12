@@ -702,12 +702,9 @@ class FakeIptvDao : IptvDao {
     }
 
     override suspend fun syncChannels(channels: List<ChannelEntity>) {
-        if (channels.isEmpty()) {
-            clearChannels()
-            return
-        }
+        clearChannels()
+        if (channels.isEmpty()) return
         insertChannels(channels)
-        deleteChannelsNotIn(channels.map { it.id })
     }
 
     override suspend fun replaceChannels(channels: List<ChannelEntity>) = syncChannels(channels)
@@ -794,12 +791,9 @@ class FakeIptvDao : IptvDao {
     }
 
     override suspend fun syncGuideChannels(channels: List<GuideChannelEntity>) {
-        if (channels.isEmpty()) {
-            clearGuideChannels()
-            return
-        }
+        clearGuideChannels()
+        if (channels.isEmpty()) return
         insertGuideChannels(channels)
-        deleteGuideChannelsNotIn(channels.map { it.id })
     }
 
     override suspend fun replaceGuideChannels(channels: List<GuideChannelEntity>) = syncGuideChannels(channels)

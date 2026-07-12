@@ -273,7 +273,13 @@ fun HomeScreen(
                         overlaysVisible = true
                         scrollScope.launch { scrollState.animateScrollTo(0) }
                     },
-                    onWatch = { viewModel.onEvent(HomeEvent.WatchHero) },
+                    onWatch = {
+                        if (current == null) {
+                            nav.goTo(Zone.SETTINGS)
+                        } else {
+                            viewModel.onEvent(HomeEvent.WatchHero)
+                        }
+                    },
                 ) {
                     HomeHeroContent(
                         channel = current,

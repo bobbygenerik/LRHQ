@@ -79,7 +79,9 @@ internal fun HomeHeroContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                LiveBadge()
+                if (channel != null) {
+                    LiveBadge()
+                }
                 if (showWeather) {
                     ClockWeather(
                         clockTime = clockTime,
@@ -217,7 +219,12 @@ private fun NowPlayingSummary(
                 cornerRadius = HqDimens.CornerSm,
                 contentPadding = PaddingValues(horizontal = 16.dp),
             ) { _ ->
-                Text("Set up Live TV", style = HqType.CardTitle.copy(color = HqColors.Accent))
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("Set up Live TV", style = HqType.CardTitle.copy(color = HqColors.Accent))
+                }
             }
         } else {
             Spacer(Modifier.height(10.dp))

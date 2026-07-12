@@ -59,16 +59,29 @@ fun FocusableGlassCard(
     val bringIntoView = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
 
+    // Stay in the TV focus chain while disabled so async work (e.g. playlist load)
+    // does not eject focus to the sidebar rail.
     val activation = when {
-        !enabled -> Modifier
         onLongClick == null -> {
             Modifier
-                .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
                 .focusable(interactionSource = interactionSource)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onClick,
+                )
         }
         else -> {
-            Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+            Modifier
                 .focusable(interactionSource = interactionSource)
+                .then(
+                    if (enabled) {
+                        Modifier.dpadPressable(onClick = onClick, onLongClick = onLongClick)
+                    } else {
+                        Modifier
+                    },
+                )
         }
     }
 

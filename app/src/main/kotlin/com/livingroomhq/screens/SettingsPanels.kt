@@ -439,10 +439,9 @@ private fun AppearanceRow(
     label: String,
     control: @Composable () -> Unit,
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(label, style = HqType.Label)
         control()
