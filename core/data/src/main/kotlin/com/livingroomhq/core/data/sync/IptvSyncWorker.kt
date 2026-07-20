@@ -6,6 +6,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.livingroomhq.core.data.fault.FaultLog
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
 import java.util.concurrent.TimeUnit
 
@@ -37,6 +38,7 @@ class IptvSyncWorker(
             }
             Result.success()
         } catch (e: Exception) {
+            FaultLog.record("iptv_sync", e)
             Result.retry()
         }
     }

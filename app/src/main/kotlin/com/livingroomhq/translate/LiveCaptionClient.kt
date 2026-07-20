@@ -30,10 +30,15 @@ data class LiveCaptionSnapshot(
 
 class LiveCaptionClient(
     private val baseUrl: String,
+    private val token: String? = null,
 ) {
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     val isConfigured: Boolean = baseUrl.isNotBlank()
+
+    private fun Request.Builder.withAuth(): Request.Builder = apply {
+        token?.takeIf { it.isNotBlank() }?.let { header("Authorization", "Bearer $it") }
+    }
 
     suspend fun startSession(
         channelId: String,
@@ -52,6 +57,7 @@ class LiveCaptionClient(
             .url("${baseUrl.trimEnd('/')}/sessions")
             .post(payload.toRequestBody(jsonMediaType))
             .header("User-Agent", "LRHQ LiveCaptionClient")
+            .withAuth()
             .build()
 
         LrhqHttpClient.client.newCall(request).execute().use { response ->
@@ -72,6 +78,7 @@ class LiveCaptionClient(
                 .url("${baseUrl.trimEnd('/')}/sessions/$encodedId/cues?sinceSeq=$sinceSeq")
                 .get()
                 .header("User-Agent", "LRHQ LiveCaptionClient")
+                .withAuth()
                 .build()
 
             LrhqHttpClient.client.newCall(request).execute().use { response ->
@@ -87,6 +94,7 @@ class LiveCaptionClient(
                 .url("${baseUrl.trimEnd('/')}/sessions/$encodedId")
                 .delete()
                 .header("User-Agent", "LRHQ LiveCaptionClient")
+                .withAuth()
                 .build()
 
             runCatching {

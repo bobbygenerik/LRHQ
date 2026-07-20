@@ -80,7 +80,10 @@ import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
 import com.livingroomhq.translate.LiveCaptionClient
 import com.livingroomhq.player.CaptionOverlay
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,6 +91,7 @@ import java.util.Locale
 private const val INFO_OVERLAY_DURATION_MS = 4_000L
 private const val WATCH_DEBOUNCE_MS = 5_000L
 private const val CAPTION_POLL_MS = 500L
+private const val CAPTION_POLL_MAX_FAILURES = 6
 
 class ChannelPlayerActivity : ComponentActivity() {
 
@@ -201,6 +205,11 @@ private fun ChannelPlayerScreen(
         settingsCaptionUrl?.takeIf { it.isNotBlank() }
             ?: BuildConfig.CAPTION_SERVER_URL.takeIf { it.isNotBlank() }
     }
+    val settingsCaptionToken by app.prefs.liveCaptionServerToken.collectAsState(initial = null)
+    val captionToken = remember(settingsCaptionToken) {
+        settingsCaptionToken?.takeIf { it.isNotBlank() }
+            ?: BuildConfig.CAPTION_SERVER_TOKEN.takeIf { it.isNotBlank() }
+    }
     val captionsAvailable = !captionBaseUrl.isNullOrBlank()
     var captionsEnabled by remember { mutableStateOf(false) }
     var captionText by remember { mutableStateOf<String?>(null) }
@@ -253,12 +262,12 @@ private fun ChannelPlayerScreen(
         }
     }
 
-    LaunchedEffect(currentChannel.id, captionBaseUrl, captionsEnabled) {
+    LaunchedEffect(currentChannel.id, captionBaseUrl, captionToken, captionsEnabled) {
         captionText = null
         captionStatus = null
         if (!captionsEnabled || captionBaseUrl.isNullOrBlank()) return@LaunchedEffect
 
-        val client = LiveCaptionClient(captionBaseUrl)
+        val client = LiveCaptionClient(captionBaseUrl, captionToken)
         if (!client.isConfigured) return@LaunchedEffect
 
         var sessionId: String? = null
@@ -272,18 +281,34 @@ private fun ChannelPlayerScreen(
             sessionId = session.id
             captionStatus = "Captions active"
             var sinceSeq = 0L
+            var consecutiveFailures = 0
             while (true) {
-                val snapshot = client.fetchSnapshot(session.id, sinceSeq)
-                sinceSeq = snapshot.cues.maxOfOrNull { it.seq } ?: sinceSeq
-                val position = engine.player.currentPosition
-                val activeCue = snapshot.cues.lastOrNull { position in it.startMs..it.endMs }
-                captionText = activeCue?.text ?: snapshot.activeText
+                try {
+                    val snapshot = client.fetchSnapshot(session.id, sinceSeq)
+                    consecutiveFailures = 0
+                    sinceSeq = snapshot.cues.maxOfOrNull { it.seq } ?: sinceSeq
+                    val position = engine.player.currentPosition
+                    val activeCue = snapshot.cues.lastOrNull { position in it.startMs..it.endMs }
+                    captionText = activeCue?.text ?: snapshot.activeText
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Ride out transient poll failures instead of killing captions.
+                    if (++consecutiveFailures >= CAPTION_POLL_MAX_FAILURES) throw e
+                }
                 delay(CAPTION_POLL_MS)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             captionStatus = e.localizedMessage ?: "Captions unavailable"
         } finally {
-            sessionId?.let { runCatching { client.stopSession(it) } }
+            // This effect only ends via cancellation (zap/back/toggle), and a
+            // cancelled coroutine won't run a plain suspend call — shield the
+            // DELETE or the server session leaks and transcribes forever.
+            sessionId?.let { id ->
+                withContext(NonCancellable) { runCatching { client.stopSession(id) } }
+            }
         }
     }
 
@@ -428,7 +453,7 @@ private fun ChannelPlayerScreen(
                                         .padding(horizontal = 8.dp, vertical = 3.dp),
                                 ) {
                                     Text(
-                                        text = currentChannel.number.toString().ifBlank { "TV" },
+                                        text = currentChannel.name.trim().take(1).uppercase().ifBlank { "TV" },
                                         style = HqType.Label.copy(
                                             color = accent,
                                             fontWeight = FontWeight.Bold,
@@ -476,7 +501,11 @@ private fun ChannelPlayerScreen(
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Spacer(Modifier.height(8.dp))
-                            val progress = nowProgram.progressAt(System.currentTimeMillis())
+                            // Re-sample each time the overlay is summoned; a plain call
+                            // here would show the progress from the last recomposition.
+                            val progress = remember(infoVisible, nowProgram) {
+                                nowProgram.progressAt(System.currentTimeMillis())
+                            }
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()

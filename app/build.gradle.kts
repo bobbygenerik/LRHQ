@@ -20,6 +20,10 @@ val captionServerUrl: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("caption.serverUrl", "")
+val captionServerToken: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.getProperty("caption.serverToken", "")
 val releaseSigningProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -39,6 +43,7 @@ android {
         buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"$unsplashAccessKey\"")
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
         buildConfigField("String", "CAPTION_SERVER_URL", "\"$captionServerUrl\"")
+        buildConfigField("String", "CAPTION_SERVER_TOKEN", "\"$captionServerToken\"")
     }
 
     signingConfigs {

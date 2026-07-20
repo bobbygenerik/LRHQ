@@ -11,3 +11,10 @@ captures/
 *.apk
 *.aab
 .remember/
+
+# Generated / local-only artifacts
+graphify-out/
+.kotlin/
+tools/live-caption-server/.venv/
+__pycache__/
+lrhq-roku.zip

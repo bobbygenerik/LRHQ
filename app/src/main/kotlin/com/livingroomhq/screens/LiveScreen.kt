@@ -286,7 +286,7 @@ private fun LiveChannelGridColumn(
                     .focusProperties { enter = { firstChannelFocusRequester } }
                     .onFocusChanged { onGridFocusChanged(it.hasFocus) },
             ) {
-                itemsIndexed(visibleChannels, key = { _, it -> "${it.id}_${it.number}" }) { index, channel ->
+                itemsIndexed(visibleChannels, key = { _, it -> it.id }) { index, channel ->
                     val nowPlayingTitle = remember(channel.id, epgRevision) {
                         channelEpgTitle(channel.id)
                     }

@@ -49,6 +49,12 @@ private const val RECENTS_CAP = 8
 /** Room upsert batch size for streaming XMLTV ingest. */
 private const val EPG_UPSERT_BATCH_SIZE = 500
 
+/** SQLite caps host parameters at 999; stay under it for IN (:ids) queries. */
+private const val SQLITE_MAX_BIND_ARGS = 900
+
+/** Ceiling for playlist/EPG retry backoff — do not hammer dead hosts forever. */
+private const val RETRY_BACKOFF_MAX_MILLIS = 15 * 60_000L
+
 /**
  * [ChannelRepository] with persisted favorites, recents, playlist and EPG.
  */
@@ -58,6 +64,8 @@ class PersistentChannelRepository(
     private val scope: CoroutineScope,
     private val nowMillis: () -> Long = System::currentTimeMillis,
     private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** Playlist/EPG downloads are read while parsing — keep that off the CPU pool. */
+    private val ingestDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val fetchPlaylistStream: suspend (String) -> InputStream = ::httpGetStream,
     private val conditionalFetch: (suspend (String, HttpSyncMetadata?) -> ConditionalFetchResult)? = null,
 ) : ChannelRepository {
@@ -118,7 +126,10 @@ class PersistentChannelRepository(
         }
         val programs = programsForChannel(channelId)
         if (programs.isEmpty()) return null to null
-        return GuideMatcher.computeNowNext(programs, nowMillis())
+        return GuideMatcher.computeNowNext(programs, nowMillis()).also { computed ->
+            // Write back so repeated composition reads don't rescan the program list.
+            _nowNextCache.value = _nowNextCache.value + (channelId to computed)
+        }
     }
 
     override fun markWatched(channelId: String) {
@@ -144,7 +155,7 @@ class PersistentChannelRepository(
         }
     }
 
-    override suspend fun loadM3u(playlistUrl: String) = withContext(workDispatcher) {
+    override suspend fun loadM3u(playlistUrl: String) = withContext(ingestDispatcher) {
         runLoggedCatching("playlist") {
             if (conditionalFetch == null) {
                 ingestM3u(fetchPlaylistStream(playlistUrl), playlistUrl, null)
@@ -178,7 +189,7 @@ class PersistentChannelRepository(
         metadata?.let { prefs.setPlaylistSyncMetadata(it) }
     }
 
-    override suspend fun loadXmltv(epgUrl: String) = withContext(workDispatcher) {
+    override suspend fun loadXmltv(epgUrl: String) = withContext(ingestDispatcher) {
         runLoggedCatching("guide") {
             if (conditionalFetch == null) {
                 ingestXmltv(fetchPlaylistStream(epgUrl), epgUrl, null)
@@ -238,8 +249,9 @@ class PersistentChannelRepository(
 
         val threshold = now - 24 * 60 * 60 * 1000L
         iptvDao.pruneOldPrograms(threshold)
-        if (seenGuideChannelIds.isNotEmpty()) {
-            iptvDao.pruneProgramsBeforeWindow(seenGuideChannelIds.toList(), threshold)
+        // Chunked: guides commonly exceed SQLite's 999-bind-variable limit.
+        seenGuideChannelIds.toList().chunked(SQLITE_MAX_BIND_ARGS).forEach { chunk ->
+            iptvDao.pruneProgramsBeforeWindow(chunk, threshold)
         }
         ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, seenGuideChannelIds)
         iptvDao.syncGuideChannels(
@@ -474,25 +486,32 @@ class PersistentChannelRepository(
 
     override suspend fun prefetchEpgForChannels(channelIds: List<String>) {
         if (channelIds.isEmpty()) return
-        val cappedIds = channelIds.take(EPG_PREFETCH_CHANNEL_CAP)
         withContext(workDispatcher) {
             val indexSnapshot = _loadedEpgAliasIndex.value
-            val guideChannelIds = cappedIds.mapNotNull { channelId ->
-                if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return@mapNotNull null
-                resolvedGuideChannelIds[channelId]?.let { return@mapNotNull it }
-
-                val channel = _channelById.value[channelId] ?: return@mapNotNull null
+            // Resolve playlist→guide aliases for every requested channel here:
+            // the fuzzy fallback scan is far too slow for composition time.
+            // Memoizing all of them now means grid cards beyond the DB-prefetch
+            // cap below still get cache hits on the main thread.
+            val resolved = HashMap<String, String>(channelIds.size)
+            channelIds.forEach { channelId ->
+                if (channelId in unresolvedGuideChannelIds || channelId in unmappedGuideChannels) return@forEach
+                resolvedGuideChannelIds[channelId]?.let {
+                    resolved[channelId] = it
+                    return@forEach
+                }
+                val channel = _channelById.value[channelId] ?: return@forEach
                 GuideMatcher.resolveGuideChannelId(
                     channel = channel,
                     guideAliases = _loadedEpgAliases.value,
                     aliasIndex = indexSnapshot,
                 )?.also { matchedGuideId ->
                     resolvedGuideChannelIds[channelId] = matchedGuideId
-                } ?: run {
-                    unresolvedGuideChannelIds += channelId
-                    null
-                }
-            }.distinct()
+                    resolved[channelId] = matchedGuideId
+                } ?: run { unresolvedGuideChannelIds += channelId }
+            }
+
+            val cappedIds = channelIds.take(EPG_PREFETCH_CHANNEL_CAP)
+            val guideChannelIds = cappedIds.mapNotNull { resolved[it] }.distinct()
 
             if (guideChannelIds.isEmpty()) return@withContext
 
@@ -619,7 +638,7 @@ private suspend fun retryWithBackoff(block: suspend () -> Unit) {
         } catch (e: Exception) {
             FaultLog.record("retry_backoff", e)
             delay(delayMillis)
-            delayMillis = (delayMillis * 2).coerceAtMost(30_000L)
+            delayMillis = (delayMillis * 2).coerceAtMost(RETRY_BACKOFF_MAX_MILLIS)
         }
     }
 }

@@ -21,6 +21,7 @@ data class SettingsUiState(
     val epgUrl: String? = null,
     val pinnedAppPackages: List<String> = emptyList(),
     val liveCaptionServerUrl: String? = null,
+    val liveCaptionServerToken: String? = null,
     val syncStatus: SyncStatus = SyncStatus(),
     val syncStatusText: String = "",
 )
@@ -30,7 +31,7 @@ sealed interface SettingsEvent {
     data class LoadGuide(val url: String) : SettingsEvent
     data class LoadSamplePlaylist(val url: String, val name: String) : SettingsEvent
     data class SavePinnedAppPackages(val packages: List<String>) : SettingsEvent
-    data class SaveLiveCaptionServerUrl(val url: String?) : SettingsEvent
+    data class SaveLiveCaptionServer(val url: String?, val token: String?) : SettingsEvent
     data object RunMaintenance : SettingsEvent
     data object ClearPlaylist : SettingsEvent
     data object ClearGuide : SettingsEvent
@@ -59,14 +60,15 @@ class SettingsViewModel(
         prefs.playlistUrl,
         prefs.epgUrl,
         prefs.pinnedAppPackages,
-        prefs.liveCaptionServerUrl,
+        combine(prefs.liveCaptionServerUrl, prefs.liveCaptionServerToken) { url, token -> url to token },
         FaultLog.syncStatus,
-    ) { playlist, epg, pinned, captionUrl, sync ->
+    ) { playlist, epg, pinned, (captionUrl, captionToken), sync ->
         SettingsUiState(
             playlistUrl = playlist,
             epgUrl = epg,
             pinnedAppPackages = pinned,
             liveCaptionServerUrl = captionUrl,
+            liveCaptionServerToken = captionToken,
             syncStatus = sync,
             syncStatusText = FaultLog.formatSyncStatus(sync),
         )
@@ -80,8 +82,9 @@ class SettingsViewModel(
             is SettingsEvent.SavePinnedAppPackages -> viewModelScope.launch {
                 prefs.setPinnedAppPackages(event.packages)
             }
-            is SettingsEvent.SaveLiveCaptionServerUrl -> viewModelScope.launch {
+            is SettingsEvent.SaveLiveCaptionServer -> viewModelScope.launch {
                 prefs.setLiveCaptionServerUrl(event.url)
+                prefs.setLiveCaptionServerToken(event.token)
             }
             SettingsEvent.RunMaintenance -> runMaintenance()
             SettingsEvent.ClearPlaylist -> clearPlaylist()

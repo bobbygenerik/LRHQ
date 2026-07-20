@@ -455,6 +455,8 @@ internal fun AppsAndCaptionsSettingsPanel(
     onSavePinnedPackages: () -> Unit,
     captionServerUrl: String,
     onCaptionServerUrlChange: (String) -> Unit,
+    captionServerToken: String,
+    onCaptionServerTokenChange: (String) -> Unit,
     onSaveCaptionUrl: () -> Unit,
 ) {
     val accent = hqAccent()
@@ -490,6 +492,16 @@ internal fun AppsAndCaptionsSettingsPanel(
                     value = captionServerUrl,
                     onValueChange = onCaptionServerUrlChange,
                     placeholder = "http://192.168.1.10:8765",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    "Auth token — optional. Set the same value the server was started with (--token) to keep other devices on the network from using it.",
+                    style = HqType.CardCaption,
+                )
+                GlassTextField(
+                    value = captionServerToken,
+                    onValueChange = onCaptionServerTokenChange,
+                    placeholder = "Shared secret (optional)",
                     modifier = Modifier.fillMaxWidth(),
                 )
                 SettingsActionButton(

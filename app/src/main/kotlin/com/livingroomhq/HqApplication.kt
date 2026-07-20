@@ -121,9 +121,9 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
                 _ambientBackdropPhotos.value = merged
             }
         }
-        // Refresh the ambient backdrop pool once per launch (demo tier: 50 req/hr).
+        // Refresh the ambient backdrop pool; disk-cached ~12h (demo tier: 50 req/hr).
         appScope.launch {
-            val photos = UnsplashClient.fetchLandscapePhotos()
+            val photos = UnsplashClient.fetchLandscapePhotos(cacheDir = cacheDir)
             if (photos.isNotEmpty()) {
                 _remoteAmbientPhotos.value = photos
             }

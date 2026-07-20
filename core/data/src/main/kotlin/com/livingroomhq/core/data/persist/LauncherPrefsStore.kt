@@ -26,6 +26,7 @@ interface LauncherPrefsStore {
     val soundEffects: Flow<Boolean>
     val pinnedAppPackages: Flow<List<String>>
     val liveCaptionServerUrl: Flow<String?>
+    val liveCaptionServerToken: Flow<String?>
 
     suspend fun setFavorites(ids: Set<String>)
     suspend fun setRecents(ids: List<String>)
@@ -44,6 +45,7 @@ interface LauncherPrefsStore {
     suspend fun setSoundEffects(value: Boolean)
     suspend fun setPinnedAppPackages(packages: List<String>)
     suspend fun setLiveCaptionServerUrl(url: String?)
+    suspend fun setLiveCaptionServerToken(token: String?)
 }
 
 class InMemoryPrefsStore : LauncherPrefsStore {
@@ -64,6 +66,7 @@ class InMemoryPrefsStore : LauncherPrefsStore {
     override val soundEffects = MutableStateFlow(true)
     override val pinnedAppPackages = MutableStateFlow<List<String>>(emptyList())
     override val liveCaptionServerUrl = MutableStateFlow<String?>(null)
+    override val liveCaptionServerToken = MutableStateFlow<String?>(null)
 
     override suspend fun setFavorites(ids: Set<String>) { favorites.value = ids }
     override suspend fun setRecents(ids: List<String>) { recents.value = ids }
@@ -82,4 +85,5 @@ class InMemoryPrefsStore : LauncherPrefsStore {
     override suspend fun setSoundEffects(value: Boolean) { soundEffects.value = value }
     override suspend fun setPinnedAppPackages(packages: List<String>) { pinnedAppPackages.value = packages }
     override suspend fun setLiveCaptionServerUrl(url: String?) { liveCaptionServerUrl.value = url }
+    override suspend fun setLiveCaptionServerToken(token: String?) { liveCaptionServerToken.value = token }
 }

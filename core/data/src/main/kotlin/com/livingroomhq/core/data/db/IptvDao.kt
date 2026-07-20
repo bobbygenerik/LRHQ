@@ -25,9 +25,6 @@ interface IptvDao {
     @Query("DELETE FROM channels")
     suspend fun clearChannels()
 
-    @Query("DELETE FROM channels WHERE id NOT IN (:ids)")
-    suspend fun deleteChannelsNotIn(ids: List<String>)
-
     @Query("UPDATE channels SET isFavorite = :isFavorite WHERE id = :channelId")
     suspend fun updateChannelFavorite(channelId: String, isFavorite: Boolean)
 
@@ -121,9 +118,6 @@ interface IptvDao {
 
     @Query("DELETE FROM guide_channels")
     suspend fun clearGuideChannels()
-
-    @Query("DELETE FROM guide_channels WHERE id NOT IN (:ids)")
-    suspend fun deleteGuideChannelsNotIn(ids: List<String>)
 
     @Transaction
     suspend fun syncGuideChannels(channels: List<GuideChannelEntity>) {

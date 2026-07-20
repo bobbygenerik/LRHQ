@@ -84,6 +84,9 @@ fun SettingsScreen(
     var captionServerUrl by remember(vmState.liveCaptionServerUrl) {
         mutableStateOf(vmState.liveCaptionServerUrl.orEmpty())
     }
+    var captionServerToken by remember(vmState.liveCaptionServerToken) {
+        mutableStateOf(vmState.liveCaptionServerToken.orEmpty())
+    }
     var ambientPhotoImportText by remember { mutableStateOf("") }
     var confirmDialog by remember { mutableStateOf<ConfirmRequest?>(null) }
     val firstItemFocusRequester = remember { FocusRequester() }
@@ -174,10 +177,13 @@ fun SettingsScreen(
                     },
                     captionServerUrl = captionServerUrl,
                     onCaptionServerUrlChange = { captionServerUrl = it },
+                    captionServerToken = captionServerToken,
+                    onCaptionServerTokenChange = { captionServerToken = it },
                     onSaveCaptionUrl = {
                         viewModel.onEvent(
-                            SettingsEvent.SaveLiveCaptionServerUrl(
-                                captionServerUrl.trim().ifBlank { null },
+                            SettingsEvent.SaveLiveCaptionServer(
+                                url = captionServerUrl.trim().ifBlank { null },
+                                token = captionServerToken.trim().ifBlank { null },
                             ),
                         )
                         snackbar.post("Caption server saved")

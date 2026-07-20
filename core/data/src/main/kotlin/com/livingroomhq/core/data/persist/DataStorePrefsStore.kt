@@ -39,20 +39,22 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
         val SOUND_EFFECTS = booleanPreferencesKey("setting_sound_effects")
         val PINNED_APP_PACKAGES = stringPreferencesKey("pinned_app_packages")
         val LIVE_CAPTION_SERVER_URL = stringPreferencesKey("live_caption_server_url")
+        val LIVE_CAPTION_SERVER_TOKEN = stringPreferencesKey("live_caption_server_token")
     }
 
     override val favorites: Flow<Set<String>> =
         store.data.map { it[Keys.FAVORITES] ?: emptySet() }
+            .distinctUntilChanged()
 
     override val recents: Flow<List<String>> =
         store.data.map { prefs ->
             prefs[Keys.RECENTS]?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
-        }
+        }.distinctUntilChanged()
 
     override val appOrder: Flow<List<String>> =
         store.data.map { prefs ->
             prefs[Keys.APP_ORDER]?.split('\n')?.filter { it.isNotEmpty() } ?: emptyList()
-        }
+        }.distinctUntilChanged()
 
     override val playlistUrl: Flow<String?> =
         store.data
@@ -70,7 +72,7 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
                 etag = prefs[Keys.PLAYLIST_ETAG],
                 lastModified = prefs[Keys.PLAYLIST_LAST_MODIFIED],
             )
-        }
+        }.distinctUntilChanged()
 
     override val epgSyncMetadata: Flow<HttpSyncMetadata> =
         store.data.map { prefs ->
@@ -78,40 +80,53 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
                 etag = prefs[Keys.EPG_ETAG],
                 lastModified = prefs[Keys.EPG_LAST_MODIFIED],
             )
-        }
+        }.distinctUntilChanged()
 
     override val defaultPromptDismissed: Flow<Boolean> =
         store.data.map { it[Keys.PROMPT_DISMISSED] ?: false }
+            .distinctUntilChanged()
 
     override val theme: Flow<String> =
         store.data.map { it[Keys.THEME] ?: "Dark" }
+            .distinctUntilChanged()
 
     override val accentColor: Flow<String> =
         store.data.map { it[Keys.ACCENT_COLOR] ?: "Green" }
+            .distinctUntilChanged()
 
     override val showLivePreview: Flow<Boolean> =
         store.data.map { it[Keys.SHOW_LIVE_PREVIEW] ?: true }
+            .distinctUntilChanged()
 
     override val showWeather: Flow<Boolean> =
         store.data.map { it[Keys.SHOW_WEATHER] ?: true }
+            .distinctUntilChanged()
 
     override val idleTimeSeconds: Flow<Int> =
         store.data.map { it[Keys.IDLE_TIME_SECONDS] ?: 300 }
+            .distinctUntilChanged()
 
     override val animations: Flow<String> =
         store.data.map { it[Keys.ANIMATIONS] ?: "Smooth" }
+            .distinctUntilChanged()
 
     override val soundEffects: Flow<Boolean> =
         store.data.map { it[Keys.SOUND_EFFECTS] ?: true }
+            .distinctUntilChanged()
 
     override val pinnedAppPackages: Flow<List<String>> =
         store.data.map { prefs ->
             prefs[Keys.PINNED_APP_PACKAGES]?.split('\n')?.filter { it.isNotBlank() } ?: emptyList()
-        }
+        }.distinctUntilChanged()
 
     override val liveCaptionServerUrl: Flow<String?> =
         store.data
             .map { it[Keys.LIVE_CAPTION_SERVER_URL] }
+            .distinctUntilChanged()
+
+    override val liveCaptionServerToken: Flow<String?> =
+        store.data
+            .map { it[Keys.LIVE_CAPTION_SERVER_TOKEN] }
             .distinctUntilChanged()
 
     override suspend fun setFavorites(ids: Set<String>) {
@@ -194,6 +209,13 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
         store.edit { prefs ->
             if (url.isNullOrBlank()) prefs.remove(Keys.LIVE_CAPTION_SERVER_URL)
             else prefs[Keys.LIVE_CAPTION_SERVER_URL] = url.trim()
+        }
+    }
+
+    override suspend fun setLiveCaptionServerToken(token: String?) {
+        store.edit { prefs ->
+            if (token.isNullOrBlank()) prefs.remove(Keys.LIVE_CAPTION_SERVER_TOKEN)
+            else prefs[Keys.LIVE_CAPTION_SERVER_TOKEN] = token.trim()
         }
     }
 }

@@ -161,6 +161,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { guide.byteInputStream() },
         )
 
@@ -203,6 +204,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) mixedCaseGuide.byteInputStream() else playlist.byteInputStream()
             },
@@ -237,6 +239,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) duplicateGuide.byteInputStream() else duplicatePlaylist.byteInputStream()
             },
@@ -274,6 +277,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
             },
@@ -312,6 +316,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) localGuide.byteInputStream() else localPlaylist.byteInputStream()
             },
@@ -327,6 +332,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { error("network unavailable during restore test") },
         )
         restored.restore()
@@ -345,6 +351,7 @@ class PersistentChannelRepositoryTest {
             prefs = prefs,
             scope = backgroundScope,
             workDispatcher = UnconfinedTestDispatcher(testScheduler),
+            ingestDispatcher = UnconfinedTestDispatcher(testScheduler),
             fetchPlaylistStream = { response.byteInputStream() },
         )
 
@@ -359,6 +366,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { guide.byteInputStream() },
         )
         repo.loadXmltv("http://x/guide.xml")
@@ -442,6 +450,7 @@ class PersistentChannelRepositoryTest {
             prefs = InMemoryPrefsStore(),
             scope = backgroundScope,
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { throw java.io.IOException("Simulated network error") },
         )
         val result = kotlin.runCatching { repo.loadM3u("http://x/bad.m3u8") }
@@ -460,6 +469,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { throw java.io.IOException("Simulated network error") },
         )
         val result = kotlin.runCatching { repo.loadXmltv("http://x/bad.xml") }
@@ -518,6 +528,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) guide.byteInputStream() else playlist.byteInputStream()
             },
@@ -575,6 +586,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) guide.byteInputStream() else playlist.byteInputStream()
             },
@@ -619,6 +631,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) regionalGuide.byteInputStream() else regionalPlaylist.byteInputStream()
             },
@@ -658,6 +671,7 @@ class PersistentChannelRepositoryTest {
             scope = backgroundScope,
             nowMillis = { 1_716_062_430_000L },
             workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
             fetchPlaylistStream = { url ->
                 if (url.contains("guide")) numericGuide.byteInputStream() else numberedPlaylist.byteInputStream()
             },
@@ -694,11 +708,6 @@ class FakeIptvDao : IptvDao {
     override suspend fun clearChannels() {
         channelsList.clear()
         channelsFlow.value = emptyList()
-    }
-
-    override suspend fun deleteChannelsNotIn(ids: List<String>) {
-        channelsList.removeAll { it.id !in ids }
-        channelsFlow.value = channelsList.toList()
     }
 
     override suspend fun syncChannels(channels: List<ChannelEntity>) {
@@ -784,10 +793,6 @@ class FakeIptvDao : IptvDao {
 
     override suspend fun clearGuideChannels() {
         guideChannelsList.clear()
-    }
-
-    override suspend fun deleteGuideChannelsNotIn(ids: List<String>) {
-        guideChannelsList.removeAll { it.id !in ids }
     }
 
     override suspend fun syncGuideChannels(channels: List<GuideChannelEntity>) {
