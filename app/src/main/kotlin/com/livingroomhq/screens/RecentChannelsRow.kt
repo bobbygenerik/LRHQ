@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -64,7 +63,7 @@ internal fun RecentChannelsRow(
     onChannelSelected: (Channel) -> Unit,
 ) {
     SectionHeader("Recent channels")
-    Spacer(Modifier.size(10.dp))
+    Spacer(Modifier.size(HqDimens.SpaceRail))
 
     val recentList = recents.ifEmpty { channels.take(6) }
     if (recentList.isEmpty()) {
@@ -72,8 +71,8 @@ internal fun RecentChannelsRow(
     } else {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(start = 6.dp, end = 40.dp),
+            horizontalArrangement = Arrangement.spacedBy(HqDimens.SpaceRail),
+            contentPadding = PaddingValues(start = HqDimens.GridEdgeInset, end = HqDimens.SafeHorizontal),
         ) {
             itemsIndexed(recentList, key = { _, channel -> "${channel.id}_${channel.number}" }) { index, channel ->
                 val chipFocusRequester = if (index == 0 && firstItemFocusRequester != null) {
@@ -161,7 +160,7 @@ private fun RecentChannelChip(
             .background(if (focused) HqColors.GlassFillFocused else HqColors.GlassFill)
             .border(
                 width = if (focused) 1.5.dp else 1.dp,
-                color = if (focused) HqColors.Accent else Color(0x33FFFFFF),
+                color = if (focused) HqColors.Accent else HqColors.Track,
                 shape = shape,
             )
             .clickable { onClick() }
@@ -174,7 +173,7 @@ private fun RecentChannelChip(
             Modifier
                 .size(32.dp)
                 .clip(logoShape)
-                .background(if (focused) HqColors.Accent.copy(alpha = 0.22f) else Color(0x28FFFFFF)),
+                .background(if (focused) HqColors.Accent.copy(alpha = 0.22f) else HqColors.SoftWell),
             contentAlignment = Alignment.Center,
         ) {
             if (channel.logoUrl != null) {

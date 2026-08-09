@@ -32,7 +32,9 @@ import androidx.core.view.WindowCompat
 import com.livingroomhq.components.Sidebar
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.LocalSidebarFocusRequester
+import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.components.rememberSidebarFocusRequesters
+import com.livingroomhq.components.rememberContentFocusRequesters
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.LocalAccentColor
@@ -131,6 +133,8 @@ class MainActivity : ComponentActivity() {
 
             val sidebarFocusRequesters = rememberSidebarFocusRequesters()
             val sidebarFocusRequester = sidebarFocusRequesters[controller.underlyingZone]
+            val contentFocusRequesters = rememberContentFocusRequesters()
+            val contentFocusRequester = contentFocusRequesters[controller.underlyingZone]
 
             // Idle ticker that drops the launcher into Ambient Mode.
             LaunchedEffect(settings.idleTimeSeconds) {
@@ -148,6 +152,7 @@ class MainActivity : ComponentActivity() {
                 LocalAccentColor provides accent,
                 LocalSnackbarController provides app.snackbar,
                 LocalSidebarFocusRequester provides sidebarFocusRequester,
+                LocalContentFocusRequester provides contentFocusRequester,
             ) {
                 Box(Modifier.fillMaxSize()) {
                     // Content is inset by the collapsed rail width; the rail floats
@@ -197,6 +202,7 @@ class MainActivity : ComponentActivity() {
                             currentZone = controller.underlyingZone,
                             onZoneSelected = { zone -> controller.goTo(zone) },
                             itemFocusRequesters = sidebarFocusRequesters,
+                            contentFocusRequesters = contentFocusRequesters,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -288,13 +294,19 @@ class MainActivity : ComponentActivity() {
      * As the default home app the activity is `singleTask`, so pressing the
      * hardware HOME button while another app is foregrounded re-delivers the
      * MAIN/HOME intent here instead of starting a new instance. Reset to Home.
+     *
+     * Exception: returning from system app-info settings also redelivers HOME on
+     * Shield — [InstalledAppsRepository.consumeSuppressHomeReset] keeps the tab.
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         val app = application as HqApplication
         app.installedApps.onHomePressed()
-        if (::nav.isInitialized) nav.goHome()
+        if (!::nav.isInitialized) return
+        if (!intent.hasCategory(Intent.CATEGORY_HOME)) return
+        if (app.installedApps.consumeSuppressHomeReset()) return
+        nav.goHome()
     }
 
     override fun onUserInteraction() {

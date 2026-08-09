@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
+import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.core.ui.components.ConfirmDialog
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -89,7 +90,8 @@ fun SettingsScreen(
     }
     var ambientPhotoImportText by remember { mutableStateOf("") }
     var confirmDialog by remember { mutableStateOf<ConfirmRequest?>(null) }
-    val firstItemFocusRequester = remember { FocusRequester() }
+    val contentFocus = LocalContentFocusRequester.current
+    val firstItemFocusRequester = contentFocus ?: remember { FocusRequester() }
 
     val playlistUi = remember(playlistResult) { playlistResult.toActionUi() }
     val guideUi = remember(guideResult) { guideResult.toActionUi() }

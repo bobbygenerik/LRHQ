@@ -92,7 +92,7 @@ fun LivePreview(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
                             0.6f to Color.Transparent,
-                            1f to Color(0xCC000000),
+                            1f to HqColors.Scrim,
                         ),
                     ),
             )

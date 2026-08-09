@@ -14,12 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.livingroomhq.core.ui.theme.HqColors
-import com.livingroomhq.core.ui.theme.LocalCustomSettings
-
-private const val TRANSITION_MILLIS = 320
-private const val REDUCED_TRANSITION_MILLIS = 120
-private const val AMBIENT_CROSSFADE_MS = 1_000
-private const val REDUCED_AMBIENT_CROSSFADE_MS = 300
+import com.livingroomhq.core.ui.theme.HqMotion
+import com.livingroomhq.core.ui.theme.rememberReducedMotion
 
 /** Slides vertically between launcher tabs based on sidebar index. */
 @Composable
@@ -28,9 +24,10 @@ fun LauncherNavHost(
     modifier: Modifier = Modifier,
     content: @Composable (Zone) -> Unit,
 ) {
-    val reducedMotion = LocalCustomSettings.current.animations != "Smooth"
-    val tabMillis = if (reducedMotion) REDUCED_TRANSITION_MILLIS else TRANSITION_MILLIS
-    val ambientMillis = if (reducedMotion) REDUCED_AMBIENT_CROSSFADE_MS else AMBIENT_CROSSFADE_MS
+    val reducedMotion = rememberReducedMotion()
+    val tabMillis = if (reducedMotion) HqMotion.FastMs else HqMotion.SlowMs
+    // Ambient enter/exit: cinematic fade (paint AmbientMs), not the long artwork cycle.
+    val ambientMillis = if (reducedMotion) HqMotion.NormalMs else HqMotion.AmbientMs
 
     Box(
         modifier
@@ -44,26 +41,31 @@ fun LauncherNavHost(
                     fadeIn(tween(ambientMillis, easing = LinearOutSlowInEasing))
                         .togetherWith(fadeOut(tween(ambientMillis, easing = FastOutLinearInEasing)))
                 } else if (reducedMotion) {
-                    fadeIn(tween(tabMillis)).togetherWith(fadeOut(tween(tabMillis)))
+                    fadeIn(tween(tabMillis, easing = HqMotion.EaseOut))
+                        .togetherWith(fadeOut(tween(tabMillis, easing = HqMotion.EaseOut)))
                 } else if (targetState.order > initialState.order) {
-                    slideIntoContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                        animationSpec = tween(tabMillis),
-                    ).togetherWith(
+                    (
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                            animationSpec = tween(tabMillis, easing = HqMotion.EaseOut),
+                        ) + fadeIn(tween(tabMillis, easing = HqMotion.EaseOut))
+                        ).togetherWith(
                         slideOutOfContainer(
                             towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                            animationSpec = tween(tabMillis),
-                        ),
+                            animationSpec = tween(tabMillis, easing = HqMotion.EaseOut),
+                        ) + fadeOut(tween(tabMillis, easing = HqMotion.EaseOut)),
                     )
                 } else {
-                    slideIntoContainer(
-                        towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                        animationSpec = tween(tabMillis),
-                    ).togetherWith(
+                    (
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                            animationSpec = tween(tabMillis, easing = HqMotion.EaseOut),
+                        ) + fadeIn(tween(tabMillis, easing = HqMotion.EaseOut))
+                        ).togetherWith(
                         slideOutOfContainer(
                             towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                            animationSpec = tween(tabMillis),
-                        ),
+                            animationSpec = tween(tabMillis, easing = HqMotion.EaseOut),
+                        ) + fadeOut(tween(tabMillis, easing = HqMotion.EaseOut)),
                     )
                 }
             },

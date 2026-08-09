@@ -77,7 +77,7 @@ fun StatBar(
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
-                .background(Color(0x1FFFFFFF)),
+                .background(HqColors.IconWell),
         ) {
             Box(
                 Modifier

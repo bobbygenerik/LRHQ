@@ -25,15 +25,14 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
@@ -45,8 +44,7 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 
-private val HeroMetaShape = RoundedCornerShape(10.dp)
-private val HeroMetaTint = Color(0x66081018)
+private val HeroMetaShape = RoundedCornerShape(HqDimens.CornerSm)
 
 @Composable
 internal fun HomeHeroContent(
@@ -103,7 +101,7 @@ internal fun HomeHeroContent(
                     .wrapContentWidth()
                     .widthIn(max = 680.dp)
                     .clip(HeroMetaShape)
-                    .background(HeroMetaTint)
+                    .background(HqColors.HeroMetaFill)
                     .padding(horizontal = 14.dp, vertical = 12.dp)
                     .height(IntrinsicSize.Min),
                 verticalAlignment = Alignment.Bottom,
@@ -123,7 +121,7 @@ internal fun HomeHeroContent(
                         Modifier
                             .fillMaxHeight()
                             .width(1.dp)
-                            .background(Color.White.copy(alpha = 0.2f)),
+                            .background(HqColors.TextPrimary.copy(alpha = 0.2f)),
                     )
                     Spacer(Modifier.width(12.dp))
                     UpNextSummary(
@@ -140,13 +138,13 @@ internal fun HomeHeroContent(
 private fun LiveBadge() {
     Box(
         Modifier
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFFE53E3E))
+            .clip(RoundedCornerShape(HqDimens.CornerBadge))
+            .background(HqColors.Live)
             .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         Text(
             "LIVE",
-            style = HqType.Badge.copy(color = Color.White, shadow = heroTextShadow()),
+            style = HqType.Badge.copy(color = HqColors.TextPrimary, shadow = heroTextShadow()),
         )
     }
 }
@@ -162,19 +160,35 @@ private fun ClockWeather(
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 clockTime,
-                style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold, shadow = heroTextShadow()),
+                style = HqType.Headline.copy(
+                    color = HqColors.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    shadow = heroTextShadow(),
+                ),
             )
             Text(
                 clockDate,
-                style = HqType.Label.copy(color = Color.White.copy(alpha = 0.8f), shadow = heroTextShadow()),
+                style = HqType.Label.copy(
+                    color = HqColors.TextPrimary.copy(alpha = 0.8f),
+                    shadow = heroTextShadow(),
+                ),
             )
         }
         Spacer(Modifier.width(14.dp))
-        Icon(weatherIcon(condition), contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+        Icon(
+            weatherIcon(condition),
+            contentDescription = null,
+            tint = HqColors.TextPrimary,
+            modifier = Modifier.size(22.dp),
+        )
         Spacer(Modifier.width(6.dp))
         Text(
             temperatureF?.let { "$it°F" } ?: "—",
-            style = HqType.Headline.copy(color = Color.White, fontWeight = FontWeight.Bold, shadow = heroTextShadow()),
+            style = HqType.Headline.copy(
+                color = HqColors.TextPrimary,
+                fontWeight = FontWeight.Bold,
+                shadow = heroTextShadow(),
+            ),
         )
     }
 }
@@ -196,18 +210,29 @@ private fun NowPlayingSummary(
         Spacer(Modifier.height(4.dp))
         Text(
             channel?.name ?: "No live TV loaded",
-            style = HqType.Title.copy(color = Color.White, fontWeight = FontWeight.SemiBold, shadow = heroTextShadow()),
+            style = HqType.Title.copy(
+                color = HqColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                shadow = heroTextShadow(),
+            ),
             maxLines = 1,
         )
         Text(
             nowTitle ?: "No program info",
-            style = HqType.Body.copy(color = Color.White.copy(alpha = 0.82f), fontWeight = FontWeight.Medium, shadow = heroTextShadow()),
+            style = HqType.Body.copy(
+                color = HqColors.TextPrimary.copy(alpha = 0.82f),
+                fontWeight = FontWeight.Medium,
+                shadow = heroTextShadow(),
+            ),
             maxLines = 1,
         )
         nowDescription?.let { description ->
             Text(
                 description,
-                style = HqType.CardCaption.copy(color = Color.White.copy(alpha = 0.68f), shadow = heroTextShadow()),
+                style = HqType.CardCaption.copy(
+                    color = HqColors.TextPrimary.copy(alpha = 0.68f),
+                    shadow = heroTextShadow(),
+                ),
                 maxLines = 1,
             )
         }
@@ -233,7 +258,7 @@ private fun NowPlayingSummary(
                     .fillMaxWidth(0.85f)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
+                    .background(HqColors.TextPrimary.copy(alpha = 0.2f)),
             ) {
                 Box(
                     Modifier
@@ -253,7 +278,7 @@ private fun UpNextSummary(nextTitle: String, modifier: Modifier = Modifier) {
         Text(
             "UP NEXT",
             style = HqType.HeroSectionMuted.copy(
-                color = Color.White.copy(alpha = 0.72f),
+                color = HqColors.TextPrimary.copy(alpha = 0.72f),
                 shadow = heroTextShadow(),
             ),
         )
@@ -261,7 +286,7 @@ private fun UpNextSummary(nextTitle: String, modifier: Modifier = Modifier) {
         Text(
             nextTitle,
             style = HqType.Body.copy(
-                color = Color.White.copy(alpha = 0.95f),
+                color = HqColors.TextPrimary.copy(alpha = 0.95f),
                 fontWeight = FontWeight.SemiBold,
                 shadow = heroTextShadow(),
             ),
@@ -280,4 +305,4 @@ private fun weatherIcon(condition: WeatherCondition?): ImageVector = when (condi
 
 /** Slightly stronger than default so labels stay readable on bright live video. */
 private fun heroTextShadow(): Shadow =
-    Shadow(color = Color.Black.copy(alpha = 0.92f), offset = Offset(0f, 2f), blurRadius = 12f)
+    Shadow(color = HqColors.Void.copy(alpha = 0.92f), offset = Offset(0f, 2f), blurRadius = 12f)

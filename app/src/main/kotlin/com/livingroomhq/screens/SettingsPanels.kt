@@ -194,7 +194,7 @@ internal fun AmbientPhotosSettingsPanel(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
                 "Connect a Google Photos album and LRHQ will cache resized display copies locally. Ambient rotates your album together with Unsplash stills.",
-                style = HqType.Body.copy(fontSize = 13.sp, color = HqColors.TextSecondary),
+                style = HqType.CardCaption.copy(color = HqColors.TextSecondary),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
@@ -225,43 +225,43 @@ internal fun AmbientPhotosSettingsPanel(
             }
             Text(
                 text = pickerState.status,
-                style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary),
+                style = HqType.MetaBody,
             )
             if (pickerState.userCode.isNotBlank()) {
                 Text(
                     text = "On any phone, tablet, or computer, go to:",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+                    style = HqType.Meta.copy(color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.verificationUrl.ifBlank { "https://www.google.com/device" },
-                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
+                    style = HqType.MetaBody.copy(color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
                 )
                 Text(
                     text = "Enter this code:",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+                    style = HqType.Meta.copy(color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.userCode,
-                    style = HqType.Headline.copy(fontSize = 28.sp, color = HqColors.Accent, fontWeight = FontWeight.Bold),
+                    style = HqType.Title.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold),
                 )
             }
             if (pickerState.pickerUri.isNotBlank()) {
                 Text(
                     text = "Then open this Google Photos link. Search for your album, share its items, and tap Done:",
-                    style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+                    style = HqType.Meta.copy(color = HqColors.TextTertiary),
                 )
                 Text(
                     text = pickerState.pickerUri,
-                    style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary),
+                    style = HqType.MetaBody.copy(color = HqColors.TextSecondary),
                 )
             }
             pickerState.error?.let { error ->
-                Text(error, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.Critical))
+                Text(error, style = HqType.MetaBody.copy(color = HqColors.Critical))
             }
             Spacer(Modifier.height(4.dp))
             Text(
                 "Fallback/test import: paste direct image URLs below.",
-                style = HqType.Label.copy(fontSize = 11.sp, color = HqColors.TextTertiary),
+                style = HqType.Meta.copy(color = HqColors.TextTertiary),
             )
             GlassTextField(
                 value = importText,
@@ -291,10 +291,10 @@ internal fun AmbientPhotosSettingsPanel(
             }
             Text(
                 text = "Cached: ${cacheStats.photoCount} photos · ${cacheStats.sizeMegabytes} MB",
-                style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary),
+                style = HqType.MetaBody,
             )
             if (cacheStats.lastMessage.isNotEmpty()) {
-                Text(cacheStats.lastMessage, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextSecondary))
+                Text(cacheStats.lastMessage, style = HqType.MetaBody.copy(color = HqColors.TextSecondary))
             }
         }
     }
@@ -526,12 +526,12 @@ internal fun DeviceCareAndSystemPanel(
     GlassPanel(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Automatic Maintenance", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                Text("Automatic Maintenance", style = HqType.Label.copy(color = HqColors.TextPrimary))
                 Text(
                     "• Electronic program guide (EPG) refreshes automatically every 12 hours.\n" +
                     "• Expired EPG programs are pruned daily.\n" +
                     "• Ambient Google Photos cache is kept capped under 1 GB.",
-                    style = HqType.Body.copy(fontSize = 11.sp, color = HqColors.TextSecondary, lineHeight = 16.sp),
+                    style = HqType.Meta.copy(color = HqColors.TextSecondary),
                 )
                 Spacer(Modifier.height(4.dp))
                 SettingsActionButton(
@@ -541,12 +541,12 @@ internal fun DeviceCareAndSystemPanel(
                     enabled = !isMaintenanceBusy,
                 )
                 if (maintenanceStatus.isNotEmpty()) {
-                    Text(maintenanceStatus, style = HqType.Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+                    Text(maintenanceStatus, style = HqType.MetaBody)
                 }
             }
             
             Spacer(Modifier.height(4.dp))
-            Text("Android System Options", style = HqType.Label.copy(fontSize = 12.sp, color = HqColors.TextPrimary))
+            Text("Android System Options", style = HqType.Label.copy(color = HqColors.TextPrimary))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
                     label = "Device Settings",

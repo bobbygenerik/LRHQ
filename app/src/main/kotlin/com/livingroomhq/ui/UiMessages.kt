@@ -1,7 +1,6 @@
 package com.livingroomhq.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -18,10 +17,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
+import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
 import kotlinx.coroutines.delay
@@ -63,7 +63,6 @@ object UiMessages {
 val LocalSnackbarController = staticCompositionLocalOf { SnackbarController() }
 
 private val ToastShape = RoundedCornerShape(28.dp)
-private val ToastFill = Color(0xF010141C)
 private const val TOAST_DISMISS_MS = 4_000L
 
 /** High-contrast TV toast centered on screen; auto-dismisses after four seconds. */
@@ -90,13 +89,13 @@ fun MessageOverlay(
     ) {
         AnimatedVisibility(
             visible = message != null,
-            enter = fadeIn(tween(220)),
-            exit = fadeOut(tween(180)),
+            enter = fadeIn(HqMotion.normal()),
+            exit = fadeOut(HqMotion.fast()),
         ) {
             Box(
                 modifier = Modifier
                     .shadow(12.dp, ToastShape)
-                    .background(ToastFill, ToastShape)
+                    .background(HqColors.ToastFill, ToastShape)
                     .border(1.5.dp, accent.copy(alpha = 0.75f), ToastShape)
                     .padding(horizontal = 28.dp, vertical = 16.dp),
             ) {

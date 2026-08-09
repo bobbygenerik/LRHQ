@@ -2,7 +2,6 @@ package com.livingroomhq.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import com.livingroomhq.backdrop.BackdropSource
+import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
-import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.core.ui.theme.rememberReducedMotion
 import com.livingroomhq.player.LivePreview
 import kotlinx.coroutines.delay
 import kotlin.random.Random
@@ -44,13 +43,12 @@ fun HeroBackdrop(
     intervalMillis: Long = 14_000L,
     applyBlur: Boolean = false,
 ) {
-    val customSettings = LocalCustomSettings.current
-    val reducedMotion = customSettings.animations != "Smooth"
+    val reducedMotion = rememberReducedMotion()
     val blurRadius = if (applyBlur && !reducedMotion) 24.dp else 0.dp
 
     Box(
         modifier
-            .background(if (sources.isEmpty()) Color.Transparent else Color.Black)
+            .background(if (sources.isEmpty()) HqColors.Void.copy(alpha = 0f) else HqColors.Void)
             .then(if (blurRadius > 0.dp) Modifier.blur(blurRadius) else Modifier)
     ) {
         if (sources.isEmpty()) return@Box
@@ -79,7 +77,7 @@ fun HeroBackdrop(
         } else {
             Crossfade(
                 targetState = current,
-                animationSpec = tween(450),
+                animationSpec = HqMotion.slow(),
                 label = "heroBackdrop",
                 modifier = Modifier.fillMaxSize(),
             ) { source ->
@@ -127,7 +125,7 @@ private fun CyclingArtworkStack(
         if (next == baseIndex) return@LaunchedEffect
         overlayIndex = next
         overlayAlpha.snapTo(0f)
-        overlayAlpha.animateTo(1f, tween(1_200))
+        overlayAlpha.animateTo(1f, HqMotion.artworkCycle())
         baseIndex = next
         overlayIndex = -1
     }
@@ -158,7 +156,7 @@ private fun ArtworkBackdrop(
     modifier: Modifier = Modifier,
 ) {
     if (contained) {
-        Box(modifier.background(Color.Black), contentAlignment = Alignment.Center) {
+        Box(modifier.background(HqColors.Void), contentAlignment = Alignment.Center) {
             AsyncImage(
                 model = url,
                 contentDescription = null,
@@ -170,7 +168,7 @@ private fun ArtworkBackdrop(
         return
     }
 
-    Box(modifier = modifier.background(Color.Black)) {
+    Box(modifier = modifier.background(HqColors.Void)) {
         AsyncImage(
             model = url,
             contentDescription = null,
@@ -181,7 +179,7 @@ private fun ArtworkBackdrop(
         credit?.let { name ->
             Text(
                 text = "Photo by $name on Unsplash",
-                style = HqType.Label.copy(color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp),
+                style = HqType.Label.copy(color = HqColors.TextPrimary.copy(alpha = 0.55f)),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(horizontal = 12.dp, vertical = 8.dp),

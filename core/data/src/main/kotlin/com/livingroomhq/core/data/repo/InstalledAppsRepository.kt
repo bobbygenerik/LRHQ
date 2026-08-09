@@ -152,22 +152,37 @@ class InstalledAppsRepository(
         }
     }
 
-    /** Opens the system "App info" / settings page for the given package. */
+    /**
+     * Opens the system "App info" / settings page for the given package.
+     *
+     * Always uses a new task: Shield's AppManagementActivity has its own
+     * taskAffinity and misbehaves when forced into the home task (settings
+     * bails and the OK click falls through into the app under the menu).
+     *
+     * Arms a short [suppressHomeResetUntil] window so a spurious MAIN/HOME
+     * redelivery when settings closes does not yank the Apps tab back to Home.
+     */
     fun openAppSettings(packageName: String): Boolean {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             .setData(Uri.fromParts("package", packageName, null))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val target = hostActivity ?: context
+        val now = System.currentTimeMillis()
         return try {
-            context.startActivity(intent)
-            launchedExternalApp = true
+            target.startActivity(intent)
+            suppressHomeResetUntil = now + SETTINGS_HOME_SUPPRESS_MS
+            // Absorb the OK KeyUp that dismissed the action menu so it cannot
+            // arm/launch the app card under the overlay.
+            blockLaunchUntil = now + RETURN_LAUNCH_GUARD_MS
             true
         } catch (e: Exception) {
             // Some TV builds restrict the per-app settings deep link; fall back to all-apps settings.
             val fallback = Intent(Settings.ACTION_APPLICATION_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             try {
-                context.startActivity(fallback)
-                launchedExternalApp = true
+                target.startActivity(fallback)
+                suppressHomeResetUntil = now + SETTINGS_HOME_SUPPRESS_MS
+                blockLaunchUntil = now + RETURN_LAUNCH_GUARD_MS
                 true
             } catch (e2: Exception) {
                 onLaunchError(packageName)
@@ -176,9 +191,25 @@ class InstalledAppsRepository(
         }
     }
 
+    /** Until this uptime, MAIN/HOME [onNewIntent] should keep the current tab. */
+    @Volatile
+    private var suppressHomeResetUntil = 0L
+
+    /** Returns true once if a settings-return should skip the Home-tab reset. */
+    fun consumeSuppressHomeReset(): Boolean {
+        val until = suppressHomeResetUntil
+        if (until == 0L || System.currentTimeMillis() > until) {
+            suppressHomeResetUntil = 0L
+            return false
+        }
+        suppressHomeResetUntil = 0L
+        return true
+    }
+
     private companion object {
         const val RESUME_LAUNCH_GUARD_MS = 2_500L
         const val RETURN_LAUNCH_GUARD_MS = 1_500L
+        const val SETTINGS_HOME_SUPPRESS_MS = 8_000L
     }
 }
 

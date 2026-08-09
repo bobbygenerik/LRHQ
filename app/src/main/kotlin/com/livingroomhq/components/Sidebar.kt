@@ -1,12 +1,14 @@
 package com.livingroomhq.components
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
@@ -19,16 +21,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
@@ -40,43 +43,56 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.foundation.layout.offset
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
-import com.livingroomhq.R
-import com.livingroomhq.core.ui.components.tvFocusBorder
 import com.livingroomhq.core.ui.components.tvFocusScale
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.rememberReducedMotion
 import com.livingroomhq.navigation.Zone
 
 /** Focus target for the active sidebar tab; wire content's LEFT edge to this. */
 val LocalSidebarFocusRequester = compositionLocalOf<FocusRequester?> { null }
 
+/** Focus target for the screen's main content element; wire sidebar's RIGHT edge / Back to this. */
+val LocalContentFocusRequester = compositionLocalOf<FocusRequester?> { null }
+
 @Composable
 fun rememberSidebarFocusRequesters(): Map<Zone, FocusRequester> = remember {
+    mapOf(
+        Zone.HOME to FocusRequester(),
+        Zone.LIVE to FocusRequester(),
+        Zone.TOOLS to FocusRequester(),
+        Zone.COMMAND_CENTER to FocusRequester(),
+        Zone.SETTINGS to FocusRequester(),
+    )
+}
+
+@Composable
+fun rememberContentFocusRequesters(): Map<Zone, FocusRequester> = remember {
     mapOf(
         Zone.HOME to FocusRequester(),
         Zone.LIVE to FocusRequester(),
@@ -110,10 +126,8 @@ private val COLLAPSED_WIDTH = SidebarCollapsedWidth
 private val EXPANDED_WIDTH = 196.dp
 
 /**
- * Collapsible navigation rail. Sits as an icon-only strip by default and
- * expands to reveal labels the moment focus enters it (D-pad LEFT from the
- * content), then collapses again when focus leaves — keeping the content area
- * maximised, in line with modern TV launchers.
+ * Collapsible navigation rail. Expands with cinematic ease-out (no bounce);
+ * labels fade/slide from the rail edge. Cast thesis: D-pad focus → living rail.
  */
 @Composable
 fun Sidebar(
@@ -121,12 +135,27 @@ fun Sidebar(
     onZoneSelected: (Zone) -> Unit,
     onExpandedChanged: (Boolean) -> Unit = {},
     itemFocusRequesters: Map<Zone, FocusRequester>,
+    contentFocusRequesters: Map<Zone, FocusRequester> = rememberContentFocusRequesters(),
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(expanded) { onExpandedChanged(expanded) }
-    var pendingSelection by remember { mutableStateOf(false) }
+    val localContentFocus = LocalContentFocusRequester.current
+    val currentContentFocus = localContentFocus ?: contentFocusRequesters[currentZone]
     val focusManager = LocalFocusManager.current
+    val reducedMotion = rememberReducedMotion()
+
+    BackHandler(enabled = expanded) {
+        val target = contentFocusRequesters[currentZone] ?: currentContentFocus
+        if (target != null) {
+            runCatching { target.requestFocus() }
+        } else {
+            focusManager.moveFocus(FocusDirection.Right)
+        }
+    }
+
+    var pendingSelection by remember { mutableStateOf(false) }
+
     LaunchedEffect(pendingSelection) {
         if (pendingSelection) {
             withFrameNanos { }
@@ -134,16 +163,25 @@ fun Sidebar(
             pendingSelection = false
         }
     }
-    val width by animateDpAsState(if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH, label = "sidebarWidth")
-    val scrimAlpha by animateFloatAsState(if (expanded) 0.6f else 0f, label = "scrimAlpha")
+
+    val width by animateDpAsState(
+        targetValue = if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH,
+        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
+        label = "sidebarWidth",
+    )
+    val scrimAlpha by animateFloatAsState(
+        targetValue = if (expanded) 0.6f else 0f,
+        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
+        label = "scrimAlpha",
+    )
 
     val scrimBrush = remember(expanded) {
         Brush.horizontalGradient(
             colors = listOf(
-                Color.Black.copy(alpha = if (expanded) 0.85f else 0.45f),
-                Color.Black.copy(alpha = if (expanded) 0.45f else 0.15f),
-                Color.Transparent
-            )
+                HqColors.Void.copy(alpha = if (expanded) 0.85f else 0.45f),
+                HqColors.Void.copy(alpha = if (expanded) 0.45f else 0.15f),
+                Color.Transparent,
+            ),
         )
     }
 
@@ -161,7 +199,7 @@ fun Sidebar(
                 Modifier
                     .fillMaxSize()
                     .drawBehind {
-                        drawRect(color = Color.Black.copy(alpha = scrimAlpha))
+                        drawRect(color = HqColors.Void.copy(alpha = scrimAlpha))
                     },
             )
         }
@@ -189,14 +227,21 @@ fun Sidebar(
                 }
 
                 navItems.forEach { item ->
+                    val contentFocus = contentFocusRequesters[item.zone] ?: (if (item.zone == currentZone) currentContentFocus else null)
                     SidebarItem(
                         title = item.title,
                         icon = item.icon,
                         active = currentZone == item.zone,
                         expanded = expanded,
+                        reducedMotion = reducedMotion,
+                        contentFocusRequester = contentFocus,
                         onClick = {
-                            onZoneSelected(item.zone)
-                            pendingSelection = true
+                            if (item.zone != currentZone) {
+                                onZoneSelected(item.zone)
+                            }
+                            if (contentFocus != null) {
+                                runCatching { contentFocus.requestFocus() }
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -214,7 +259,9 @@ private fun SidebarItem(
     icon: ImageVector,
     active: Boolean,
     expanded: Boolean,
+    reducedMotion: Boolean,
     onClick: () -> Unit,
+    contentFocusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -225,9 +272,51 @@ private fun SidebarItem(
         else -> HqColors.TextTertiary
     }
 
+    val focusBarHeight by animateDpAsState(
+        targetValue = when {
+            focused -> 22.dp
+            active -> 14.dp
+            else -> 0.dp
+        },
+        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
+        label = "focusBarHeight",
+    )
+    val focusBarAlpha by animateFloatAsState(
+        targetValue = when {
+            focused -> 1f
+            active -> 0.55f
+            else -> 0f
+        },
+        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.fast(),
+        label = "focusBarAlpha",
+    )
+
+    val itemContentFocus = contentFocusRequester
     Box(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
+            .focusProperties {
+                if (itemContentFocus != null) {
+                    right = itemContentFocus
+                }
+            }
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) {
+                    when (event.key) {
+                        Key.DirectionRight -> {
+                            if (itemContentFocus != null) {
+                                runCatching { itemContentFocus.requestFocus() }
+                                true
+                            } else false
+                        }
+                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                            onClick()
+                            true
+                        }
+                        else -> false
+                    }
+                } else false
+            }
             .focusable()
             .clickable { onClick() }
             .tvFocusScale(focused)
@@ -241,13 +330,14 @@ private fun SidebarItem(
             },
         contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
     ) {
-        if (focused) {
+        if (focusBarAlpha > 0.01f && focusBarHeight > 0.dp) {
             Box(
                 Modifier
                     .align(Alignment.CenterStart)
                     .width(3.dp)
-                    .height(20.dp)
-                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp))
+                    .height(focusBarHeight)
+                    .graphicsLayer { alpha = focusBarAlpha }
+                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp)),
             )
         }
 
@@ -262,7 +352,7 @@ private fun SidebarItem(
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = Color.Black.copy(alpha = 0.85f),
+                    tint = HqColors.Void.copy(alpha = 0.85f),
                     modifier = Modifier
                         .size(20.dp)
                         .offset(y = 2.dp),
@@ -274,23 +364,39 @@ private fun SidebarItem(
                     modifier = Modifier.size(20.dp),
                 )
             }
-            if (expanded) {
-                Spacer(Modifier.width(14.dp))
-                Text(
-                    title,
-                    style = HqType.Body.copy(
-                        color = contentColor,
-                        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                        shadow = Shadow(
-                            color = Color.Black.copy(alpha = 0.85f),
-                            offset = Offset(0f, 2f),
-                            blurRadius = 8f
-                        )
-                    ),
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Clip,
-                )
+            AnimatedVisibility(
+                visible = expanded,
+                enter = if (reducedMotion) {
+                    fadeIn(HqMotion.fast())
+                } else {
+                    fadeIn(HqMotion.normal()) +
+                        slideInHorizontally(animationSpec = HqMotion.normal()) { -it / 3 }
+                },
+                exit = if (reducedMotion) {
+                    fadeOut(HqMotion.fast())
+                } else {
+                    fadeOut(HqMotion.fast()) +
+                        slideOutHorizontally(animationSpec = HqMotion.fast()) { -it / 3 }
+                },
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(14.dp))
+                    Text(
+                        title,
+                        style = HqType.Body.copy(
+                            color = contentColor,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                            shadow = Shadow(
+                                color = HqColors.Void.copy(alpha = 0.85f),
+                                offset = Offset(0f, 2f),
+                                blurRadius = 8f,
+                            ),
+                        ),
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip,
+                    )
+                }
             }
         }
     }

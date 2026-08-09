@@ -11,13 +11,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 
 @Composable
@@ -39,14 +37,12 @@ fun CaptionOverlay(
         ) {
             Text(
                 text = text.orEmpty(),
-                style = HqType.Body.copy(
-                    color = HqColors.TextPrimary,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                ),
+                style = HqType.Caption.copy(textAlign = TextAlign.Center),
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.72f), RoundedCornerShape(8.dp))
+                    .background(
+                        HqColors.Void.copy(alpha = 0.72f),
+                        RoundedCornerShape(HqDimens.CornerSm),
+                    )
                     .padding(horizontal = 16.dp, vertical = 10.dp),
             )
         }

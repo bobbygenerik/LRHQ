@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.livingroomhq.core.ui.theme.HqDimens
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,8 +46,8 @@ private const val LONG_PRESS_MS = 500L
 fun FocusableGlassCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    cornerRadius: Dp = 12.dp,
-    contentPadding: PaddingValues = PaddingValues(20.dp),
+    cornerRadius: Dp = HqDimens.CornerMd,
+    contentPadding: PaddingValues = PaddingValues(HqDimens.PanelPaddingLounge),
     onLongClick: (() -> Unit)? = null,
     onFocused: (() -> Unit)? = null,
     enabled: Boolean = true,

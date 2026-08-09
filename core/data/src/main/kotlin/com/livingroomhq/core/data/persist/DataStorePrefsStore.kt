@@ -91,7 +91,12 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
             .distinctUntilChanged()
 
     override val accentColor: Flow<String> =
-        store.data.map { it[Keys.ACCENT_COLOR] ?: "Green" }
+        store.data.map {
+            when (val accent = it[Keys.ACCENT_COLOR] ?: "Green") {
+                "Neon", "Ice", "Cyan" -> "Green"
+                else -> accent
+            }
+        }
             .distinctUntilChanged()
 
     override val showLivePreview: Flow<Boolean> =

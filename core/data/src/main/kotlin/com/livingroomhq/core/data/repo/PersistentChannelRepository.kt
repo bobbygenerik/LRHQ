@@ -127,8 +127,10 @@ class PersistentChannelRepository(
         val programs = programsForChannel(channelId)
         if (programs.isEmpty()) return null to null
         return GuideMatcher.computeNowNext(programs, nowMillis()).also { computed ->
-            // Write back so repeated composition reads don't rescan the program list.
-            _nowNextCache.value = _nowNextCache.value + (channelId to computed)
+            val current = _nowNextCache.value
+            if (current[channelId] != computed) {
+                _nowNextCache.value = current + (channelId to computed)
+            }
         }
     }
 
