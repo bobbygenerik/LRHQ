@@ -222,6 +222,15 @@ class LivePreviewEngine(context: Context) {
         IptvExoPlayer.ensureFullscreenAudio(player, tracks)
     }
 
+    /**
+     * After [CaptionAudioPolicy] toggles PCM-force, nudge audio track selection so
+     * [PcmForcedAudioSink] re-evaluates passthrough support. Brief glitch OK on CC toggle only.
+     */
+    fun applyCaptionAudioMode(forcePcmDecode: Boolean) {
+        if (state !is PlayerState.Fullscreen) return
+        IptvExoPlayer.applyCaptionAudioMode(player, forcePcmDecode)
+    }
+
     fun pause() {
         if (state is PlayerState.Fullscreen) return
         player.pause()

@@ -44,6 +44,25 @@ android {
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
         buildConfigField("String", "CAPTION_SERVER_URL", "\"$captionServerUrl\"")
         buildConfigField("String", "CAPTION_SERVER_TOKEN", "\"$captionServerToken\"")
+        // M1 PCM tap PoC WAV writer. Off by default; ASR pipeline owns capture now.
+        buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
+
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-O3"
+                arguments += listOf("-DANDROID_STL=c++_shared")
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     signingConfigs {
@@ -76,12 +95,14 @@ android {
     buildTypes {
         debug {
             signingConfig = signingConfigs.getByName("projectDebug")
+            buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
         }
         create("profile") {
             initWith(getByName("release"))
@@ -89,6 +110,7 @@ android {
             isShrinkResources = false
             signingConfig = signingConfigs.getByName("projectDebug")
             matchingFallbacks.add("release")
+            buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
         }
     }
 
@@ -132,6 +154,9 @@ dependencies {
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.ui)
+    implementation(libs.okhttp)
+    implementation("com.google.mlkit:translate:17.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
