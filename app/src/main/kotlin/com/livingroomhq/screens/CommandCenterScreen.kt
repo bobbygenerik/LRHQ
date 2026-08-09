@@ -47,6 +47,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.linkLeftEdgeToSidebar
+import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.StatBar
 import com.livingroomhq.core.ui.components.tvInitialFocus
@@ -90,9 +91,10 @@ fun CommandCenterScreen(
     ),
 ) {
     val context = LocalContext.current
+    val contentFocus = LocalContentFocusRequester.current
     val snackbar = LocalSnackbarController.current
     val state by viewModel.uiState.collectAsState()
-    val firstCardFocusRequester = remember { FocusRequester() }
+    val firstCardFocusRequester = contentFocus ?: remember { FocusRequester() }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -371,7 +373,7 @@ private fun MetricCard(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else Color(0x0FFFFFFF)),
+                        .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else HqColors.FieldFill),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(

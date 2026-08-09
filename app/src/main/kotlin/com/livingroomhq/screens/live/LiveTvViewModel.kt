@@ -151,7 +151,7 @@ class LiveTvViewModel(
 
         combine(selectedCategoryId, uiState.map { it.visibleChannels }) { _: String?, visible: List<Channel> ->
             visible.take(EPG_PREFETCH_CAP).map { it.id }
-        }.onEach { ids: List<String> ->
+        }.distinctUntilChanged().onEach { ids: List<String> ->
             if (ids.isEmpty()) return@onEach
             delay(EPG_PREFETCH_DELAY_MS)
             runCatching { channelRepository.prefetchEpgForChannels(ids) }

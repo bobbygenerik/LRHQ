@@ -36,7 +36,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +59,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.linkLeftEdgeToSidebar
+import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.core.data.model.LaunchableApp
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.components.ModalGlassPanel
@@ -93,8 +96,10 @@ fun ToolsScreen(
 ) {
     val accent = hqAccent()
     val context = LocalContext.current
+    val contentFocus = LocalContentFocusRequester.current
     val snackbar = LocalSnackbarController.current
     val state by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     var armedPackage by remember { mutableStateOf<String?>(null) }
     var armedAt by remember { mutableLongStateOf(0L) }
@@ -128,6 +133,16 @@ fun ToolsScreen(
         val idx = apps.indexOfFirst { it.packageName == pkg }
         if (idx >= 0) runCatching { gridState.scrollToItem(idx) } // ensure the item is composed
         runCatching { moverFocus.requestFocus() }
+    }
+
+    /** Dismiss the action menu after the current key event finishes composing. */
+    fun dismissMenuAfterKey() {
+        scope.launch {
+            withFrameNanos { }
+            menuPackage = null
+            withFrameNanos { }
+            runCatching { firstItemFocusRequester.requestFocus() }
+        }
     }
 
     fun moveBy(delta: Int) {
@@ -171,11 +186,10 @@ fun ToolsScreen(
     BackHandler(enabled = menuPackage != null) { menuPackage = null }
     BackHandler(enabled = movingPackage != null) { cancelMove() }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .focusProperties { enter = { firstItemFocusRequester } }
-    ) {
+    // Do not set focusProperties.enter to a LazyGrid item FocusRequester — if that
+    // item is scrolled off-screen the requester is detached and OK/focus-search
+    // crashes the process (Shield then restarts the home activity on Home).
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -260,6 +274,7 @@ fun ToolsScreen(
                             modifier = if (index == 0) {
                                 Modifier
                                     .tvInitialFocus(firstItemFocusRequester)
+                                    .then(if (contentFocus != null) Modifier.focusRequester(contentFocus) else Modifier)
                                     .linkLeftEdgeToSidebar()
                             } else {
                                 Modifier
@@ -276,17 +291,20 @@ fun ToolsScreen(
                 AppActionMenu(
                     label = entry.label,
                     onOpen = {
-                        menuPackage = null
+                        disarmLaunch()
                         openApp(pkg)
+                        dismissMenuAfterKey()
                     },
                     onSettings = {
-                        menuPackage = null
+                        disarmLaunch()
                         viewModel.openAppSettings(pkg)
+                        dismissMenuAfterKey()
                     },
                     onMove = {
-                        menuPackage = null
+                        disarmLaunch()
                         movingPackage = pkg
                         moveTick++
+                        dismissMenuAfterKey()
                     },
                 )
             }
@@ -433,7 +451,7 @@ private fun MenuRow(
     FocusableGlassCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(48.dp),
-        cornerRadius = 8.dp,
+        cornerRadius = HqDimens.CornerSm,
         contentPadding = PaddingValues(horizontal = 16.dp),
     ) { focused ->
         Row(

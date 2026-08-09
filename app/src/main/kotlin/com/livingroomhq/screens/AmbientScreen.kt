@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +43,7 @@ import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
 import com.livingroomhq.core.widget.WidgetPlugin
@@ -111,7 +113,7 @@ fun AmbientScreen(
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.20f)),
+                .background(HqColors.Void.copy(alpha = 0.20f)),
         )
 
         // Cinematic edge scrims — legibility without boxed panels.
@@ -122,8 +124,8 @@ fun AmbientScreen(
                     Brush.verticalGradient(
                         0f to Color.Transparent,
                         0.62f to Color.Transparent,
-                        0.82f to Color.Black.copy(alpha = 0.38f),
-                        1f to Color.Black.copy(alpha = 0.62f),
+                        0.82f to HqColors.Void.copy(alpha = 0.38f),
+                        1f to HqColors.Void.copy(alpha = 0.62f),
                     ),
                 ),
         )
@@ -132,10 +134,10 @@ fun AmbientScreen(
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
-                        0f to Color.Black.copy(alpha = 0.42f),
+                        0f to HqColors.Void.copy(alpha = 0.42f),
                         0.22f to Color.Transparent,
                         0.78f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.36f),
+                        1f to HqColors.Void.copy(alpha = 0.36f),
                     ),
                 ),
         )
@@ -144,7 +146,11 @@ fun AmbientScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 56.dp, bottom = 48.dp, end = 24.dp),
+                .padding(
+                    start = HqDimens.AmbientInset,
+                    bottom = HqDimens.AmbientBottom,
+                    end = 24.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             current?.let { channel ->
@@ -160,7 +166,11 @@ fun AmbientScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 56.dp, bottom = 48.dp, start = 24.dp),
+                .padding(
+                    end = HqDimens.AmbientInset,
+                    bottom = HqDimens.AmbientBottom,
+                    start = 24.dp,
+                ),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -192,15 +202,14 @@ private fun AmbientClock(
             Text(
                 clockTime,
                 style = HqType.Display.copy(
-                    fontSize = 38.sp,
-                    lineHeight = 38.sp,
+                    lineHeight = 48.sp,
                     lineHeightStyle = LineHeightStyle(
                         alignment = LineHeightStyle.Alignment.Center,
                         trim = LineHeightStyle.Trim.Both,
                     ),
                     fontWeight = FontWeight.Light,
                     letterSpacing = (-0.5).sp,
-                    color = Color.White,
+                    color = HqColors.TextPrimary,
                     shadow = ambientPrimaryShadow,
                 ),
             )
@@ -209,8 +218,7 @@ private fun AmbientClock(
                 Text(
                     clockMeridiem.uppercase(Locale.getDefault()),
                     style = HqType.Label.copy(
-                        fontSize = 13.sp,
-                        color = Color.White.copy(alpha = 0.82f),
+                        color = HqColors.TextPrimary.copy(alpha = 0.82f),
                         shadow = ambientSecondaryShadow,
                     ),
                 )
@@ -219,9 +227,7 @@ private fun AmbientClock(
         Text(
             clockDate,
             style = HqType.Body.copy(
-                color = Color.White.copy(alpha = 0.78f),
-                fontSize = 15.sp,
-                lineHeight = 18.sp,
+                color = HqColors.TextPrimary.copy(alpha = 0.78f),
                 fontWeight = FontWeight.Normal,
                 shadow = ambientSecondaryShadow,
             ),
@@ -238,19 +244,15 @@ private fun AmbientNowPlaying(
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = "NOW PLAYING",
-            style = HqType.Label.copy(
+            style = HqType.HeroSection.copy(
                 color = accent.copy(alpha = 0.92f),
-                fontWeight = FontWeight.Bold,
-                fontSize = 10.sp,
                 shadow = ambientSecondaryShadow,
             ),
         )
         Text(
             text = channelName,
-            style = HqType.Headline.copy(
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
+            style = HqType.CardTitle.copy(
+                color = HqColors.TextPrimary,
                 shadow = ambientPrimaryShadow,
             ),
             maxLines = 1,
@@ -258,9 +260,8 @@ private fun AmbientNowPlaying(
         programTitle?.let {
             Text(
                 text = it,
-                style = HqType.Body.copy(
-                    color = Color.White.copy(alpha = 0.82f),
-                    fontSize = 13.sp,
+                style = HqType.CardCaption.copy(
+                    color = HqColors.TextPrimary.copy(alpha = 0.82f),
                     shadow = ambientSecondaryShadow,
                 ),
                 maxLines = 1,
@@ -304,17 +305,16 @@ private fun AmbientWeatherCard(
             Icon(
                 imageVector = Icons.Default.Cloud,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.85f),
+                tint = HqColors.TextPrimary.copy(alpha = 0.85f),
                 modifier = Modifier.size(16.dp),
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = state.headline.orEmpty(),
-                style = HqType.Display.copy(
-                    fontSize = 28.sp,
+                style = HqType.Title.copy(
                     lineHeight = 28.sp,
                     fontWeight = FontWeight.Light,
-                    color = Color.White,
+                    color = HqColors.TextPrimary,
                     shadow = ambientPrimaryShadow,
                 ),
             )
@@ -322,9 +322,8 @@ private fun AmbientWeatherCard(
         if (summary.isNotBlank()) {
             Text(
                 text = summary,
-                style = HqType.Body.copy(
-                    color = Color.White.copy(alpha = 0.82f),
-                    fontSize = 13.sp,
+                style = HqType.CardCaption.copy(
+                    color = HqColors.TextPrimary.copy(alpha = 0.82f),
                     shadow = ambientSecondaryShadow,
                 ),
                 maxLines = 1,
@@ -334,8 +333,7 @@ private fun AmbientWeatherCard(
             Text(
                 text = it,
                 style = HqType.Label.copy(
-                    color = Color.White.copy(alpha = 0.68f),
-                    fontSize = 11.sp,
+                    color = HqColors.TextPrimary.copy(alpha = 0.68f),
                     shadow = ambientSecondaryShadow,
                 ),
                 maxLines = 1,
@@ -365,21 +363,20 @@ private fun AmbientWidgetCard(
     val accent = hqAccent()
     GlassPanel(
         modifier = modifier.width(220.dp),
-        cornerRadius = 16.dp,
+        cornerRadius = HqDimens.CornerMd,
+        contentPadding = PaddingValues(HqDimens.PanelPaddingLounge),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = state.title.uppercase(),
-                style = HqType.Label.copy(
+                style = HqType.SectionLabel.copy(
                     color = if (state.isHealthy) accent else HqColors.Critical,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp
                 )
             )
             state.headline?.let {
                 Text(
                     text = it,
-                    style = HqType.Headline.copy(fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    style = HqType.Headline.copy(fontWeight = FontWeight.Bold)
                 )
             }
             if (state.stats.isNotEmpty()) {
@@ -393,13 +390,16 @@ private fun AmbientWidgetCard(
                         ) {
                             Text(
                                 text = stat.label,
-                                style = HqType.Label.copy(color = HqColors.TextSecondary, fontSize = 11.sp),
+                                style = HqType.Label.copy(color = HqColors.TextSecondary),
                                 maxLines = 1,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
                                 text = stat.value,
-                                style = HqType.Body.copy(color = HqColors.TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                style = HqType.CardCaption.copy(
+                                    color = HqColors.TextPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                )
                             )
                         }
                     }
@@ -424,12 +424,12 @@ private fun ambientDate(): String {
 }
 
 private val ambientPrimaryShadow = Shadow(
-    color = Color.Black.copy(alpha = 0.72f),
+    color = HqColors.Void.copy(alpha = 0.72f),
     offset = Offset(0f, 1f),
     blurRadius = 14f,
 )
 private val ambientSecondaryShadow = Shadow(
-    color = Color.Black.copy(alpha = 0.65f),
+    color = HqColors.Void.copy(alpha = 0.65f),
     offset = Offset(0f, 1f),
     blurRadius = 10f,
 )

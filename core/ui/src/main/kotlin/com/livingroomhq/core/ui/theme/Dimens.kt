@@ -16,12 +16,27 @@ object HqDimens {
     val SafeHorizontal = 40.dp
     val SafeVertical = 36.dp
 
-    val CornerSm = 8.dp
-    val CornerMd = 12.dp
+    val CornerBadge = 4.dp
+    val CornerSm = 10.dp
+    val CornerMd = 14.dp
     val CornerLg = 22.dp
 
+    /** Lounge panel padding (Home / Ambient). */
+    val PanelPaddingLounge = 20.dp
+
+    /** Instrument panel padding (Live / Apps / Command Center). */
+    val PanelPaddingInstrument = 16.dp
+
+    /** Gap between Home rails / section blocks. */
+    val SpaceSection = 28.dp
+    val SpaceRail = 10.dp
+
     /** Breathing room inside grids/rows so focus-scaled edge cards don't clip. */
-    val GridEdgeInset = 6.dp
+    val GridEdgeInset = 8.dp
+
+    /** Ambient cinematic edge inset (beyond title-safe). */
+    val AmbientInset = 56.dp
+    val AmbientBottom = 48.dp
 
     val ScreenPadding = PaddingValues(horizontal = SafeHorizontal, vertical = SafeVertical)
 }

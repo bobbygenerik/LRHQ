@@ -1,10 +1,8 @@
 package com.livingroomhq.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -46,40 +44,38 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.tv.material3.Text
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
 import com.livingroomhq.components.LocalSidebarFocusRequester
+import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
-import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.ui.components.tvInitialFocus
 import com.livingroomhq.core.ui.components.yieldAndFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
+import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.navigation.FullscreenFocusReturn
-import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.LauncherFocusTarget
+import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
 import com.livingroomhq.player.ChannelPlayer
 import com.livingroomhq.player.rememberLivePreviewActive
@@ -185,11 +181,12 @@ fun HomeScreen(
         }
         val compactBarInset by animateDpAsState(
             targetValue = if (showCompactTopBar) CompactTopBarHeight else 0.dp,
-            animationSpec = tween(300),
+            animationSpec = HqMotion.normal(),
             label = "compactBarInset",
         )
 
-        val heroFocusRequester = remember { FocusRequester() }
+        val contentFocus = LocalContentFocusRequester.current
+        val heroFocusRequester = contentFocus ?: remember { FocusRequester() }
         val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
         val heroLivePreview = previewActive && current != null
         val backdropSources = remember(
@@ -217,7 +214,7 @@ fun HomeScreen(
 
         val overlayAlpha by animateFloatAsState(
             targetValue = if (!heroLivePreview || overlaysVisible) 1f else 0f,
-            animationSpec = tween(500),
+            animationSpec = HqMotion.ambient(),
             label = "heroOverlayAlpha",
         )
 
@@ -351,7 +348,7 @@ fun HomeScreen(
                     )
 
                     if (state.onNow.isNotEmpty()) {
-                        Spacer(Modifier.height(28.dp))
+                        Spacer(Modifier.height(HqDimens.SpaceSection))
                         OnNowRail(
                             focusReturn = focusReturn,
                             items = state.onNow,
@@ -374,8 +371,10 @@ fun HomeScreen(
 
             AnimatedVisibility(
                 visible = showCompactTopBar,
-                enter = fadeIn() + slideInVertically { -it },
-                exit = fadeOut() + slideOutVertically { -it },
+                enter = fadeIn(animationSpec = HqMotion.normal()) +
+                    slideInVertically(animationSpec = HqMotion.normal()) { -it },
+                exit = fadeOut(animationSpec = HqMotion.fast()) +
+                    slideOutVertically(animationSpec = HqMotion.fast()) { -it },
                 modifier = Modifier.align(Alignment.TopStart)
             ) {
                 CompactTopBar(
@@ -496,26 +495,26 @@ private fun CompactTopBar(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Black,
-                        Color.Transparent
+                        HqColors.Void,
+                        Color.Transparent,
                     )
                 )
             )
-            .padding(horizontal = HqDimens.SafeHorizontal, vertical = 20.dp),
+            .padding(horizontal = HqDimens.SafeHorizontal, vertical = HqDimens.PanelPaddingLounge),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(HqDimens.CornerBadge))
                     .background(HqColors.Accent)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
                     "Now playing",
                     style = HqType.Badge.copy(
-                        color = Color.Black,
+                        color = HqColors.OnAccent,
                         fontWeight = FontWeight.Bold,
                     ),
                 )
@@ -524,13 +523,13 @@ private fun CompactTopBar(
             Column {
                 Text(
                     channel?.name ?: "No Live TV",
-                    style = HqType.CardTitle.copy(color = Color.White),
+                    style = HqType.CardTitle.copy(color = HqColors.TextPrimary),
                     maxLines = 1,
                 )
                 if (nowTitle != null) {
                     Text(
                         nowTitle,
-                        style = HqType.CardCaption.copy(color = Color.White.copy(alpha = 0.8f)),
+                        style = HqType.CardCaption.copy(color = HqColors.TextPrimary.copy(alpha = 0.8f)),
                         maxLines = 1,
                     )
                 }
@@ -546,17 +545,17 @@ private fun CompactTopBar(
                     Modifier
                         .width(1.dp)
                         .height(36.dp)
-                        .background(Color.White.copy(alpha = 0.22f)),
+                        .background(HqColors.Divider.copy(alpha = 0.22f)),
                 )
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
                         "Up next",
-                        style = HqType.HeroSectionMuted.copy(color = Color.White.copy(alpha = 0.55f)),
+                        style = HqType.HeroSectionMuted.copy(color = HqColors.TextPrimary.copy(alpha = 0.55f)),
                     )
                     Text(
                         nextTitle,
-                        style = HqType.CardTitle.copy(color = Color.White),
+                        style = HqType.CardTitle.copy(color = HqColors.TextPrimary),
                         maxLines = 1,
                     )
                 }

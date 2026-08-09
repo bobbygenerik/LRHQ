@@ -38,6 +38,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 
 internal data class PublicPlaylist(val name: String, val url: String)
@@ -51,7 +52,7 @@ internal fun GlassTextField(
     singleLine: Boolean = true,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(8.dp)
+    val shape = RoundedCornerShape(HqDimens.CornerSm)
     val focusManager = LocalFocusManager.current
 
     var textFieldValue by remember(value) {
@@ -62,8 +63,8 @@ internal fun GlassTextField(
         modifier = modifier
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
-            .background(if (focused) Color(0x22FFFFFF) else Color(0x0CFFFFFF))
-            .border(1.dp, if (focused) HqColors.Accent else Color(0x1AFFFFFF), shape)
+            .background(if (focused) HqColors.FieldFillFocused else HqColors.FieldFill)
+            .border(1.dp, if (focused) HqColors.Accent else HqColors.GlassSheenTop, shape)
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
         BasicTextField(
@@ -117,9 +118,9 @@ internal fun CustomButtonToggle(
 ) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color(0x1AFFFFFF))
-            .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(HqDimens.CornerSm))
+            .background(HqColors.GlassSheenTop)
+            .border(1.dp, HqColors.GlassSheenTop, RoundedCornerShape(HqDimens.CornerSm))
             .padding(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -133,7 +134,7 @@ internal fun CustomButtonToggle(
                     .background(
                         when {
                             isSelected -> HqColors.Accent.copy(alpha = 0.8f)
-                            focused -> Color(0x33FFFFFF)
+                            focused -> HqColors.Track
                             else -> Color.Transparent
                         },
                     )
@@ -149,7 +150,7 @@ internal fun CustomButtonToggle(
                 Text(
                     text = option,
                     style = HqType.Label.copy(
-                        color = if (isSelected) Color.Black else HqColors.TextPrimary,
+                        color = if (isSelected) HqColors.OnAccent else HqColors.TextPrimary,
                         fontWeight = FontWeight.Bold,
                     ),
                 )

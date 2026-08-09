@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,6 +71,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.livingroomhq.HqApplication
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.components.linkLeftEdgeToSidebar
+import com.livingroomhq.components.LocalContentFocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.navigation.FullscreenFocusReturn
@@ -82,9 +86,11 @@ import com.livingroomhq.core.ui.components.yieldAndFocus
 import com.livingroomhq.core.ui.components.zoneFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
+import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.core.ui.theme.rememberReducedMotion
 import com.livingroomhq.navigation.LauncherFocusTarget
 import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.navigation.Zone
@@ -112,6 +118,7 @@ fun LiveScreen(
 ) {
     val context = LocalContext.current
     val customSettings = LocalCustomSettings.current
+    val contentFocus = LocalContentFocusRequester.current
     val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
     val state by viewModel.uiState.collectAsState()
     val zones = rememberZones("categories", "grid", "preview")
@@ -195,6 +202,7 @@ fun LiveScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(if (isActive) Modifier.zoneFocus(zones[0], initial = true) else Modifier)
+                            .then(if (index == 0 && contentFocus != null) Modifier.focusRequester(contentFocus) else Modifier)
                             .then(if (index == 0) Modifier.linkLeftEdgeToSidebar() else Modifier),
                     )
                 }
@@ -299,7 +307,13 @@ private fun LiveChannelGridColumn(
                         focusRequester = cardRequester,
                         modifier = Modifier
                             .restoreFocusOnReturn(focusReturn, liveGridFocusTarget(channel.id))
-                            .then(if (index == 0) Modifier.linkLeftEdgeToSidebar() else Modifier),
+                            .then(
+                                if (index % 2 == 0) {
+                                    Modifier.focusProperties { left = categoryFocusRequester }
+                                } else {
+                                    Modifier
+                                },
+                            ),
                     )
                 }
             }
@@ -334,7 +348,7 @@ private fun LivePreviewColumn(
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
                     .clip(previewShape)
-                    .background(Color.Black)
+                    .background(HqColors.Void)
                     .then(
                         previewChannel?.let { channel ->
                             Modifier.restoreFocusOnReturn(focusReturn, livePreviewFocusTarget(channel.id))
@@ -421,14 +435,14 @@ private fun LivePreviewColumn(
                             Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(Color(0x1FFFFFFF)),
+                                .clip(RoundedCornerShape(HqDimens.CornerBadge))
+                                .background(HqColors.IconWell),
                         ) {
                             Box(
                                 Modifier
                                     .fillMaxWidth(progress)
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(3.dp))
+                                    .clip(RoundedCornerShape(HqDimens.CornerBadge))
                                     .background(HqColors.Accent),
                             )
                         }
@@ -463,11 +477,12 @@ private fun CategoryRailItem(
     modifier: Modifier = Modifier
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(8.dp)
+    val shape = RoundedCornerShape(HqDimens.CornerSm)
+    val reducedMotion = rememberReducedMotion()
 
     val bg = when {
         focused && active -> HqColors.Accent.copy(alpha = 0.25f)
-        focused -> Color(0x14FFFFFF)
+        focused -> HqColors.IconWell
         active -> HqColors.Accent.copy(alpha = 0.15f)
         else -> Color.Transparent
     }
@@ -477,6 +492,16 @@ private fun CategoryRailItem(
         focused -> HqColors.TextPrimary
         else -> HqColors.TextSecondary
     }
+
+    val barHeight by animateDpAsState(
+        targetValue = when {
+            focused -> 20.dp
+            active -> 12.dp
+            else -> 0.dp
+        },
+        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
+        label = "categoryBarHeight",
+    )
 
     Box(
         modifier = modifier
@@ -491,6 +516,16 @@ private fun CategoryRailItem(
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
     ) {
+        if (barHeight > 0.dp) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .offset(x = (-8).dp)
+                    .width(3.dp)
+                    .height(barHeight)
+                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp)),
+            )
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
@@ -520,12 +555,12 @@ private fun ChannelGridCard(
     focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
-    val logoShape = RoundedCornerShape(8.dp)
+    val logoShape = RoundedCornerShape(HqDimens.CornerSm)
     
     FocusableGlassCard(
         onClick = onClick,
         onFocused = onFocused,
-        cornerRadius = 12.dp,
+        cornerRadius = HqDimens.CornerMd,
         contentPadding = PaddingValues(12.dp),
         sheenOnFocus = false,
         modifier = modifier
@@ -541,7 +576,7 @@ private fun ChannelGridCard(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(logoShape)
-                        .background(Color(0x1AFFFFFF)),
+                        .background(HqColors.GlassSheenTop),
                     contentAlignment = Alignment.Center
                 ) {
                     if (channel.logoUrl != null) {

@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -26,7 +25,7 @@ fun LauncherBrandMark(modifier: Modifier = Modifier) {
         modifier = modifier
             .size(40.dp)
             .clip(RoundedCornerShape(HqDimens.CornerSm))
-            .background(Color.Black.copy(alpha = 0.72f))
+            .background(HqColors.Void.copy(alpha = 0.72f))
             .border(1.dp, HqColors.GlassStroke, RoundedCornerShape(HqDimens.CornerSm))
             .padding(5.dp),
         contentAlignment = Alignment.TopCenter,

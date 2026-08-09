@@ -3,9 +3,7 @@ package com.livingroomhq.core.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +26,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.livingroomhq.core.ui.theme.HqColors
-import com.livingroomhq.core.ui.theme.LocalCustomSettings
+import com.livingroomhq.core.ui.theme.HqDimens
+import com.livingroomhq.core.ui.theme.HqMotion
+import com.livingroomhq.core.ui.theme.rememberReducedMotion
 
 /**
  * Frosted glass panel — the base surface of every card and pane in the
@@ -45,31 +45,27 @@ import com.livingroomhq.core.ui.theme.LocalCustomSettings
 fun GlassPanel(
     modifier: Modifier = Modifier,
     focused: Boolean = false,
-    cornerRadius: Dp = 12.dp,
-    contentPadding: PaddingValues = PaddingValues(20.dp),
+    cornerRadius: Dp = HqDimens.CornerMd,
+    contentPadding: PaddingValues = PaddingValues(HqDimens.PanelPaddingLounge),
     sheenOnFocus: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(cornerRadius)
-    val customSettings = LocalCustomSettings.current
-    val reducedMotion = customSettings.animations != "Smooth"
+    val reducedMotion = rememberReducedMotion()
 
     val fill by animateColorAsState(
         targetValue = if (focused) HqColors.GlassFillFocused else HqColors.GlassFill,
-        animationSpec = tween(180),
+        animationSpec = HqMotion.colorFast(),
         label = "glassFill",
     )
     val stroke by animateColorAsState(
         targetValue = if (focused) HqColors.GlassStrokeFocused else HqColors.GlassStroke,
-        animationSpec = tween(180),
+        animationSpec = HqMotion.colorFast(),
         label = "glassStroke",
     )
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.04f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMediumLow,
-        ),
+        targetValue = if (focused && !reducedMotion) HqMotion.FocusScale else 1f,
+        animationSpec = HqMotion.focusSpring(),
         label = "glassScale",
     )
 

@@ -51,7 +51,7 @@ internal fun OnNowRail(
     if (items.isEmpty()) return
 
     Text("On now", style = HqType.SectionLabel)
-    Spacer(Modifier.size(10.dp))
+    Spacer(Modifier.size(HqDimens.SpaceRail))
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -125,7 +125,7 @@ private fun OnNowCard(
             .width(200.dp)
             .height(124.dp),
         cornerRadius = HqDimens.CornerMd,
-        contentPadding = PaddingValues(14.dp),
+        contentPadding = PaddingValues(HqDimens.PanelPaddingInstrument),
         sheenOnFocus = false,
     ) { focused ->
         Column(

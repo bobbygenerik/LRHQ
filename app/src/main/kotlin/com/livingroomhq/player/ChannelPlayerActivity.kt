@@ -76,6 +76,7 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.ui.components.FocusableGlassCard
 import com.livingroomhq.core.ui.theme.HqColors
+import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
 import com.livingroomhq.translate.LiveCaptionClient
@@ -333,7 +334,7 @@ private fun ChannelPlayerScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(HqColors.Void)
             .focusRequester(focusRequester)
             .focusable()
             .onPreviewKeyEvent { event ->
@@ -395,7 +396,7 @@ private fun ChannelPlayerScreen(
                     modifier = Modifier
                         .height(44.dp)
                         .focusRequester(retryFocus),
-                    cornerRadius = 8.dp,
+                    cornerRadius = HqDimens.CornerSm,
                     sheenOnFocus = false,
                 ) { focused ->
                     Box(
@@ -454,10 +455,8 @@ private fun ChannelPlayerScreen(
                                 ) {
                                     Text(
                                         text = currentChannel.name.trim().take(1).uppercase().ifBlank { "TV" },
-                                        style = HqType.Label.copy(
+                                        style = HqType.Badge.copy(
                                             color = accent,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 11.sp,
                                             shadow = playerTextShadow(),
                                         ),
                                     )
@@ -467,7 +466,6 @@ private fun ChannelPlayerScreen(
                                     text = currentChannel.name,
                                     style = HqType.Headline.copy(
                                         color = HqColors.TextPrimary,
-                                        fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         shadow = playerTextShadow(),
                                     ),
@@ -480,7 +478,6 @@ private fun ChannelPlayerScreen(
                                     text = formatProgramWindow(context, program),
                                     style = HqType.Label.copy(
                                         color = HqColors.TextSecondary,
-                                        fontSize = 12.sp,
                                         shadow = playerTextShadow(),
                                     ),
                                 )
@@ -491,10 +488,8 @@ private fun ChannelPlayerScreen(
                             Spacer(Modifier.height(10.dp))
                             Text(
                                 text = nowProgram.title,
-                                style = HqType.Body.copy(
+                                style = HqType.CardTitle.copy(
                                     color = HqColors.TextSecondary,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
                                     shadow = playerTextShadow(),
                                 ),
                                 maxLines = 1,
@@ -511,7 +506,7 @@ private fun ChannelPlayerScreen(
                                     .fillMaxWidth()
                                     .height(4.dp)
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(Color(0x1FFFFFFF)),
+                                    .background(HqColors.IconWell),
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -524,9 +519,8 @@ private fun ChannelPlayerScreen(
                                 Spacer(Modifier.height(8.dp))
                                 Text(
                                     text = "Up Next: ${next.title}",
-                                    style = HqType.Label.copy(
+                                    style = HqType.Meta.copy(
                                         color = HqColors.TextTertiary,
-                                        fontSize = 11.sp,
                                         shadow = playerTextShadow(),
                                     ),
                                     maxLines = 1,
@@ -537,9 +531,8 @@ private fun ChannelPlayerScreen(
                             Spacer(Modifier.height(6.dp))
                             Text(
                                 text = "No Program Information",
-                                style = HqType.Body.copy(
+                                style = HqType.CardCaption.copy(
                                     color = HqColors.TextTertiary,
-                                    fontSize = 13.sp,
                                     shadow = playerTextShadow(),
                                 ),
                             )
@@ -556,18 +549,18 @@ private fun ChannelPlayerScreen(
                     .align(Alignment.TopEnd)
                     .padding(24.dp)
                     .onFocusChanged { ccFocused = it.isFocused }
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(HqDimens.CornerSm))
                     .background(
                         when {
                             captionsEnabled -> accent.copy(alpha = 0.9f)
-                            ccFocused -> Color(0x33FFFFFF)
-                            else -> Color(0xCC000000)
+                            ccFocused -> HqColors.Track
+                            else -> HqColors.Scrim
                         },
                     )
                     .border(
                         width = if (ccFocused) 2.dp else 0.dp,
                         color = if (ccFocused) accent else Color.Transparent,
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(HqDimens.CornerSm),
                     )
                     .clickable { captionsEnabled = !captionsEnabled }
                     .focusable()
@@ -576,7 +569,7 @@ private fun ChannelPlayerScreen(
                 Icon(
                     imageVector = if (captionsEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
                     contentDescription = if (captionsEnabled) "Disable captions" else "Enable captions",
-                    tint = if (captionsEnabled) Color.Black else HqColors.TextPrimary,
+                    tint = if (captionsEnabled) HqColors.OnAccent else HqColors.TextPrimary,
                     modifier = Modifier.size(28.dp),
                 )
             }
@@ -585,13 +578,13 @@ private fun ChannelPlayerScreen(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = 84.dp, end = 24.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xCC000000))
+                        .clip(RoundedCornerShape(HqDimens.CornerSm))
+                        .background(HqColors.Scrim)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Text(
                         status,
-                        style = HqType.Label.copy(color = HqColors.TextPrimary, fontSize = 12.sp),
+                        style = HqType.Label.copy(color = HqColors.TextPrimary),
                     )
                 }
             }
@@ -613,4 +606,4 @@ private fun formatProgramWindow(context: android.content.Context, program: com.l
 }
 
 private fun playerTextShadow(): Shadow =
-    Shadow(color = Color.Black.copy(alpha = 0.85f), offset = Offset(0f, 2f), blurRadius = 8f)
+    Shadow(color = HqColors.Void.copy(alpha = 0.85f), offset = Offset(0f, 2f), blurRadius = 8f)
