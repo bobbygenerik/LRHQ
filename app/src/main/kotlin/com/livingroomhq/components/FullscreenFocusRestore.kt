@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import com.livingroomhq.HqApplication
 import com.livingroomhq.navigation.LauncherFocusTarget
-import com.livingroomhq.navigation.FullscreenFocusReturn
 
 @Composable
 fun Modifier.fullscreenFocusRestore(
