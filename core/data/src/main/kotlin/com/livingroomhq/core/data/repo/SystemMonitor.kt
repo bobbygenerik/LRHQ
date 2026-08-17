@@ -73,11 +73,16 @@ class SystemMonitor(
     /** (idle, total) jiffies from /proc/stat; unreadable on modern Android SELinux policies. */
     private fun readCpuTicks(): Pair<Long, Long> = runCatching {
         RandomAccessFile("/proc/stat", "r").use { file ->
-            val parts = file.readLine().split(Regex("\\s+")).drop(1).map { it.toLong() }
+            val parts = file.readLine().split(WHITESPACE_REGEX).drop(1).map { it.toLong() }
             val idle = parts[3] + parts.getOrElse(4) { 0L }
             idle to parts.sum()
         }
     }.getOrDefault(0L to 0L)
+
+    companion object {
+        // Cache compiled Regex to prevent re-compiling pattern and allocating Matcher on every polling tick
+        private val WHITESPACE_REGEX = Regex("\\s+")
+    }
 
     private fun cpuPercent(prev: Pair<Long, Long>, cur: Pair<Long, Long>): Float {
         val totalDelta = cur.second - prev.second
@@ -98,6 +103,7 @@ class SystemMonitor(
     private fun storageTotal() = dataStat().let { it.blockCountLong * it.blockSizeLong }
     private fun storageUsed() = dataStat().let { (it.blockCountLong - it.availableBlocksLong) * it.blockSizeLong }
 
+    @android.annotation.SuppressLint("MissingPermission")
     private fun isVpnActive(): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
