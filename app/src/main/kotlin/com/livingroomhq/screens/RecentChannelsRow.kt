@@ -68,7 +68,7 @@ internal fun RecentChannelsRow(
 
     val recentList = recents.ifEmpty { channels.take(6) }
     if (recentList.isEmpty()) {
-        Box(Modifier.focusable(remember { MutableInteractionSource() })) {
+        Box(Modifier.focusable(interactionSource = remember { MutableInteractionSource() })) {
             Text("No channels yet — add an M3U playlist in Settings to begin.", style = HqType.Body)
         }
     } else {
