@@ -3,6 +3,7 @@ package com.livingroomhq.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.livingroomhq.core.data.fault.runLoggedCatching
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.Program
 import com.livingroomhq.core.data.model.Weather
@@ -82,7 +83,7 @@ class HomeViewModel(
                 recents.firstOrNull() ?: channelList.firstOrNull()
             }.collect { current ->
                 current?.id?.let { id ->
-                    runCatching { channels.fetchEpgDetails(id) }
+                    runLoggedCatching("home_epg") { channels.fetchEpgDetails(id) }
                 }
             }
         }

@@ -267,7 +267,7 @@ private fun SidebarItem(
     var focused by remember { mutableStateOf(false) }
 
     val contentColor = when {
-        active -> HqColors.Accent
+        active -> HqColors.Accent.value
         focused -> HqColors.TextPrimary
         else -> HqColors.TextTertiary
     }
@@ -337,7 +337,7 @@ private fun SidebarItem(
                     .width(3.dp)
                     .height(focusBarHeight)
                     .graphicsLayer { alpha = focusBarAlpha }
-                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp)),
+                    .background(HqColors.Accent.value, RoundedCornerShape(1.5.dp)),
             )
         }
 

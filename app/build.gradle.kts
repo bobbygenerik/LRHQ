@@ -37,8 +37,8 @@ android {
         applicationId = "com.livingroomhq"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
 
         buildConfigField("String", "UNSPLASH_ACCESS_KEY", "\"$unsplashAccessKey\"")
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
@@ -49,11 +49,20 @@ android {
     signingConfigs {
         create("release") {
             val storeFilePath = releaseSigningProps.getProperty("releaseStoreFile")
+            require(storeFilePath.isNullOrBlank() || !storeFilePath.contains("debug.keystore")) {
+                "releaseStoreFile points at a debug keystore ($storeFilePath). Release builds " +
+                    "must be signed with a real release key outside the repo."
+            }
             if (!storeFilePath.isNullOrBlank()) {
                 storeFile = rootProject.file(storeFilePath)
                 storePassword = releaseSigningProps.getProperty("releaseStorePassword")
                 keyAlias = releaseSigningProps.getProperty("releaseKeyAlias")
                 keyPassword = releaseSigningProps.getProperty("releaseKeyPassword")
+            } else {
+                logger.warn(
+                    "WARNING: no release signing config in local.properties; " +
+                        "release builds will fail to package.",
+                )
             }
         }
         create("projectDebug") {
@@ -114,6 +123,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.tvprovider)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation("androidx.lifecycle:lifecycle-process:2.8.7")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)

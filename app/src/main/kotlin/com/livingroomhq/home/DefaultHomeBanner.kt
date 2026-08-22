@@ -63,7 +63,7 @@ fun DefaultHomeBanner(prefs: LauncherPrefsStore, modifier: Modifier = Modifier) 
                     cornerRadius = 16.dp,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 ) { _ ->
-                    Text("SET AS DEFAULT", style = HqType.Label.copy(color = HqColors.Accent))
+                    Text("SET AS DEFAULT", style = HqType.Label.copy(color = HqColors.Accent.value))
                 }
                 FocusableGlassCard(
                     onClick = { scope.launch { prefs.setDefaultPromptDismissed(true) } },

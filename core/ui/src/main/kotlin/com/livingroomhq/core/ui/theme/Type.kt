@@ -64,7 +64,7 @@ object HqType {
     val CardCaption = Label.copy(color = HqColors.TextSecondary, letterSpacing = 0.8.sp)
 
     val HeroSection = Label.copy(
-        color = HqColors.Accent,
+        color = Color(0xFF2BE080),
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.4.sp,
     )

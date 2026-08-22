@@ -1,5 +1,6 @@
 package com.livingroomhq.core.ui.theme
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
@@ -16,13 +17,16 @@ object HqColors {
     val GlassFillFocused = Color(0xCC0A101C)
     val GlassStroke = Color(0x14FFFFFF)
 
-    /** Original brand green; runtime value synced from [LocalAccentColor]. */
-    private val accentState = androidx.compose.runtime.mutableStateOf(Color(0xFF2BE080))
-    var Accent: Color
-        get() = accentState.value
-        set(value) { accentState.value = value }
+    /**
+     * Mutable accent color updated at runtime when the user changes accent
+     * in Settings (via [SideEffect] in MainActivity).  Read directly — the
+     * value is a Compose [mutableStateOf] so any reads in composition will
+     * trigger recomposition automatically.
+     */
+    var Accent = mutableStateOf(Color(0xFF2BE080))
+        private set
 
-    val GlassStrokeFocused: Color get() = Accent
+    val GlassStrokeFocused: Color get() = Accent.value
     val AccentGlow = Color(0x332BE080)
 
     /** Text / icons drawn on the green accent fill. */

@@ -100,7 +100,7 @@ fun ConfirmDialog(
                         Text(
                             "Cancel",
                             style = HqType.Label.copy(
-                                color = if (focused) HqColors.Accent else HqColors.TextPrimary,
+                                color = if (focused) HqColors.Accent.value else HqColors.TextPrimary,
                                 fontWeight = FontWeight.Bold,
                             ),
                         )

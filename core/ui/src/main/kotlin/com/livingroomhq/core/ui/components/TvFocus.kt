@@ -35,6 +35,6 @@ fun Modifier.tvFocusBorder(
     width: Dp = 1.5.dp,
 ): Modifier = border(
     width = if (focused) width else 0.dp,
-    color = if (focused) HqColors.Accent else HqColors.GlassStroke,
+    color = if (focused) HqColors.Accent.value else HqColors.GlassStroke,
     shape = shape,
 )

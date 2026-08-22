@@ -42,7 +42,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +88,7 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.HqType
+import com.livingroomhq.core.ui.theme.hqAccent
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.core.ui.theme.LocalCustomSettings
 import com.livingroomhq.core.ui.theme.rememberReducedMotion
@@ -120,7 +121,7 @@ fun LiveScreen(
     val customSettings = LocalCustomSettings.current
     val contentFocus = LocalContentFocusRequester.current
     val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val zones = rememberZones("categories", "grid", "preview")
 
     LaunchedEffect(viewModel) {
@@ -395,7 +396,7 @@ private fun LivePreviewColumn(
                 Column(modifier = Modifier.fillMaxSize()) {
                     Text(
                         text = "Now playing",
-                        style = HqType.HeroSection,
+                        style = HqType.HeroSection.copy(color = hqAccent()),
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
@@ -443,7 +444,7 @@ private fun LivePreviewColumn(
                                     .fillMaxWidth(progress)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(HqDimens.CornerBadge))
-                                    .background(HqColors.Accent),
+                                    .background(HqColors.Accent.value),
                             )
                         }
                     }
@@ -481,14 +482,14 @@ private fun CategoryRailItem(
     val reducedMotion = rememberReducedMotion()
 
     val bg = when {
-        focused && active -> HqColors.Accent.copy(alpha = 0.25f)
+        focused && active -> HqColors.Accent.value.copy(alpha = 0.25f)
         focused -> HqColors.IconWell
-        active -> HqColors.Accent.copy(alpha = 0.15f)
+        active -> HqColors.Accent.value.copy(alpha = 0.15f)
         else -> Color.Transparent
     }
 
     val contentColor = when {
-        active -> HqColors.Accent
+        active -> HqColors.Accent.value
         focused -> HqColors.TextPrimary
         else -> HqColors.TextSecondary
     }
@@ -523,7 +524,7 @@ private fun CategoryRailItem(
                     .offset(x = (-8).dp)
                     .width(3.dp)
                     .height(barHeight)
-                    .background(HqColors.Accent, RoundedCornerShape(1.5.dp)),
+                    .background(HqColors.Accent.value, RoundedCornerShape(1.5.dp)),
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -592,7 +593,7 @@ private fun ChannelGridCard(
                         Icon(
                             imageVector = Icons.Default.Tv,
                             contentDescription = "${channel.name} logo unavailable",
-                            tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
+                            tint = if (focused) HqColors.Accent.value else HqColors.TextSecondary,
                             modifier = Modifier.size(18.dp)
                         )
                     }

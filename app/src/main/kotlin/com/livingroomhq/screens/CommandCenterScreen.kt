@@ -30,7 +30,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -75,17 +75,19 @@ fun CommandCenterScreen(
             val context = LocalContext.current
             CommandCenterViewModel.factory(
                 app.systemMonitor,
-                CommandCenterUiState(
-                    localIp = getLocalIpAddress(),
-                    tailscaleIp = getTailscaleIpAddress(),
-                    deviceModel = Build.MODEL.ifEmpty { "Android TV Device" },
-                    appVersion = runCatching {
-                        context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                    }.getOrNull() ?: "—",
-                    androidRelease = Build.VERSION.RELEASE,
-                    sdkInt = Build.VERSION.SDK_INT,
-                    securityPatch = Build.VERSION.SECURITY_PATCH,
-                ),
+                remember {
+                    CommandCenterUiState(
+                        localIp = getLocalIpAddress(),
+                        tailscaleIp = getTailscaleIpAddress(),
+                        deviceModel = Build.MODEL.ifEmpty { "Android TV Device" },
+                        appVersion = runCatching {
+                            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+                        }.getOrNull() ?: "—",
+                        androidRelease = Build.VERSION.RELEASE,
+                        sdkInt = Build.VERSION.SDK_INT,
+                        securityPatch = Build.VERSION.SECURITY_PATCH,
+                    )
+                },
             )
         },
     ),
@@ -93,7 +95,7 @@ fun CommandCenterScreen(
     val context = LocalContext.current
     val contentFocus = LocalContentFocusRequester.current
     val snackbar = LocalSnackbarController.current
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val firstCardFocusRequester = contentFocus ?: remember { FocusRequester() }
 
     LaunchedEffect(viewModel) {
@@ -373,13 +375,13 @@ private fun MetricCard(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(if (focused) HqColors.Accent.copy(alpha = 0.18f) else HqColors.FieldFill),
+                        .background(if (focused) HqColors.Accent.value.copy(alpha = 0.18f) else HqColors.FieldFill),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (focused) HqColors.Accent else HqColors.TextSecondary,
+                        tint = if (focused) HqColors.Accent.value else HqColors.TextSecondary,
                         modifier = Modifier.size(16.dp),
                     )
                 }

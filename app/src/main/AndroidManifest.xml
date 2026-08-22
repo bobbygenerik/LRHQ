@@ -20,6 +20,8 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+    <!-- Sideload-only app: needed to list installed apps for the Apps zone.
+         Would be rejected by Play if this ever ships to the store. -->
 
     <application
         android:name=".HqApplication"
@@ -30,6 +32,8 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.LivingRoomHQ">
+        <!-- Cleartext is a product requirement: users supply arbitrary IPTV
+             playlist/EPG URLs, many of which are plain http. Do not remove. -->
 
         <profileable android:shell="true" />
 

@@ -3,6 +3,7 @@ package com.livingroomhq.navigation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 data class LauncherFocusTarget(
     val zone: Zone,
@@ -26,19 +27,18 @@ class FullscreenFocusReturn {
 
     fun arm(target: LauncherFocusTarget) {
         armed = true
-        _returnEvent.value = _returnEvent.value.copy(target = target)
+        _returnEvent.update { it.copy(target = target) }
     }
 
     fun onLauncherResumed() {
         if (!armed) return
         armed = false
-        val current = _returnEvent.value
-        _returnEvent.value = current.copy(sequence = current.sequence + 1)
+        _returnEvent.update { it.copy(sequence = it.sequence + 1) }
     }
 
     fun consume(target: LauncherFocusTarget) {
-        if (_returnEvent.value.target == target) {
-            _returnEvent.value = _returnEvent.value.copy(target = null)
+        _returnEvent.update { event ->
+            if (event.target == target) event.copy(target = null) else event
         }
     }
 }

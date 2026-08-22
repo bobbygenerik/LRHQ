@@ -25,6 +25,7 @@ import com.livingroomhq.core.data.sync.IptvSyncWorker
 import com.livingroomhq.core.data.repo.RealAmbientInfoRepository
 import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
+import com.livingroomhq.crash.CrashLog
 import com.livingroomhq.navigation.FullscreenFocusReturn
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
@@ -61,6 +62,7 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
             prefs = prefs,
             scope = appScope,
             conditionalFetch = ::conditionalHttpFetch,
+            db = database,
         ).also { it.restore() }
     }
 
@@ -95,6 +97,7 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         UiMessages.bind(snackbar)
         Coil.setImageLoader(
             ImageLoader.Builder(this)

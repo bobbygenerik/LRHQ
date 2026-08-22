@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.zonePadding
 import com.livingroomhq.screens.settings.SettingsActionResult
 import com.livingroomhq.screens.settings.SettingsEvent
+import com.livingroomhq.screens.settings.SettingsUiState
 import com.livingroomhq.screens.settings.SettingsViewModel
 import com.livingroomhq.ui.LocalSnackbarController
 import com.livingroomhq.ui.SnackbarController
@@ -70,10 +72,10 @@ fun SettingsScreen(
     val context = LocalContext.current
     val app = context.applicationContext as HqApplication
     val snackbar = LocalSnackbarController.current
-    val vmState by viewModel.uiState.collectAsState()
-    val playlistResult by viewModel.playlistStatus.collectAsState()
-    val guideResult by viewModel.guideStatus.collectAsState()
-    val maintenanceResult by viewModel.maintenanceStatus.collectAsState()
+    val vmState by viewModel.uiState.collectAsStateWithLifecycle(SettingsUiState())
+    val playlistResult by viewModel.playlistStatus.collectAsStateWithLifecycle()
+    val guideResult by viewModel.guideStatus.collectAsStateWithLifecycle()
+    val maintenanceResult by viewModel.maintenanceStatus.collectAsStateWithLifecycle()
     val ambientPhotoCacheStats by app.ambientPhotoCache.stats.collectAsState()
     val googlePhotosPickerState by app.googlePhotosPicker.state.collectAsState()
 

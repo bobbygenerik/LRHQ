@@ -205,7 +205,7 @@ private fun NowPlayingSummary(
     Column(modifier) {
         Text(
             "NOW PLAYING",
-            style = HqType.HeroSection.copy(color = HqColors.Accent, shadow = heroTextShadow()),
+            style = HqType.HeroSection.copy(color = HqColors.Accent.value, shadow = heroTextShadow()),
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -248,7 +248,7 @@ private fun NowPlayingSummary(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("Set up Live TV", style = HqType.CardTitle.copy(color = HqColors.Accent))
+                    Text("Set up Live TV", style = HqType.CardTitle.copy(color = HqColors.Accent.value))
                 }
             }
         } else {
@@ -265,7 +265,7 @@ private fun NowPlayingSummary(
                         .fillMaxWidth(progress ?: 0f)
                         .fillMaxHeight()
                         .clip(CircleShape)
-                        .background(HqColors.Accent),
+                        .background(HqColors.Accent.value),
                 )
             }
         }

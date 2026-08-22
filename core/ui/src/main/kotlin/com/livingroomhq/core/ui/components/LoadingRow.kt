@@ -21,7 +21,7 @@ fun LoadingRow(
     text: String,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    iconTint: Color = HqColors.Accent,
+    iconTint: Color = HqColors.Accent.value,
 ) {
     Row(
         modifier = modifier

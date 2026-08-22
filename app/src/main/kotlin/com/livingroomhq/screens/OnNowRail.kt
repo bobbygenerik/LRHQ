@@ -136,7 +136,7 @@ private fun OnNowCard(
                 Text(
                     channel.name,
                     style = HqType.CardCaption.copy(
-                        color = if (focused) HqColors.Accent else HqColors.TextTertiary,
+                        color = if (focused) HqColors.Accent.value else HqColors.TextTertiary,
                     ),
                     maxLines = 1,
                 )
@@ -164,7 +164,7 @@ private fun OnNowCard(
                             .fillMaxWidth(progress)
                             .fillMaxHeight()
                             .clip(CircleShape)
-                            .background(HqColors.Accent),
+                            .background(HqColors.Accent.value),
                     )
                 }
                 Spacer(Modifier.size(6.dp))

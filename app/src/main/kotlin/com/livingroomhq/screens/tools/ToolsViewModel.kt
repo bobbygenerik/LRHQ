@@ -56,7 +56,9 @@ class ToolsViewModel(
     fun refresh() {
         viewModelScope.launch {
             isLoading.value = true
-            detected.value = installedApps.launchableApps()
+            detected.value = runCatching { installedApps.launchableApps() }
+                .onFailure { /* silently logged by InstalledAppsRepository */ }
+                .getOrDefault(emptyList())
             isLoading.value = false
         }
     }

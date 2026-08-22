@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import coil.compose.AsyncImage
@@ -218,8 +219,13 @@ fun ToolsScreen(
                         title = "No apps found",
                         message = "Install apps from the Play Store, then return here to launch and organize them.",
                         icon = Icons.Default.Apps,
-                        actionLabel = "Open Settings",
-                        onAction = { nav.goTo(Zone.SETTINGS) },
+                        actionLabel = "Open Play Store",
+                        onAction = {
+                            context.startActivity(
+                                Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details"))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        },
                     )
                 }
             } else {

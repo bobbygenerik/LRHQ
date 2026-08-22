@@ -48,6 +48,7 @@ import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 
 @Composable
 internal fun RecentChannelsRow(
@@ -67,7 +68,9 @@ internal fun RecentChannelsRow(
 
     val recentList = recents.ifEmpty { channels.take(6) }
     if (recentList.isEmpty()) {
-        Text("No channels yet — add an M3U playlist in Settings to begin.", style = HqType.Body)
+        Box(Modifier.focusable(remember { MutableInteractionSource() })) {
+            Text("No channels yet — add an M3U playlist in Settings to begin.", style = HqType.Body)
+        }
     } else {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -160,7 +163,7 @@ private fun RecentChannelChip(
             .background(if (focused) HqColors.GlassFillFocused else HqColors.GlassFill)
             .border(
                 width = if (focused) 1.5.dp else 1.dp,
-                color = if (focused) HqColors.Accent else HqColors.Track,
+                color = if (focused) HqColors.Accent.value else HqColors.Track,
                 shape = shape,
             )
             .clickable { onClick() }
@@ -173,7 +176,7 @@ private fun RecentChannelChip(
             Modifier
                 .size(32.dp)
                 .clip(logoShape)
-                .background(if (focused) HqColors.Accent.copy(alpha = 0.22f) else HqColors.SoftWell),
+                .background(if (focused) HqColors.Accent.value.copy(alpha = 0.22f) else HqColors.SoftWell),
             contentAlignment = Alignment.Center,
         ) {
             if (channel.logoUrl != null) {
@@ -189,7 +192,7 @@ private fun RecentChannelChip(
                 Text(
                     channel.number.toString(),
                     style = HqType.CardCaption.copy(
-                        color = if (focused) HqColors.Accent else HqColors.TextSecondary,
+                        color = if (focused) HqColors.Accent.value else HqColors.TextSecondary,
                         fontWeight = FontWeight.Bold,
                     ),
                 )

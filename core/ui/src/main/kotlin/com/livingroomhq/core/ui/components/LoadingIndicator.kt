@@ -32,7 +32,7 @@ fun LoadingIndicator(
 
     Canvas(modifier.size(size)) {
         drawArc(
-            color = HqColors.Accent,
+            color = HqColors.Accent.value,
             startAngle = rotation,
             sweepAngle = 270f,
             useCenter = false,

@@ -86,7 +86,7 @@ internal fun LiveTvSettingsPanel(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     SettingsActionButton(
                         label = if (isLoading) "Loading..." else "Load Playlist",
-                        color = HqColors.Accent,
+                        color = HqColors.Accent.value,
                         onClick = onLoadPlaylist,
                         enabled = !isLoading,
                     )
@@ -116,7 +116,7 @@ internal fun LiveTvSettingsPanel(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     SettingsActionButton(
                         label = if (isEpgLoading) "Loading..." else "Load Guide",
-                        color = HqColors.Accent,
+                        color = HqColors.Accent.value,
                         onClick = onLoadGuide,
                         enabled = !isEpgLoading,
                     )
@@ -170,7 +170,7 @@ internal fun SamplePlaylistsPanel(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(playlist.name, style = HqType.CardTitle)
-                    Text("Press OK to load", style = HqType.CardCaption.copy(color = HqColors.Accent))
+                    Text("Press OK to load", style = HqType.CardCaption.copy(color = HqColors.Accent.value))
                 }
             }
         }
@@ -199,16 +199,16 @@ internal fun AmbientPhotosSettingsPanel(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
                     label = if (pickerState.isBusy) "Working..." else "Connect Album",
-                    color = HqColors.Accent,
+                    color = HqColors.Accent.value,
                     onClick = { if (!pickerState.isBusy) onStartGooglePhotosPicker() },
                     enabled = !pickerState.isBusy,
                     leadingIcon = {
-                        Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = HqColors.Accent, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.PhotoLibrary, contentDescription = null, tint = HqColors.Accent.value, modifier = Modifier.size(16.dp))
                     },
                 )
                 SettingsActionButton(
                     label = if (pickerState.isBusy) "Working..." else "Update Album Cache",
-                    color = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent else HqColors.TextTertiary,
+                    color = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent.value else HqColors.TextTertiary,
                     onClick = {
                         if (cacheStats.photoCount > 0 && !pickerState.isBusy) onRefreshGooglePhotosAlbum()
                     },
@@ -217,7 +217,7 @@ internal fun AmbientPhotosSettingsPanel(
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = null,
-                            tint = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent else HqColors.TextTertiary,
+                            tint = if (cacheStats.photoCount > 0 && !pickerState.isBusy) HqColors.Accent.value else HqColors.TextTertiary,
                             modifier = Modifier.size(16.dp),
                         )
                     },
@@ -234,7 +234,7 @@ internal fun AmbientPhotosSettingsPanel(
                 )
                 Text(
                     text = pickerState.verificationUrl.ifBlank { "https://www.google.com/device" },
-                    style = HqType.MetaBody.copy(color = HqColors.Accent, fontWeight = FontWeight.SemiBold),
+                    style = HqType.MetaBody.copy(color = HqColors.Accent.value, fontWeight = FontWeight.SemiBold),
                 )
                 Text(
                     text = "Enter this code:",
@@ -242,7 +242,7 @@ internal fun AmbientPhotosSettingsPanel(
                 )
                 Text(
                     text = pickerState.userCode,
-                    style = HqType.Title.copy(color = HqColors.Accent, fontWeight = FontWeight.Bold),
+                    style = HqType.Title.copy(color = HqColors.Accent.value, fontWeight = FontWeight.Bold),
                 )
             }
             if (pickerState.pickerUri.isNotBlank()) {
@@ -275,7 +275,7 @@ internal fun AmbientPhotosSettingsPanel(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 SettingsActionButton(
                     label = if (cacheStats.isImporting) "Caching..." else "Cache URLs",
-                    color = HqColors.Accent,
+                    color = HqColors.Accent.value,
                     onClick = onImportPhotos,
                     enabled = !cacheStats.isImporting,
                 )
@@ -536,7 +536,7 @@ internal fun DeviceCareAndSystemPanel(
                 Spacer(Modifier.height(4.dp))
                 SettingsActionButton(
                     label = if (isMaintenanceBusy) "Running Maintenance..." else "Run Maintenance Now",
-                    color = HqColors.Accent,
+                    color = HqColors.Accent.value,
                     onClick = onRunMaintenance,
                     enabled = !isMaintenanceBusy,
                 )

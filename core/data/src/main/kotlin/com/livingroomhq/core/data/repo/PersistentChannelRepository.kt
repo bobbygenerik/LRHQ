@@ -1,5 +1,7 @@
 package com.livingroomhq.core.data.repo
 
+import androidx.room.RoomDatabase
+import androidx.room.withTransaction
 import com.livingroomhq.core.data.db.ChannelEntity
 import com.livingroomhq.core.data.db.GuideChannelEntity
 import com.livingroomhq.core.data.db.IptvDao
@@ -68,7 +70,18 @@ class PersistentChannelRepository(
     private val ingestDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val fetchPlaylistStream: suspend (String) -> InputStream = ::httpGetStream,
     private val conditionalFetch: (suspend (String, HttpSyncMetadata?) -> ConditionalFetchResult)? = null,
+    /** Real DB in production so multi-statement writes run in one Room transaction. */
+    private val db: RoomDatabase? = null,
 ) : ChannelRepository {
+
+    /**
+     * Runs multi-statement DB writes atomically. Room guarantees single
+     * [androidx.room.Transaction] DAO methods are atomic, but sequences that
+     * span several DAO calls (prune + replace, clear programs + guide) must be
+     * wrapped here or a crash mid-sequence can leave partial state behind.
+     */
+    private suspend fun <T> dbWrite(block: suspend () -> T): T =
+        if (db != null) db.withTransaction { block() } else block()
 
     private val epgMutex = Mutex()
     private val recentsMutex = Mutex()
@@ -250,17 +263,19 @@ class PersistentChannelRepository(
         require(programCount > 0) { "No programmes found in guide" }
 
         val threshold = now - 24 * 60 * 60 * 1000L
-        iptvDao.pruneOldPrograms(threshold)
-        // Chunked: guides commonly exceed SQLite's 999-bind-variable limit.
-        seenGuideChannelIds.toList().chunked(SQLITE_MAX_BIND_ARGS).forEach { chunk ->
-            iptvDao.pruneProgramsBeforeWindow(chunk, threshold)
-        }
         ensureGuideAliasesForPrograms(guideAliases, guideDisplayNames, seenGuideChannelIds)
-        iptvDao.syncGuideChannels(
-            guideDisplayNames.map { (id, names) ->
-                GuideChannelEntity.fromAliases(id, names)
-            },
-        )
+        dbWrite {
+            iptvDao.pruneOldPrograms(threshold)
+            // Chunked: guides commonly exceed SQLite's 999-bind-variable limit.
+            seenGuideChannelIds.toList().chunked(SQLITE_MAX_BIND_ARGS).forEach { chunk ->
+                iptvDao.pruneProgramsBeforeWindow(chunk, threshold)
+            }
+            iptvDao.syncGuideChannels(
+                guideDisplayNames.map { (id, names) ->
+                    GuideChannelEntity.fromAliases(id, names)
+                },
+            )
+        }
         applyGuideCache(
             programs = memoryCachePrograms,
             guideAliases = guideAliases,
@@ -444,8 +459,10 @@ class PersistentChannelRepository(
 
     override suspend fun clearXmltv() = withContext(workDispatcher) {
         epgMutex.withLock {
-            iptvDao.clearPrograms()
-            iptvDao.clearGuideChannels()
+            dbWrite {
+                iptvDao.clearPrograms()
+                iptvDao.clearGuideChannels()
+            }
             _loadedEpg.value = emptyMap()
             _loadedEpgAliases.value = emptyMap()
             _loadedEpgAliasIndex.value = emptyMap()
@@ -631,14 +648,17 @@ class PersistentChannelRepository(
     }
 }
 
+private const val RETRY_MAX_ATTEMPTS = 10
+
 private suspend fun retryWithBackoff(block: suspend () -> Unit) {
     var delayMillis = 2000L
-    while (true) {
+    repeat(RETRY_MAX_ATTEMPTS) { attempt ->
         try {
             block()
-            break
+            return
         } catch (e: Exception) {
             FaultLog.record("retry_backoff", e)
+            if (attempt == RETRY_MAX_ATTEMPTS - 1) return
             delay(delayMillis)
             delayMillis = (delayMillis * 2).coerceAtMost(RETRY_BACKOFF_MAX_MILLIS)
         }

@@ -29,10 +29,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -108,7 +109,7 @@ fun HomeScreen(
         ),
     ),
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val customSettings = LocalCustomSettings.current
     val sidebarFocus = LocalSidebarFocusRequester.current
     val context = LocalContext.current
@@ -116,13 +117,6 @@ fun HomeScreen(
 
     val current = state.currentChannel
     val (nowProgram, nextProgram) = current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            viewModel.tickClock(System.currentTimeMillis())
-            delay(10_000)
-        }
-    }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -136,16 +130,20 @@ fun HomeScreen(
         }
     }
 
-    var clockTime by remember { mutableStateOf(timeNow(context)) }
-    var clockDate by remember { mutableStateOf(dateNow()) }
-    LaunchedEffect(state.nowMillis) {
-        clockTime = timeNow(context)
-        clockDate = dateNow()
-    }
-    val density = LocalDensity.current
-    val scrollScope = rememberCoroutineScope()
     val recentFocusRequester = remember { FocusRequester() }
     val onNowFocusRequester = remember { FocusRequester() }
+
+    // Clock updates scoped here — only HomeHeroContent recomposes, not the entire screen.
+    val clockState by produceState(initialValue = timeNow(context) to dateNow()) {
+        while (true) {
+            delay(10_000)
+            value = timeNow(context) to dateNow()
+        }
+    }
+    val clockTime = clockState.first
+    val clockDate = clockState.second
+    val density = LocalDensity.current
+    val scrollScope = rememberCoroutineScope()
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -242,9 +240,7 @@ fun HomeScreen(
                         .height(viewportHeight)
                         .focusProperties {
                             canFocus = scrollState.value < viewportHeightPx.toInt() / 2
-                            if (state.onNow.isNotEmpty() || state.recents.isNotEmpty() || state.channels.isNotEmpty()) {
-                                down = recentFocusRequester
-                            }
+                            down = recentFocusRequester
                             if (sidebarFocus != null) {
                                 left = sidebarFocus
                             }
@@ -508,7 +504,7 @@ private fun CompactTopBar(
             Box(
                 Modifier
                     .clip(RoundedCornerShape(HqDimens.CornerBadge))
-                    .background(HqColors.Accent)
+                    .background(HqColors.Accent.value)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(

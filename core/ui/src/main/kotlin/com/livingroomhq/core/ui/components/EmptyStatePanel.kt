@@ -38,7 +38,7 @@ fun EmptyStatePanel(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(44.dp), tint = HqColors.Accent)
+            Icon(icon, contentDescription = null, modifier = Modifier.size(44.dp), tint = HqColors.Accent.value)
             Spacer(Modifier.height(14.dp))
             Text(title, style = HqType.Headline, textAlign = TextAlign.Center)
             Spacer(Modifier.height(8.dp))
@@ -55,7 +55,7 @@ fun EmptyStatePanel(
                     cornerRadius = 8.dp,
                     contentPadding = PaddingValues(horizontal = 20.dp),
                 ) { _ ->
-                    Text(actionLabel, style = HqType.CardTitle.copy(color = HqColors.Accent))
+                    Text(actionLabel, style = HqType.CardTitle.copy(color = HqColors.Accent.value))
                 }
             }
         }

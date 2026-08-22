@@ -129,7 +129,8 @@ class MainActivity : ComponentActivity() {
             }
 
             val accent = remember(settings.accentColor) { accentColorFor(settings.accentColor) }
-            SideEffect { HqColors.Accent = accent }
+
+            SideEffect { HqColors.Accent.value = accent }
 
             val sidebarFocusRequesters = rememberSidebarFocusRequesters()
             val sidebarFocusRequester = sidebarFocusRequesters[controller.underlyingZone]

@@ -64,7 +64,7 @@ internal fun GlassTextField(
             .onFocusChanged { focused = it.isFocused }
             .clip(shape)
             .background(if (focused) HqColors.FieldFillFocused else HqColors.FieldFill)
-            .border(1.dp, if (focused) HqColors.Accent else HqColors.GlassSheenTop, shape)
+            .border(1.dp, if (focused) HqColors.Accent.value else HqColors.GlassSheenTop, shape)
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
         BasicTextField(
@@ -76,7 +76,7 @@ internal fun GlassTextField(
                 }
             },
             textStyle = HqType.Body.copy(color = HqColors.TextPrimary),
-            cursorBrush = SolidColor(HqColors.Accent),
+            cursorBrush = SolidColor(HqColors.Accent.value),
             singleLine = singleLine,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             modifier = Modifier
@@ -133,7 +133,7 @@ internal fun CustomButtonToggle(
                     .clip(RoundedCornerShape(6.dp))
                     .background(
                         when {
-                            isSelected -> HqColors.Accent.copy(alpha = 0.8f)
+                            isSelected -> HqColors.Accent.value.copy(alpha = 0.8f)
                             focused -> HqColors.Track
                             else -> Color.Transparent
                         },

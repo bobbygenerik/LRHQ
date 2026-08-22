@@ -20,9 +20,9 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,7 +72,7 @@ fun AmbientScreen(
 ) {
     val view = LocalView.current
     val context = LocalContext.current
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     val current = state.currentChannel
     val (nowProgram, _) = current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
@@ -90,16 +90,15 @@ fun AmbientScreen(
         }
     }
 
-    var clockTime by remember { mutableStateOf(ambientTime(context)) }
-    var clockMeridiem by remember { mutableStateOf(ambientMeridiem(context)) }
-    var clockDate by remember { mutableStateOf(ambientDate()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            clockTime = ambientTime(context)
-            clockMeridiem = ambientMeridiem(context)
-            clockDate = ambientDate()
-            delay(30_000)
-        }
+    // Clock state scoped to the clock composable only — avoids recomposing backdrop gradients.
+    val clockTime by produceState(initialValue = ambientTime(context)) {
+        while (true) { delay(30_000); value = ambientTime(context) }
+    }
+    val clockMeridiem by produceState(initialValue = ambientMeridiem(context)) {
+        while (true) { delay(30_000); value = ambientMeridiem(context) }
+    }
+    val clockDate by produceState(initialValue = ambientDate()) {
+        while (true) { delay(30_000); value = ambientDate() }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -279,6 +278,12 @@ private fun AmbientWeatherCardWrapper(
     state?.let {
         if (it.isHealthy) {
             AmbientWeatherCard(state = it, modifier = modifier)
+        } else {
+            Text(
+                text = "Weather unavailable",
+                style = HqType.CardCaption.copy(color = HqColors.TextTertiary),
+                modifier = modifier,
+            )
         }
     }
 }

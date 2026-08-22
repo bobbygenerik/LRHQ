@@ -12,6 +12,7 @@ import com.livingroomhq.core.data.repo.ChannelRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -52,9 +53,12 @@ class SettingsViewModel(
     private val googlePhotosPicker: GooglePhotosPickerClient,
 ) : ViewModel() {
 
-    val playlistStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
-    val guideStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
-    val maintenanceStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
+    private val _playlistStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
+    val playlistStatus: StateFlow<SettingsActionResult> = _playlistStatus.asStateFlow()
+    private val _guideStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
+    val guideStatus: StateFlow<SettingsActionResult> = _guideStatus.asStateFlow()
+    private val _maintenanceStatus = MutableStateFlow<SettingsActionResult>(SettingsActionResult.Idle)
+    val maintenanceStatus: StateFlow<SettingsActionResult> = _maintenanceStatus.asStateFlow()
 
     val uiState: StateFlow<SettingsUiState> = combine(
         prefs.playlistUrl,
@@ -110,45 +114,45 @@ class SettingsViewModel(
 
     private fun loadPlaylist(url: String) {
         viewModelScope.launch {
-            playlistStatus.value = SettingsActionResult.Loading("Loading stream playlist...")
+            _playlistStatus.value = SettingsActionResult.Loading("Loading stream playlist...")
             runCatching { channels.loadM3u(url.trim()) }
-                .onSuccess { playlistStatus.value = SettingsActionResult.Success("IPTV channels loaded successfully!") }
-                .onFailure { playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or Network error"}") }
+                .onSuccess { _playlistStatus.value = SettingsActionResult.Success("IPTV channels loaded successfully!") }
+                .onFailure { _playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or Network error"}") }
         }
     }
 
     private fun loadGuide(url: String) {
         viewModelScope.launch {
-            guideStatus.value = SettingsActionResult.Loading("Loading guide...")
+            _guideStatus.value = SettingsActionResult.Loading("Loading guide...")
             runCatching { channels.loadXmltv(url.trim()) }
-                .onSuccess { guideStatus.value = SettingsActionResult.Success("Guide loaded successfully!") }
-                .onFailure { guideStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or network error"}") }
+                .onSuccess { _guideStatus.value = SettingsActionResult.Success("Guide loaded successfully!") }
+                .onFailure { _guideStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or network error"}") }
         }
     }
 
     private fun loadSample(url: String, name: String) {
         viewModelScope.launch {
-            playlistStatus.value = SettingsActionResult.Loading("Loading $name...")
+            _playlistStatus.value = SettingsActionResult.Loading("Loading $name...")
             runCatching { channels.loadM3u(url) }
-                .onSuccess { playlistStatus.value = SettingsActionResult.Success("$name loaded successfully!") }
-                .onFailure { playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage}") }
+                .onSuccess { _playlistStatus.value = SettingsActionResult.Success("$name loaded successfully!") }
+                .onFailure { _playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or network error"}") }
         }
     }
 
     private fun runMaintenance() {
         viewModelScope.launch {
-            maintenanceStatus.value = SettingsActionResult.Loading("Running device maintenance...")
+            _maintenanceStatus.value = SettingsActionResult.Loading("Running device maintenance...")
             runCatching {
                 channels.runMaintenance()
                 photoCache.trimToCacheLimit()
             }
                 .onSuccess {
-                    maintenanceStatus.value = SettingsActionResult.Success(
+                    _maintenanceStatus.value = SettingsActionResult.Success(
                         "Maintenance completed: Pruned old programs. Cache size optimized.",
                     )
                 }
                 .onFailure {
-                    maintenanceStatus.value = SettingsActionResult.Failure("Maintenance failed: ${it.localizedMessage}")
+                    _maintenanceStatus.value = SettingsActionResult.Failure("Maintenance failed: ${it.localizedMessage}")
                 }
         }
     }
@@ -157,14 +161,14 @@ class SettingsViewModel(
         viewModelScope.launch {
             prefs.setPlaylistUrl(null)
             prefs.setRecents(emptyList())
-            playlistStatus.value = SettingsActionResult.Success("Playlist cleared.")
+            _playlistStatus.value = SettingsActionResult.Success("Playlist cleared.")
         }
     }
 
     private fun clearGuide() {
         viewModelScope.launch {
             channels.clearXmltv()
-            guideStatus.value = SettingsActionResult.Success("Guide cleared.")
+            _guideStatus.value = SettingsActionResult.Success("Guide cleared.")
         }
     }
 
