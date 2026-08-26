@@ -349,9 +349,12 @@ private object JSONTokenerCompat {
         if (raw.trimStart().startsWith("[")) JSONArray(raw) else JSONObject(raw)
 }
 
-private fun String.toGoogleDisplayUrl(): String {
+// Pre-compiled regex to avoid repeated compilation and object allocations during URL transformation.
+private val GOOGLE_WIDTH_PARAM_REGEX = Regex("""[=?-]w\d+""")
+
+internal fun String.toGoogleDisplayUrl(): String {
     if (!contains("googleusercontent.com")) return this
-    if (Regex("""[=?-]w\d+""").containsMatchIn(this) || endsWith("=d")) return this
+    if (GOOGLE_WIDTH_PARAM_REGEX.containsMatchIn(this) || endsWith("=d")) return this
     return "$this=w1920-h1080"
 }
 
