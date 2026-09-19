@@ -61,6 +61,7 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
             iptvDao = database.iptvDao(),
             prefs = prefs,
             scope = appScope,
+            appContext = this@HqApplication,
             conditionalFetch = ::conditionalHttpFetch,
             db = database,
         ).also { it.restore() }

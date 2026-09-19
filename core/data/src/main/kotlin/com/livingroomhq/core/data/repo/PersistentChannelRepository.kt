@@ -1,5 +1,6 @@
 package com.livingroomhq.core.data.repo
 
+import android.content.Context
 import androidx.room.RoomDatabase
 import androidx.room.withTransaction
 import com.livingroomhq.core.data.db.ChannelEntity
@@ -37,6 +38,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okio.Okio
+import okio.sink
+import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.ConcurrentHashMap
@@ -64,15 +69,18 @@ class PersistentChannelRepository(
     private val iptvDao: IptvDao,
     private val prefs: LauncherPrefsStore,
     private val scope: CoroutineScope,
+    private val appContext: Context,
     private val nowMillis: () -> Long = System::currentTimeMillis,
     private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
     /** Playlist/EPG downloads are read while parsing — keep that off the CPU pool. */
     private val ingestDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val fetchPlaylistStream: suspend (String) -> InputStream = ::httpGetStream,
+    private val fetchPlaylistStream: suspend (String) -> InputStream = { url -> httpGetStream(appContext, url) },
     private val conditionalFetch: (suspend (String, HttpSyncMetadata?) -> ConditionalFetchResult)? = null,
     /** Real DB in production so multi-statement writes run in one Room transaction. */
     private val db: RoomDatabase? = null,
 ) : ChannelRepository {
+
+    private val epgCacheDir = File(appContext.cacheDir, "epg")
 
     /**
      * Runs multi-statement DB writes atomically. Room guarantees single
@@ -207,17 +215,20 @@ class PersistentChannelRepository(
     override suspend fun loadXmltv(epgUrl: String) = withContext(ingestDispatcher) {
         runLoggedCatching("guide") {
             if (conditionalFetch == null) {
-                ingestXmltv(fetchPlaylistStream(epgUrl), epgUrl, null)
+                val epgFile = downloadEpgToCache(appContext, epgUrl)
+                ingestXmltv(FileInputStream(epgFile), epgUrl, null)
                 return@runLoggedCatching
             }
             val prior = prefs.epgSyncMetadata.first()
             when (val fetch = conditionalFetch(epgUrl, prior)) {
                 ConditionalFetchResult.NotModified -> {
                     if (_loadedEpg.value.isNotEmpty()) return@runLoggedCatching
-                    ingestXmltv(fetchPlaylistStream(epgUrl), epgUrl, null)
+                    val epgFile = downloadEpgToCache(appContext, epgUrl)
+                    ingestXmltv(FileInputStream(epgFile), epgUrl, null)
                 }
                 is ConditionalFetchResult.Modified -> {
-                    ingestXmltv(fetch.stream, epgUrl, fetch.metadata)
+                    val epgFile = downloadEpgToCache(appContext, epgUrl)
+                    ingestXmltv(FileInputStream(epgFile), epgUrl, fetch.metadata)
                 }
             }
         }.onSuccess { FaultLog.recordGuideSuccess() }
@@ -636,7 +647,7 @@ class PersistentChannelRepository(
             }
         }
 
-        scope.launch(workDispatcher) {
+scope.launch(workDispatcher) {
             prefs.epgUrl.collectLatest { url ->
                 if (url == null) {
                     clearXmltv()
@@ -648,37 +659,7 @@ class PersistentChannelRepository(
     }
 }
 
-private const val RETRY_MAX_ATTEMPTS = 10
-
-private suspend fun retryWithBackoff(block: suspend () -> Unit) {
-    var delayMillis = 2000L
-    repeat(RETRY_MAX_ATTEMPTS) { attempt ->
-        try {
-            block()
-            return
-        } catch (e: Exception) {
-            FaultLog.record("retry_backoff", e)
-            if (attempt == RETRY_MAX_ATTEMPTS - 1) return
-            delay(delayMillis)
-            delayMillis = (delayMillis * 2).coerceAtMost(RETRY_BACKOFF_MAX_MILLIS)
-        }
-    }
-}
-
-private fun ensureGuideAliasesForPrograms(
-    guideAliases: MutableMap<String, Set<String>>,
-    guideDisplayNames: MutableMap<String, List<String>>,
-    programmeChannelIds: Collection<String>,
-) {
-    programmeChannelIds.distinct().forEach { channelId ->
-        if (channelId.isBlank()) return@forEach
-        guideDisplayNames.putIfAbsent(channelId, emptyList())
-        val displayNames = guideDisplayNames.getValue(channelId)
-        guideAliases[channelId] = GuideMatcher.guideAliasKeys(channelId, displayNames)
-    }
-}
-
-private suspend fun httpGetStream(url: String): InputStream = withContext(Dispatchers.IO) {
+private suspend fun httpGetStream(context: Context, url: String): InputStream = withContext(Dispatchers.IO) {
     val request = Request.Builder()
         .url(url)
         .header(
@@ -703,4 +684,71 @@ private suspend fun httpGetStream(url: String): InputStream = withContext(Dispat
         raw
     }
 }
+
+private suspend fun downloadEpgToCache(context: Context, epgUrl: String): File = withContext(Dispatchers.IO) {
+    val epgCacheDir = File(context.cacheDir, "epg")
+    epgCacheDir.mkdirs()
+    val file = File(epgCacheDir, "epg.xml")
+    val request = Request.Builder()
+        .url(epgUrl)
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        )
+        .build()
+    val response = LrhqHttpClient.client.newCall(request).execute()
+    if (!response.isSuccessful) {
+        response.close()
+        throw IOException("HTTP ${response.code} for $epgUrl")
+    }
+    val body = response.body ?: run {
+        response.close()
+        throw IOException("Empty response body for $epgUrl")
+    }
+    val source = body.source()
+    val sink = file.sink()
+    try {
+        val buffer = okio.Buffer()
+        var read: Long
+        while (true) {
+            read = source.read(buffer, 8192)
+            if (read == -1L) break
+            sink.write(buffer, read)
+        }
+    } finally {
+        sink.close()
+        response.close()
+    }
+    file
+}
+
+private const val RETRY_MAX_ATTEMPTS = 10
+
+private suspend fun retryWithBackoff(block: suspend () -> Unit) {
+    var delayMillis = 2000L
+    repeat(RETRY_MAX_ATTEMPTS) { attempt ->
+        try {
+            block()
+            return
+        } catch (e: Exception) {
+            FaultLog.record("retry_backoff", e)
+            if (attempt == RETRY_MAX_ATTEMPTS - 1) return
+            delay(delayMillis)
+            delayMillis = (delayMillis * 2).coerceAtMost(RETRY_BACKOFF_MAX_MILLIS)
+        }
+    }
+}
+
+private fun ensureGuideAliasesForPrograms(
+        guideAliases: MutableMap<String, Set<String>>,
+        guideDisplayNames: MutableMap<String, List<String>>,
+        programmeChannelIds: Collection<String>,
+    ) {
+        programmeChannelIds.distinct().forEach { channelId ->
+            if (channelId.isBlank()) return@forEach
+            guideDisplayNames.putIfAbsent(channelId, emptyList())
+            val displayNames = guideDisplayNames.getValue(channelId)
+            guideAliases[channelId] = GuideMatcher.guideAliasKeys(channelId, displayNames)
+        }
+    }
 

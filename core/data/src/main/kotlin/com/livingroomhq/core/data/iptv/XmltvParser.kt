@@ -3,6 +3,7 @@ package com.livingroomhq.core.data.iptv
 import com.livingroomhq.core.data.model.Program
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import com.livingroomhq.core.data.net.XmlSanitizingInputStream
 import java.io.InputStream
 
 /**
@@ -21,7 +22,8 @@ object XmltvParser {
             isNamespaceAware = false
         }
         val parser = factory.newPullParser()
-        inputStream.use { stream ->
+        val sanitized = XmlSanitizingInputStream(inputStream)
+        sanitized.use { stream ->
             parser.setInput(stream, "UTF-8")
             var eventType = parser.eventType
             var xmltvChannelId: String? = null
