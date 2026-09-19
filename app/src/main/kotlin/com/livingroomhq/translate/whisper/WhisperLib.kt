@@ -2,6 +2,7 @@ package com.livingroomhq.translate.whisper
 
 import android.os.Build
 import android.util.Log
+import com.livingroomhq.translate.AsrResult
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -15,17 +16,22 @@ internal class WhisperContext private constructor(private var ptr: Long) {
             Thread(r, "whisper-infer").apply { isDaemon = true }
         }.asCoroutineDispatcher()
 
-    suspend fun transcribe(data: FloatArray, languageCode: String): String =
+    suspend fun transcribe(data: FloatArray, languageCode: String): AsrResult =
         withContext(scope) {
             require(ptr != 0L)
             val threads = preferredThreadCount()
             WhisperLib.fullTranscribe(ptr, threads, data, languageCode)
             val count = WhisperLib.getTextSegmentCount(ptr)
-            buildString {
-                for (i in 0 until count) {
-                    append(WhisperLib.getTextSegment(ptr, i))
-                }
-            }.trim()
+            var maxNoSpeech = 0f
+            val text =
+                buildString {
+                    for (i in 0 until count) {
+                        maxNoSpeech =
+                            maxOf(maxNoSpeech, WhisperLib.getSegmentNoSpeechProb(ptr, i))
+                        append(WhisperLib.getTextSegment(ptr, i))
+                    }
+                }.trim()
+            AsrResult(text = text, maxNoSpeechProb = maxNoSpeech)
         }
 
     suspend fun release() =
@@ -43,9 +49,8 @@ internal class WhisperContext private constructor(private var ptr: Long) {
             return WhisperContext(ptr)
         }
 
-        /** Shield: use more cores for ASR; ExoPlayer still needs headroom. */
-        fun preferredThreadCount(): Int =
-            Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
+        /** Shield: 2 threads leaves 2 cores free for ExoPlayer, avoiding CPU contention. */
+        fun preferredThreadCount(): Int = 2
     }
 }
 
@@ -79,9 +84,10 @@ internal class WhisperLib {
         )
         external fun getTextSegmentCount(contextPtr: Long): Int
         external fun getTextSegment(contextPtr: Long, index: Int): String
+        external fun getSegmentNoSpeechProb(contextPtr: Long, index: Int): Float
     }
 }
 
 internal fun android.content.Context.whisperModelFile(): File =
-    File(filesDir, "whisper/ggml-tiny-q5_1.bin")
+    File(filesDir, "whisper/ggml-base-q5_1.bin")
 

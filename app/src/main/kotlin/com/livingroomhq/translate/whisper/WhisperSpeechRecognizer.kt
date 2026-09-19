@@ -2,6 +2,7 @@ package com.livingroomhq.translate.whisper
 
 import android.content.Context
 import android.util.Log
+import com.livingroomhq.translate.AsrResult
 import com.livingroomhq.translate.SpeechRecognizerBackend
 
 class WhisperSpeechRecognizer(
@@ -23,7 +24,7 @@ class WhisperSpeechRecognizer(
         }
     }
 
-    override suspend fun transcribe(pcm16kMono: FloatArray, languageCode: String): String {
+    override suspend fun transcribe(pcm16kMono: FloatArray, languageCode: String): AsrResult {
         val engine = ctx ?: run {
             ensureReady()
             ctx ?: error("whisper not ready")

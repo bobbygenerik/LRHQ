@@ -11,7 +11,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Ensures [ggml-tiny-q5_1.bin] is on disk with SHA-256 verification.
+ * Ensures [ggml-base-q5_1.bin] is on disk with SHA-256 verification.
  * Download → `.partial` → hash check → atomic rename.
  * Cached under app files permanently; no network after install.
  */
@@ -34,7 +34,7 @@ class WhisperModelStore(
             return false
         }
         val len = modelFile.length()
-        // Avoid re-hashing 32MB on every ensureModel()/transcribe path.
+        // Avoid re-hashing ~60MB on every ensureModel()/transcribe path.
         if (verifiedBytes == len) return true
         val ok =
             runCatching {
@@ -57,6 +57,12 @@ class WhisperModelStore(
                 modelFile.delete()
                 verifiedBytes = -1L
             }
+            // Drop old tiny cache if present (filename changed).
+            val legacyTiny = File(modelFile.parentFile, "ggml-tiny-q5_1.bin")
+            if (legacyTiny.isFile) {
+                Log.i(TAG, "removing legacy tiny model ${legacyTiny.name}")
+                legacyTiny.delete()
+            }
             modelFile.parentFile?.mkdirs()
             val partial = File(modelFile.absolutePath + ".partial")
             if (partial.exists()) {
@@ -73,7 +79,7 @@ class WhisperModelStore(
                     body.byteStream().use { input -> input.copyTo(out) }
                 }
             }
-            ModelIntegrity.verifyFileOrThrow(partial, EXPECTED_SHA256, "whisper tiny-q5_1")
+            ModelIntegrity.verifyFileOrThrow(partial, EXPECTED_SHA256, "whisper base-q5_1")
             if (!partial.renameTo(modelFile)) {
                 partial.copyTo(modelFile, overwrite = true)
                 partial.delete()
@@ -91,9 +97,9 @@ class WhisperModelStore(
     companion object {
         private const val TAG = "WhisperModel"
         const val MODEL_URL =
-            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin"
-        /** Content SHA-256 of ggml-tiny-q5_1.bin (HF ggerganov/whisper.cpp). */
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin"
+        /** Content SHA-256 of ggml-base-q5_1.bin (HF ggerganov/whisper.cpp LFS oid). */
         const val EXPECTED_SHA256 =
-            "818710568da3ca15689e31a743197b520007872ff9576237bda97bd1b469c3d7"
+            "422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898"
     }
 }

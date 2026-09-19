@@ -1,5 +1,14 @@
 import java.util.Properties
 
+gradle.taskGraph.whenReady {
+    allTasks.forEach { task ->
+        val name = task.name
+        if ((name.endsWith("Debug") || name.contains("DebugUnitTest") || name.contains("DebugAndroidTest") || name.startsWith("assembleDebug") || name.startsWith("installDebug")) && !name.contains("DebugSymbols") && !name.contains("DebugMetadata")) {
+            throw GradleException("HARD REPO RULE VIOLATION: Debug task '$name' is forbidden in this project. Profile variant only.")
+        }
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -53,7 +62,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags += "-O3"
-                arguments += listOf("-DANDROID_STL=c++_shared")
+                arguments += listOf("-DANDROID_STL=c++_shared", "-DANDROID_PLATFORM=android-28")
             }
         }
     }

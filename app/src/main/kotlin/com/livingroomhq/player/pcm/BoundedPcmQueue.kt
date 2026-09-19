@@ -47,7 +47,7 @@ internal class BoundedPcmQueue(
     }
 
     companion object {
-        /** ~2–4 s of stereo 48 kHz s16le at ~8 KB chunks ≈ 180–360 chunks. */
-        const val DEFAULT_CAPACITY_CHUNKS = 256
+        /** ~4–8 s of stereo 48 kHz s16le at ~8 KB chunks; consumer drains in bursts. */
+        const val DEFAULT_CAPACITY_CHUNKS = 512
     }
 }

@@ -3,9 +3,15 @@ package com.livingroomhq.translate
 /**
  * Backend-agnostic speech recognition. Implementations must not touch Media3 threads.
  */
+data class AsrResult(
+    val text: String,
+    /** Max whisper no-speech probability across segments (0..1). Higher = likelier hallucination. */
+    val maxNoSpeechProb: Float = 0f,
+)
+
 interface SpeechRecognizerBackend {
     suspend fun ensureReady()
-    suspend fun transcribe(pcm16kMono: FloatArray, languageCode: String): String
+    suspend fun transcribe(pcm16kMono: FloatArray, languageCode: String): AsrResult
     suspend fun release()
 }
 

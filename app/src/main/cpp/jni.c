@@ -14,6 +14,12 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,     TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,     TAG, __VA_ARGS__)
 
+/* Optional Vulkan tuning for Tegra unified memory; safe no-ops if Vulkan unused. */
+__attribute__((constructor)) static void lrhq_vk_env(void) {
+    setenv("GGML_VK_PREFER_HOST_MEMORY", "1", 1);
+    setenv("GGML_VK_DISABLE_F16", "1", 1);
+}
+
 static inline int min(int a, int b) {
     return (a < b) ? a : b;
 }
@@ -181,11 +187,16 @@ Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_fullTranscribe
     params.n_threads = num_threads;
     params.offset_ms = 0;
     params.no_context = true;
-    params.single_segment = true;
+    params.single_segment = false;
     params.no_timestamps = true;
+    params.suppress_blank = true;
     params.temperature = 0.0f;
     params.temperature_inc = 0.0f;
-    params.max_tokens = 48;
+    params.max_tokens = 64;
+    /* Reject music/noise hallucinations more aggressively on tiny. */
+    params.no_speech_thold = 0.55f;
+    params.entropy_thold = 2.4f;
+    params.logprob_thold = -0.8f;
 
     whisper_reset_timings(context);
 
@@ -215,6 +226,15 @@ Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_getTextSegment
     const char *text = whisper_full_get_segment_text(context, index);
     jstring string = (*env)->NewStringUTF(env, text);
     return string;
+}
+
+JNIEXPORT jfloat JNICALL
+Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_getSegmentNoSpeechProb(
+        JNIEnv *env, jobject thiz, jlong context_ptr, jint index) {
+    UNUSED(env);
+    UNUSED(thiz);
+    struct whisper_context *context = (struct whisper_context *) context_ptr;
+    return whisper_full_get_segment_no_speech_prob(context, index);
 }
 
 JNIEXPORT jlong JNICALL

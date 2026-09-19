@@ -24,8 +24,10 @@ import kotlin.math.sqrt
  * Live captions:
  * Media3 tee PCM → bounded queue → 16 kHz mono → Whisper → ML Kit → English UI.
  *
- * PCM consumer never blocks on Whisper. Live energy clears captions when dialog
- * stops; late ASR/MT results from before silence are discarded (timing, not hallucination).
+ * PCM consumer never blocks on Whisper. While ASR runs, audio keeps accumulating
+ * (up to a catch-up window) and is processed FIFO when free — not thrown away at 3 s.
+ * Live energy clears captions when dialog stops; late ASR/MT results from before
+ * silence are discarded (timing, not hallucination).
  */
 class LiveTranslatePipeline(
     context: Context,
@@ -83,6 +85,9 @@ class LiveTranslatePipeline(
                     _status.value = "Loading Whisper…"
                     recognizer.ensureReady()
                     if (!isActive) return@launch
+                    // Start PCM while translator packs load so first window is warm.
+                    PcmCaptureHub.startCapture()
+                    logInputFormatOnce()
                     _status.value = "Loading translator (${sourceLanguage.uppercase()}→EN)…"
                     runCatching { translator.ensureReady(sourceLanguage) }
                         .onFailure { t ->
@@ -90,8 +95,6 @@ class LiveTranslatePipeline(
                             _status.value = "Translation model failed — change language to retry"
                             return@launch
                         }
-                    PcmCaptureHub.startCapture()
-                    logInputFormatOnce()
                     _status.value = "Live ${sourceLanguage.uppercase()}→EN"
                     Log.i(
                         TAG,
@@ -240,6 +243,7 @@ class LiveTranslatePipeline(
         var droppedSamples = 0L
         var sid = sessionGen.get()
         var lastStatusHeartbeat = 0L
+        var lastCatchUpLogMs = 0L
 
         while (kotlinx.coroutines.currentCoroutineContext().isActive) {
             val currentSid = sessionGen.get()
@@ -253,69 +257,102 @@ class LiveTranslatePipeline(
 
             maybeHideStaleCaption()
 
-            val chunk = PcmCaptureHub.pollChunk()
-            if (chunk == null) {
-                delay(8)
-                // Even with no new chunks, expire captions if we already marked silence.
-                updateLiveSilence(buffer, sid)
-                continue
-            }
-            logInputFormatOnce()
+            // Drain hub in bursts so ExoPlayer chunks don't pile up / get dropped.
             val fmt = PcmCaptureHub.currentFormat()
-            PcmAudioNormalizer.appendNormalized(chunk, fmt, buffer)
+            var drained = 0
+            while (drained < MAX_DRAIN_CHUNKS_PER_TICK) {
+                val chunk = PcmCaptureHub.pollChunk() ?: break
+                if (drained == 0) logInputFormatOnce()
+                PcmAudioNormalizer.appendNormalized(chunk, fmt, buffer)
+                drained++
+            }
+            if (drained == 0) {
+                delay(8)
+                updateLiveSilence(buffer, sid)
+                // Still try to start Whisper on whatever is already buffered.
+            }
 
-            val maxBuffered = WINDOW_SAMPLES + HOP_SAMPLES
-            if (buffer.size > maxBuffered) {
-                val drop = buffer.size - WINDOW_SAMPLES
-                repeat(drop) { buffer.removeAt(0) }
+            if (buffer.size > MAX_ACCUMULATION_SAMPLES) {
+                val drop = buffer.size - MAX_ACCUMULATION_SAMPLES
+                dropFront(buffer, drop)
                 droppedSamples += drop
                 Log.w(
                     TAG,
-                    "backlogTrim session=$sid dropSamples=$drop " +
+                    "backlogTrim session=$sid dropSamples=$drop dropSec=${"%.2f".format(drop.toDouble() / PcmAudioNormalizer.TARGET_RATE)} " +
                         "droppedTotal=$droppedSamples hubDropped=${PcmCaptureHub.snapshot().droppedBuffers}",
                 )
             }
 
             updateLiveSilence(buffer, sid)
 
-            // One Whisper at a time — keep polling live audio while it runs.
+            val bufferSec = buffer.size.toDouble() / PcmAudioNormalizer.TARGET_RATE
+            val catchingUp = bufferSec >= CATCHUP_BUFFER_SEC
+            val nowWall = System.currentTimeMillis()
+            if (catchingUp && nowWall - lastCatchUpLogMs > 2_000L) {
+                lastCatchUpLogMs = nowWall
+                val snap = PcmCaptureHub.snapshot()
+                Log.i(
+                    TAG,
+                    "catchUp session=$sid bufferSec=${"%.2f".format(bufferSec)} " +
+                        "hubDepth=${snap.queueDepth} hubDropped=${snap.droppedBuffers} " +
+                        "inferBusy=${inferJob?.isActive == true}",
+                )
+            }
+
+            // One Whisper at a time — keep draining live audio into buffer while it runs.
             if (inferJob?.isActive == true) {
-                if (buffer.size > WINDOW_SAMPLES) {
-                    val drop = buffer.size - WINDOW_SAMPLES
-                    repeat(drop) { buffer.removeAt(0) }
-                }
                 continue
             }
 
-            if (buffer.size < WINDOW_SAMPLES) continue
+            if (buffer.size < WINDOW_MIN_SAMPLES) continue
 
-            val slice = FloatArray(WINDOW_SAMPLES)
-            for (i in 0 until WINDOW_SAMPLES) slice[i] = buffer[i]
+            // Live-edge: caption "now", not FIFO through a deep backlog (felt like 10s blank).
+            val keepAfter = WINDOW_MAX_SAMPLES + OVERLAP_SAMPLES
+            if (buffer.size > keepAfter + LIVE_EDGE_PAD_SAMPLES) {
+                val drop = buffer.size - keepAfter
+                dropFront(buffer, drop)
+                droppedSamples += drop
+                Log.i(
+                    TAG,
+                    "liveEdgeSnap session=$sid dropSec=${"%.2f".format(drop.toDouble() / PcmAudioNormalizer.TARGET_RATE)} " +
+                        "keepSec=${"%.2f".format(keepAfter.toDouble() / PcmAudioNormalizer.TARGET_RATE)}",
+                )
+            }
+
+            val sliceSize = minOf(buffer.size, WINDOW_MAX_SAMPLES)
+            val sliceStart = buffer.size - sliceSize
+            val slice = FloatArray(sliceSize)
+            for (i in 0 until sliceSize) slice[i] = buffer[sliceStart + i]
             val windowEndWallMs = System.currentTimeMillis()
-            val remove = minOf(HOP_SAMPLES, buffer.size)
-            repeat(remove) { buffer.removeAt(0) }
+
+            // After taking newest window, keep only overlap tail for continuity.
+            val overlap = OVERLAP_SAMPLES
+            val remove = maxOf(1, buffer.size - overlap)
+            dropFront(buffer, remove)
 
             val energy = rms(slice)
-            if (energy < SPEECH_RMS_THRESHOLD) {
+            val peakFrameRms = maxFrameRms(slice, LIVE_VAD_SAMPLES)
+            if (energy < SPEECH_RMS_THRESHOLD && peakFrameRms < SPEECH_PEAK_RMS_THRESHOLD) {
                 if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    Log.d(TAG, "vadSkipSpeech session=$sid rms=${"%.5f".format(energy)}")
+                    Log.d(TAG, "vadSkipSpeech session=$sid rms=${"%.5f".format(energy)} peak=${"%.5f".format(peakFrameRms)}")
                 }
                 continue
             }
 
             val captureSid = sid
             val lang = sourceLanguage
-            val audioSec = WINDOW_SAMPLES.toDouble() / PcmAudioNormalizer.TARGET_RATE
+            val audioSec = sliceSize.toDouble() / PcmAudioNormalizer.TARGET_RATE
 
             inferJob =
                 scope.launch(Dispatchers.Default) {
                     val tAsr0 = System.nanoTime()
-                    val rawSource =
+                    val asr =
                         runCatching { recognizer.transcribe(slice, lang) }
                             .getOrElse { t ->
                                 Log.e(TAG, "whisper failed session=$captureSid", t)
-                                ""
+                                AsrResult("")
                             }
+                    val rawSource = asr.text
                     val asrMs = (System.nanoTime() - tAsr0) / 1_000_000.0
                     if (!stillCurrent(captureSid)) {
                         Log.i(TAG, "dropStaleAsr session=$captureSid current=${sessionGen.get()}")
@@ -329,8 +366,18 @@ class LiveTranslatePipeline(
                         TAG,
                         "whisperMs=${"%.0f".format(asrMs)} audioSec=${"%.2f".format(audioSec)} " +
                             "rtf=${"%.2f".format(rtf)} resultAgeMs=$ageMs queueDepth=${snap.queueDepth} " +
-                            "hubDropped=${snap.droppedBuffers} session=$captureSid lang=$lang",
+                            "hubDropped=${snap.droppedBuffers} noSpeech=${"%.2f".format(asr.maxNoSpeechProb)} " +
+                            "session=$captureSid lang=$lang",
                     )
+
+                    if (asr.maxNoSpeechProb >= NO_SPEECH_PROB_REJECT) {
+                        Log.i(
+                            TAG,
+                            "skipNoSpeech session=$captureSid p=${"%.2f".format(asr.maxNoSpeechProb)} " +
+                                "text=\"${rawSource.take(48)}\"",
+                        )
+                        return@launch
+                    }
 
                     val silentSince = liveSilentSinceMs.get()
                     if (shouldDropForLiveSilence(windowEndWallMs, silentSince)) {
@@ -350,20 +397,22 @@ class LiveTranslatePipeline(
                         "dedupe session=$captureSid note=$dedupeNote rawChars=${rawSource.length} " +
                             "outChars=${source.length} collapsed=${source != deduped}",
                     )
-                    if (source.isBlank() || isNoiseOrEmpty(source) || isWeakSource(source)) {
+                    if (isHallucinatedLoop(rawSource, source)) {
+                        Log.i(
+                            TAG,
+                            "skipHallucLoop session=$captureSid rawChars=${rawSource.length} outChars=${source.length}",
+                        )
+                        return@launch
+                    }
+                    if (source.isBlank() || isNoiseOrEmpty(source) || isWeakSource(source) || isSfxLabel(source)) {
                         if (source.isNotBlank()) {
                             Log.i(
                                 TAG,
                                 "skipWeak session=$captureSid text=\"${source.take(48)}\" " +
-                                    "noise=${isNoiseOrEmpty(source)} weak=${isWeakSource(source)}",
+                                    "noise=${isNoiseOrEmpty(source)} weak=${isWeakSource(source)} " +
+                                    "sfx=${isSfxLabel(source)}",
                             )
                         }
-                        return@launch
-                    }
-
-                    // Re-check silence after dedupe — only if pause is long (not slow-speech gaps).
-                    if (shouldDropForLiveSilence(windowEndWallMs, liveSilentSinceMs.get())) {
-                        Log.i(TAG, "dropAfterSilencePreMt session=$captureSid")
                         return@launch
                     }
 
@@ -392,16 +441,13 @@ class LiveTranslatePipeline(
                     )
                     if (!stillCurrent(captureSid)) return@launch
 
-                    if (shouldDropForLiveSilence(windowEndWallMs, liveSilentSinceMs.get())) {
-                        Log.i(
-                            TAG,
-                            "dropAfterSilencePostMt session=$captureSid ageMs=$totalAgeMs",
-                        )
-                        return@launch
+                    val cleanEn = if (english.isNotBlank() && !isNoiseOrEmpty(english)) {
+                        collapseRepetitions(english)
+                    } else {
+                        ""
                     }
 
-                    if (english.isNotBlank() && !isNoiseOrEmpty(english)) {
-                        val cleanEn = collapseRepetitions(english)
+                    if (cleanEn.isNotBlank()) {
                         lastTranslatedSource = normalized
                         publishCaption(source, cleanEn, captureSid)
                     }
@@ -442,33 +488,95 @@ class LiveTranslatePipeline(
         private const val TAG = "LiveTranslate"
         val SUPPORTED_LANGS = setOf("es", "pt", "fr")
 
-        /** ~2 s Whisper window — shorter = less Shield lag. */
-        const val WINDOW_SAMPLES = PcmAudioNormalizer.TARGET_RATE * 2
+        /** ~2 s min audio window. */
+        const val WINDOW_MIN_SAMPLES = PcmAudioNormalizer.TARGET_RATE * 2
+        /** Dynamic max window ~2 s for fast Shield turnaround. */
+        const val WINDOW_MAX_SAMPLES = PcmAudioNormalizer.TARGET_RATE * 2
+        /**
+         * Hold up to ~6 s while Whisper runs (Vulkan ~0.5 s → small growth).
+         * Live-edge snap keeps captions on "now", not a deep FIFO.
+         */
+        const val MAX_ACCUMULATION_SAMPLES = PcmAudioNormalizer.TARGET_RATE * 6
+        /** Extra samples beyond window+overlap before liveEdgeSnap. */
+        const val LIVE_EDGE_PAD_SAMPLES = PcmAudioNormalizer.TARGET_RATE / 2
+        /** Log catch-up depth (should stay low with live-edge). */
+        const val CATCHUP_BUFFER_SEC = 4.0
+        /** Overlap window ~0.5 s. */
+        const val OVERLAP_SAMPLES = PcmAudioNormalizer.TARGET_RATE / 2
+        /** Poll this many hub chunks per loop tick before Whisper work. */
+        const val MAX_DRAIN_CHUNKS_PER_TICK = 48
+        /** Drop ASR when whisper says segment is mostly non-speech. */
+        const val NO_SPEECH_PROB_REJECT = 0.55f
+
+        /** Deprecated window constant alias. */
+        const val WINDOW_SAMPLES = WINDOW_MIN_SAMPLES
         /** Hop 1 s → 1 s overlap. */
         const val HOP_SAMPLES = PcmAudioNormalizer.TARGET_RATE * 1
         /** Must clear this bar to spend Whisper cycles. */
-        const val SPEECH_RMS_THRESHOLD = 0.014f
+        const val SPEECH_RMS_THRESHOLD = 0.008f
+        /** Peak 250ms frame energy threshold. */
+        const val SPEECH_PEAK_RMS_THRESHOLD = 0.012f
         /** Below this → live silence clock for clear / late-drop. */
-        const val LIVE_SILENCE_RMS_THRESHOLD = 0.010f
+        const val LIVE_SILENCE_RMS_THRESHOLD = 0.005f
         /** @deprecated alias. */
         const val VAD_RMS_THRESHOLD = SPEECH_RMS_THRESHOLD
         /** ~250 ms of newest audio for live silence tracking. */
         const val LIVE_VAD_SAMPLES = PcmAudioNormalizer.TARGET_RATE / 4
-        /**
-         * Clear on-screen caption only after a real pause — slow narrators
-         * leave gaps between sentences; 700ms was wiping everything.
-         */
+        /** Clear on-screen caption after real pause. */
         const val LIVE_SILENCE_CLEAR_MS = 2_200L
-        /**
-         * Drop a late ASR result only if live has been quiet this long.
-         * Shorter dips = breathing room while Whisper (~6s) finishes.
-         */
-        const val DROP_AFTER_SILENCE_HOLD_MS = 2_500L
-        /**
-         * Keep last caption up through a full Whisper cycle (~7s on Shield).
-         * Live silence clear still wipes when dialog really stops.
-         */
-        const val STALE_CAPTION_MS = 10_000L
+        /** Drop a late ASR result only if live has been quiet this long. */
+        const val DROP_AFTER_SILENCE_HOLD_MS = 10_000L
+        /** Keep last caption up for 4.5s max so lines do not linger. */
+        const val STALE_CAPTION_MS = 4_500L
+
+        /** O(n) once — never [repeat] [removeAt](0) on large PCM buffers. */
+        fun dropFront(buffer: ArrayList<Float>, n: Int) {
+            if (n <= 0) return
+            if (n >= buffer.size) {
+                buffer.clear()
+                return
+            }
+            buffer.subList(0, n).clear()
+        }
+
+        /** Tiny looped Whisper garbage: huge raw → tiny collapsed. */
+        fun isHallucinatedLoop(raw: String, collapsed: String): Boolean {
+            if (raw.length < 80) return false
+            if (collapsed.length >= 24) return false
+            return collapsed.length * 8 <= raw.length
+        }
+
+        /** Bracket/paren SFX labels Whisper invents: (risos), [campainha], ♪… */
+        fun isSfxLabel(text: String): Boolean {
+            val t = text.trim()
+            if (t.isEmpty()) return true
+            if (BRACKET_ONLY.matches(t)) return true
+            val lower = normalizeForMt(t)
+            if (SFX_TOKENS.any { lower == it || lower.contains(it) }) return true
+            return false
+        }
+
+        private val BRACKET_ONLY =
+            Regex("""^[\[(【（].+[\]】）)]$""")
+
+        private val SFX_TOKENS =
+            setOf(
+                "risos",
+                "risas",
+                "rire",
+                "rires",
+                "laughter",
+                "laughing",
+                "campainha",
+                "timbre",
+                "doorbell",
+                "aplausos",
+                "applaudissements",
+                "applause",
+                "inaudible",
+                "inaudível",
+                "music playing",
+            )
 
         /**
          * True when live energy has been below the silence floor long enough
@@ -486,6 +594,25 @@ class LiveTranslatePipeline(
             var sum = 0.0
             for (s in samples) sum += (s * s).toDouble()
             return sqrt(sum / samples.size).toFloat()
+        }
+
+        fun maxFrameRms(samples: FloatArray, frameSize: Int): Float {
+            if (samples.isEmpty()) return 0f
+            var maxRms = 0f
+            var i = 0
+            while (i < samples.size) {
+                val end = minOf(i + frameSize, samples.size)
+                val len = end - i
+                var sum = 0.0
+                for (j in i until end) {
+                    val s = samples[j]
+                    sum += (s * s).toDouble()
+                }
+                val r = sqrt(sum / len).toFloat()
+                if (r > maxRms) maxRms = r
+                i += frameSize
+            }
+            return maxRms
         }
 
         fun rmsTail(buffer: List<Float>, maxSamples: Int): Float {
@@ -510,18 +637,21 @@ class LiveTranslatePipeline(
         fun isWeakSource(text: String): Boolean {
             val t = text.trim()
             if (t.isEmpty()) return true
-            val letters = t.count { it.isLetter() }
-            // Allow short talk ("é isso.") — block single crumbs ("a").
-            if (letters < 5) return true
             val words = t.split(Regex("\\s+")).filter { w -> w.any { it.isLetter() } }
             if (words.isEmpty()) return true
+            val letterCount = t.count { it.isLetter() }
+            // Crumbs like "Não," — need substance. Allow short punchy "Sim!" / "Não?"
+            val punchy = t.endsWith("!") || t.endsWith("?")
+            if (letterCount < 3) return true
+            if (!punchy && letterCount < 4) return true
+            if (words.size == 1 && !punchy && letterCount < 6) return true
             val stripped =
                 normalizeForMt(t)
                     .replace("...", "")
                     .replace("…", "")
                     .replace(Regex("""[^a-zà-ÿ0-9\s]"""), "")
                     .trim()
-            if (stripped.length < 4) return true
+            if (stripped.isEmpty()) return true
             return false
         }
 
@@ -557,35 +687,53 @@ class LiveTranslatePipeline(
             }
 
             // Consecutive duplicate words: "oui oui oui" → "oui"
-            val words = t.split(Regex("\\s+")).filter { it.isNotEmpty() }
-            if (words.isNotEmpty()) {
+            var tokens = t.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            if (tokens.isNotEmpty()) {
                 val out = ArrayList<String>()
-                for (w in words) {
+                for (w in tokens) {
                     if (out.isEmpty() || !out.last().equals(w, ignoreCase = true)) out.add(w)
                 }
-                t = out.joinToString(" ")
+                tokens = out
+                t = tokens.joinToString(" ")
             }
 
-            // Whole-string n-gram loop: (phrase)×N
-            val tokens = t.split(Regex("\\s+")).filter { it.isNotEmpty() }
-            for (n in 1..minOf(8, tokens.size / 2)) {
-                if (tokens.size < n * 2) continue
-                val pattern = tokens.take(n)
-                var i = 0
-                var reps = 0
-                while (i + n <= tokens.size) {
-                    val slice = tokens.subList(i, i + n)
-                    val same =
-                        slice.indices.all { idx ->
-                            slice[idx].equals(pattern[idx], ignoreCase = true)
+            // N-gram phrase loop collapse (lengths 1..8) anywhere in sequence
+            if (tokens.size >= 2) {
+                var changed = true
+                var passCount = 0
+                while (changed && passCount < 4) {
+                    changed = false
+                    passCount++
+                    val maxN = minOf(8, tokens.size / 2)
+                    for (n in 1..maxN) {
+                        var i = 0
+                        val newTokens = ArrayList<String>()
+                        while (i < tokens.size) {
+                            if (i + 2 * n <= tokens.size) {
+                                val p1 = tokens.subList(i, i + n)
+                                val p2 = tokens.subList(i + n, i + 2 * n)
+                                val p1Norm = p1.map { normalizeForMt(it.trimEnd('!', '?', '.', ',', ';', ':')) }
+                                val p2Norm = p2.map { normalizeForMt(it.trimEnd('!', '?', '.', ',', ';', ':')) }
+                                if (p1Norm == p2Norm) {
+                                    newTokens.addAll(p1)
+                                    i += 2 * n
+                                    while (i + n <= tokens.size) {
+                                        val pNext = tokens.subList(i, i + n).map { normalizeForMt(it.trimEnd('!', '?', '.', ',', ';', ':')) }
+                                        if (pNext == p1Norm) i += n else break
+                                    }
+                                    changed = true
+                                    continue
+                                }
+                            }
+                            newTokens.add(tokens[i])
+                            i++
                         }
-                    if (!same) break
-                    reps++
-                    i += n
-                }
-                if (reps >= 2 && i == tokens.size) {
-                    t = pattern.joinToString(" ")
-                    break
+                        if (changed) {
+                            tokens = newTokens
+                            t = tokens.joinToString(" ")
+                            break
+                        }
+                    }
                 }
             }
 
@@ -598,17 +746,31 @@ class LiveTranslatePipeline(
         fun isNoiseOrEmpty(text: String): Boolean {
             val t = text.trim()
             if (t.length <= 1) return true
+            if (isSfxLabel(t)) return true
             val lower = normalizeForMt(t)
                 .replace(Regex("""^\[+|\]+$"""), "")
                 .replace(Regex("""^\(+|\)+$"""), "")
                 .trim()
             if (lower in SILENCE_TOKENS) return true
+            if (SILENCE_PATTERNS.any { lower.contains(it) }) return true
             if (MUSIC_ONLY.matches(lower)) return true
             return false
         }
 
         private val MUSIC_ONLY =
             Regex("""^(♪+|music|música|musica|musique)(\s+playing)?$""", RegexOption.IGNORE_CASE)
+
+        private val SILENCE_PATTERNS =
+            listOf(
+                "amara.org",
+                "opensubtitles",
+                "sous-titres réalisés par",
+                "subtítulos por amara",
+                "legendas por amara",
+                "subtitles by",
+                "translated by",
+                "transcription by",
+            )
 
         private val SILENCE_TOKENS =
             setOf(
