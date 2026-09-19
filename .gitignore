@@ -1,21 +1,6 @@
-*.iml
-.gradle/
-local.properties
-local/
-.idea/
-.DS_Store
-build/
-captures/
-.externalNativeBuild
-.cxx
-*.apk
-*.aab
-.remember/
-
-# Generated / local-only artifacts
 graphify-out/
-.kotlin/
 tools/live-caption-server/.venv/
 __pycache__/
 lrhq-roku.zip
+third_party/
 lrhq_reinstall_notes.md

@@ -79,10 +79,12 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.core.ui.theme.hqAccent
+import com.livingroomhq.translate.LiveTranslatePipeline
 import com.livingroomhq.translate.LiveCaptionClient
 import com.livingroomhq.player.CaptionOverlay
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -93,6 +95,7 @@ private const val INFO_OVERLAY_DURATION_MS = 4_000L
 private const val WATCH_DEBOUNCE_MS = 5_000L
 private const val CAPTION_POLL_MS = 500L
 private const val CAPTION_POLL_MAX_FAILURES = 6
+private val OFFLINE_CAPTION_LANGS = listOf("es", "pt", "fr")
 
 class ChannelPlayerActivity : ComponentActivity() {
 
@@ -211,10 +214,61 @@ private fun ChannelPlayerScreen(
         settingsCaptionToken?.takeIf { it.isNotBlank() }
             ?: BuildConfig.CAPTION_SERVER_TOKEN.takeIf { it.isNotBlank() }
     }
-    val captionsAvailable = !captionBaseUrl.isNullOrBlank()
+    // Offline Whisper → ML Kit English captions.
+    val captionsAvailable = true
     var captionsEnabled by remember { mutableStateOf(false) }
+    var sourceLang by remember { mutableStateOf("es") }
     var captionText by remember { mutableStateOf<String?>(null) }
     var captionStatus by remember { mutableStateOf<String?>(null) }
+    val translatePipeline = remember { LiveTranslatePipeline(context) }
+    val englishCaption by translatePipeline.englishCaption.collectAsState()
+    val offlineStatus by translatePipeline.status.collectAsState()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            translatePipeline.stop()
+            engine.applyCaptionAudioMode(false)
+        }
+    }
+
+    // Start/stop pipeline + PCM-force only with CC toggle (not every channel zap).
+    LaunchedEffect(captionsEnabled) {
+        captionText = null
+        if (!captionsEnabled) {
+            translatePipeline.stop()
+            engine.applyCaptionAudioMode(false)
+            captionStatus = null
+            return@LaunchedEffect
+        }
+        translatePipeline.setSourceLanguage(sourceLang)
+        translatePipeline.onChannelChanged(currentChannel.id)
+        engine.applyCaptionAudioMode(true)
+        translatePipeline.start(app.appScope)
+        try {
+            awaitCancellation()
+        } finally {
+            translatePipeline.stop()
+            engine.applyCaptionAudioMode(false)
+        }
+    }
+
+    LaunchedEffect(currentChannel.id) {
+        if (!captionsEnabled) return@LaunchedEffect
+        captionText = null
+        translatePipeline.onChannelChanged(currentChannel.id)
+    }
+
+    LaunchedEffect(sourceLang) {
+        if (!captionsEnabled) return@LaunchedEffect
+        captionText = null
+        translatePipeline.setSourceLanguage(sourceLang)
+    }
+
+    LaunchedEffect(englishCaption, offlineStatus, captionsEnabled) {
+        if (!captionsEnabled) return@LaunchedEffect
+        captionText = englishCaption
+        captionStatus = offlineStatus
+    }
 
     val allChannels by app.channels.channels.collectAsState(initial = emptyList())
     val channelsList = remember(allChannels, currentChannel) {
@@ -264,53 +318,10 @@ private fun ChannelPlayerScreen(
     }
 
     LaunchedEffect(currentChannel.id, captionBaseUrl, captionToken, captionsEnabled) {
-        captionText = null
-        captionStatus = null
-        if (!captionsEnabled || captionBaseUrl.isNullOrBlank()) return@LaunchedEffect
-
-        val client = LiveCaptionClient(captionBaseUrl, captionToken)
-        if (!client.isConfigured) return@LaunchedEffect
-
-        var sessionId: String? = null
-        try {
-            captionStatus = "Starting captions..."
-            val session = client.startSession(
-                channelId = currentChannel.id,
-                channelName = currentChannel.name,
-                streamUrl = currentChannel.streamUrl,
-            )
-            sessionId = session.id
-            captionStatus = "Captions active"
-            var sinceSeq = 0L
-            var consecutiveFailures = 0
-            while (true) {
-                try {
-                    val snapshot = client.fetchSnapshot(session.id, sinceSeq)
-                    consecutiveFailures = 0
-                    sinceSeq = snapshot.cues.maxOfOrNull { it.seq } ?: sinceSeq
-                    val position = engine.player.currentPosition
-                    val activeCue = snapshot.cues.lastOrNull { position in it.startMs..it.endMs }
-                    captionText = activeCue?.text ?: snapshot.activeText
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    // Ride out transient poll failures instead of killing captions.
-                    if (++consecutiveFailures >= CAPTION_POLL_MAX_FAILURES) throw e
-                }
-                delay(CAPTION_POLL_MS)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            captionStatus = e.localizedMessage ?: "Captions unavailable"
-        } finally {
-            // This effect only ends via cancellation (zap/back/toggle), and a
-            // cancelled coroutine won't run a plain suspend call — shield the
-            // DELETE or the server session leaks and transcribes forever.
-            sessionId?.let { id ->
-                withContext(NonCancellable) { runCatching { client.stopSession(id) } }
-            }
-        }
+        // Cloud captions disabled while M2 offline ASR owns the CC toggle.
+        if (captionsEnabled) return@LaunchedEffect
+        if (captionBaseUrl.isNullOrBlank()) return@LaunchedEffect
+        // Keep cloud client path for later dual-mode; unused while offline CC is on.
     }
 
     DisposableEffect(engine) {
@@ -544,40 +555,82 @@ private fun ChannelPlayerScreen(
 
         if (playbackError == null && captionsAvailable) {
             var ccFocused by remember { mutableStateOf(false) }
-            Box(
+            var langFocused by remember { mutableStateOf(false) }
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(24.dp)
-                    .onFocusChanged { ccFocused = it.isFocused }
-                    .clip(RoundedCornerShape(HqDimens.CornerSm))
-                    .background(
-                        when {
-                            captionsEnabled -> accent.copy(alpha = 0.9f)
-                            ccFocused -> HqColors.Track
-                            else -> HqColors.Scrim
-                        },
-                    )
-                    .border(
-                        width = if (ccFocused) 2.dp else 0.dp,
-                        color = if (ccFocused) accent else Color.Transparent,
-                        shape = RoundedCornerShape(HqDimens.CornerSm),
-                    )
-                    .clickable { captionsEnabled = !captionsEnabled }
-                    .focusable()
-                    .padding(12.dp),
+                    .align(Alignment.TopStart)
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = if (captionsEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
-                    contentDescription = if (captionsEnabled) "Disable captions" else "Enable captions",
-                    tint = if (captionsEnabled) HqColors.OnAccent else HqColors.TextPrimary,
-                    modifier = Modifier.size(28.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .onFocusChanged { ccFocused = it.isFocused }
+                        .clip(RoundedCornerShape(HqDimens.CornerSm))
+                        .background(
+                            when {
+                                captionsEnabled -> accent.copy(alpha = 0.9f)
+                                ccFocused -> HqColors.Track
+                                else -> HqColors.Scrim
+                            },
+                        )
+                        .border(
+                            width = if (ccFocused) 2.dp else 0.dp,
+                            color = if (ccFocused) accent else Color.Transparent,
+                            shape = RoundedCornerShape(HqDimens.CornerSm),
+                        )
+                        .clickable { captionsEnabled = !captionsEnabled }
+                        .focusable()
+                        .padding(12.dp),
+                ) {
+                    Icon(
+                        imageVector = if (captionsEnabled) Icons.Default.ClosedCaption else Icons.Default.ClosedCaptionDisabled,
+                        contentDescription = if (captionsEnabled) "Disable captions" else "Enable captions",
+                        tint = if (captionsEnabled) HqColors.OnAccent else HqColors.TextPrimary,
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .onFocusChanged { langFocused = it.isFocused }
+                        .clip(RoundedCornerShape(HqDimens.CornerSm))
+                        .background(
+                            when {
+                                langFocused -> HqColors.Track
+                                else -> HqColors.Scrim
+                            },
+                        )
+                        .border(
+                            width = if (langFocused) 2.dp else 0.dp,
+                            color = if (langFocused) accent else Color.Transparent,
+                            shape = RoundedCornerShape(HqDimens.CornerSm),
+                        )
+                        .clickable {
+                            val idx = OFFLINE_CAPTION_LANGS.indexOf(sourceLang).coerceAtLeast(0)
+                            sourceLang = OFFLINE_CAPTION_LANGS[(idx + 1) % OFFLINE_CAPTION_LANGS.size]
+                        }
+                        .focusable()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    Text(
+                        text = sourceLang.uppercase(),
+                        style = HqType.Label.copy(
+                            color = when {
+                                offlineStatus?.contains("Download", ignoreCase = true) == true ||
+                                    offlineStatus?.contains("Preparing", ignoreCase = true) == true ||
+                                    offlineStatus?.contains("Switching", ignoreCase = true) == true ->
+                                    accent
+                                else -> HqColors.TextPrimary
+                            },
+                        ),
+                    )
+                }
             }
             captionStatus?.let { status ->
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 84.dp, end = 24.dp)
+                        .align(Alignment.TopStart)
+                        .padding(top = 84.dp, start = 24.dp)
                         .clip(RoundedCornerShape(HqDimens.CornerSm))
                         .background(HqColors.Scrim)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
