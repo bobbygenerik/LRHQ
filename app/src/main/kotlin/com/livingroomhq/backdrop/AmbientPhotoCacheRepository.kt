@@ -321,26 +321,31 @@ class AmbientPhotoCacheRepository(
         return Bitmap.createScaledBitmap(this, (width * scale).roundToInt(), (height * scale).roundToInt(), true)
     }
 
-    private fun extractUrls(rawText: String): List<String> {
-        val trimmed = rawText.trim()
-        val urls = LinkedHashSet<String>()
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-            runCatching { collectJsonUrls(JSONTokenerCompat.parse(trimmed), urls) }
-        }
-        Regex("""https?://[^\s"',\]}]+""")
-            .findAll(rawText)
-            .mapTo(urls) { it.value }
-        return urls.toList()
-    }
+}
 
-    private fun collectJsonUrls(value: Any?, urls: MutableSet<String>) {
-        when (value) {
-            is JSONObject -> {
-                value.optString("baseUrl").takeIf { it.startsWith("http") }?.let { urls += it }
-                value.keys().forEach { key -> collectJsonUrls(value.opt(key), urls) }
-            }
-            is JSONArray -> repeat(value.length()) { index -> collectJsonUrls(value.opt(index), urls) }
+// Reusable pre-compiled Regex instances to avoid re-compiling regular expressions on every URL extraction or formatting call.
+private val URL_REGEX = Regex("""https?://[^\s"',\]}]+""")
+private val GOOGLE_PHOTO_WIDTH_PARAM_REGEX = Regex("""[=?-]w\d+""")
+
+internal fun extractUrls(rawText: String): List<String> {
+    val trimmed = rawText.trim()
+    val urls = LinkedHashSet<String>()
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        runCatching { collectJsonUrls(JSONTokenerCompat.parse(trimmed), urls) }
+    }
+    URL_REGEX
+        .findAll(rawText)
+        .mapTo(urls) { it.value }
+    return urls.toList()
+}
+
+private fun collectJsonUrls(value: Any?, urls: MutableSet<String>) {
+    when (value) {
+        is JSONObject -> {
+            value.optString("baseUrl").takeIf { it.startsWith("http") }?.let { urls += it }
+            value.keys().forEach { key -> collectJsonUrls(value.opt(key), urls) }
         }
+        is JSONArray -> repeat(value.length()) { index -> collectJsonUrls(value.opt(index), urls) }
     }
 }
 
@@ -349,9 +354,9 @@ private object JSONTokenerCompat {
         if (raw.trimStart().startsWith("[")) JSONArray(raw) else JSONObject(raw)
 }
 
-private fun String.toGoogleDisplayUrl(): String {
+internal fun String.toGoogleDisplayUrl(): String {
     if (!contains("googleusercontent.com")) return this
-    if (Regex("""[=?-]w\d+""").containsMatchIn(this) || endsWith("=d")) return this
+    if (GOOGLE_PHOTO_WIDTH_PARAM_REGEX.containsMatchIn(this) || endsWith("=d")) return this
     return "$this=w1920-h1080"
 }
 
