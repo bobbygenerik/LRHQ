@@ -396,8 +396,12 @@ class GooglePhotosPickerClient(
 private fun String.urlEncode(): String =
     URLEncoder.encode(this, StandardCharsets.UTF_8.name())
 
-private fun String.durationSeconds(): Long =
-    removeSuffix("s").toDoubleOrNull()?.toLong() ?: 5L
+/**
+ * Parses Google API Protobuf Duration strings (e.g., "3.5s", "10s") into seconds.
+ * Trims whitespace before removing the 's' suffix and parsing to Double/Long safely.
+ */
+internal fun String.durationSeconds(): Long =
+    trim().removeSuffix("s").toDoubleOrNull()?.toLong() ?: 5L
 
 private const val DEVICE_FLOW_SCOPE = "profile"
 private const val PICKER_SCOPE = "photospicker.mediaitems.readonly"
