@@ -30,7 +30,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="false"
         android:theme="@style/Theme.LivingRoomHQ">
         <!-- Cleartext is a product requirement: users supply arbitrary IPTV
              playlist/EPG URLs, many of which are plain http. Do not remove. -->
