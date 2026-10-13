@@ -98,6 +98,7 @@ class SystemMonitor(
     private fun storageTotal() = dataStat().let { it.blockCountLong * it.blockSizeLong }
     private fun storageUsed() = dataStat().let { (it.blockCountLong - it.availableBlocksLong) * it.blockSizeLong }
 
+    @Suppress("MissingPermission")
     private fun isVpnActive(): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false

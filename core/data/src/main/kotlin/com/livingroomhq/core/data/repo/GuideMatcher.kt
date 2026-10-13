@@ -101,6 +101,11 @@ object GuideMatcher {
     }
 }
 
+// Pre-compiled regex instances to avoid expensive repeated pattern compilation in tight string processing during channel matching.
+private val NON_ALPHANUMERIC_REGEX = Regex("[^A-Za-z0-9]+")
+private val QUALITY_AND_REGION_TAGS_REGEX = Regex("\\b(hd|fhd|uhd|sd|us|usa)\\b")
+private val NON_LOWERCASE_ALPHANUMERIC_REGEX = Regex("[^a-z0-9]+")
+
 internal fun String.guideMatchKeys(): Set<String> {
     val stripped = substringBefore('@')
     return buildSet {
@@ -113,7 +118,7 @@ internal fun String.guideMatchKeys(): Set<String> {
 
 internal fun String.normalizedGuideKeys(): Set<String> {
     val full = normalizedGuideKey()
-    val tokens = split(Regex("[^A-Za-z0-9]+"))
+    val tokens = split(NON_ALPHANUMERIC_REGEX)
         .map { it.normalizedGuideKey() }
         .filter { it.length >= 3 }
     return (listOf(full) + tokens).filterTo(mutableSetOf()) { it.isNotEmpty() }
@@ -121,8 +126,8 @@ internal fun String.normalizedGuideKeys(): Set<String> {
 
 internal fun String.normalizedGuideKey(): String =
     lowercase()
-        .replace(Regex("\\b(hd|fhd|uhd|sd|us|usa)\\b"), " ")
-        .replace(Regex("[^a-z0-9]+"), "")
+        .replace(QUALITY_AND_REGION_TAGS_REGEX, " ")
+        .replace(NON_LOWERCASE_ALPHANUMERIC_REGEX, "")
 
 internal fun String.matchesAnyAlias(aliases: Set<String>): Boolean =
     isNotEmpty() && aliases.any { alias ->
