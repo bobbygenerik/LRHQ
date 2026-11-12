@@ -4,43 +4,69 @@ import android.os.Build
 import android.util.Log
 import com.livingroomhq.translate.AsrResult
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "WhisperLib"
 
 internal class WhisperContext private constructor(private var ptr: Long) {
+    private val released = AtomicBoolean(false)
     private val scope =
         Executors.newSingleThreadExecutor { r ->
             Thread(r, "whisper-infer").apply { isDaemon = true }
         }.asCoroutineDispatcher()
 
-    suspend fun transcribe(data: FloatArray, languageCode: String): AsrResult =
+    suspend fun transcribe(
+        data: FloatArray,
+        languageCode: String,
+        translateToEnglish: Boolean = true,
+        prompt: String? = null,
+    ): AsrResult =
         withContext(scope) {
             require(ptr != 0L)
             val threads = preferredThreadCount()
-            WhisperLib.fullTranscribe(ptr, threads, data, languageCode)
+            WhisperLib.fullTranscribe(ptr, threads, data, languageCode, translateToEnglish, prompt)
             val count = WhisperLib.getTextSegmentCount(ptr)
             var maxNoSpeech = 0f
+            val segments = ArrayList<com.livingroomhq.translate.AsrSegment>(count)
             val text =
                 buildString {
                     for (i in 0 until count) {
-                        maxNoSpeech =
-                            maxOf(maxNoSpeech, WhisperLib.getSegmentNoSpeechProb(ptr, i))
-                        append(WhisperLib.getTextSegment(ptr, i))
+                        val segText = WhisperLib.getTextSegment(ptr, i)
+                        val noSpeech = WhisperLib.getSegmentNoSpeechProb(ptr, i)
+                        val t0 = WhisperLib.getTextSegmentT0(ptr, i)
+                        val t1 = WhisperLib.getTextSegmentT1(ptr, i)
+                        maxNoSpeech = maxOf(maxNoSpeech, noSpeech)
+                        segments.add(
+                            com.livingroomhq.translate.AsrSegment(
+                                text = segText,
+                                t0Centiseconds = t0,
+                                t1Centiseconds = t1,
+                                noSpeechProb = noSpeech,
+                            )
+                        )
+                        append(segText)
                     }
                 }.trim()
-            AsrResult(text = text, maxNoSpeechProb = maxNoSpeech)
+            AsrResult(text = text, maxNoSpeechProb = maxNoSpeech, segments = segments)
         }
 
-    suspend fun release() =
-        withContext(scope) {
-            if (ptr != 0L) {
-                WhisperLib.freeContext(ptr)
-                ptr = 0L
+    suspend fun release() {
+        if (!released.compareAndSet(false, true)) return
+        try {
+            withContext(NonCancellable + scope) {
+                if (ptr != 0L) {
+                    WhisperLib.freeContext(ptr)
+                    ptr = 0L
+                }
             }
+        } finally {
+            scope.close()
         }
+    }
 
     companion object {
         fun create(modelPath: String): WhisperContext {
@@ -81,13 +107,16 @@ internal class WhisperLib {
             numThreads: Int,
             audioData: FloatArray,
             language: String,
+            translate: Boolean,
+            prompt: String?,
         )
         external fun getTextSegmentCount(contextPtr: Long): Int
         external fun getTextSegment(contextPtr: Long, index: Int): String
         external fun getSegmentNoSpeechProb(contextPtr: Long, index: Int): Float
+        external fun getTextSegmentT0(contextPtr: Long, index: Int): Long
+        external fun getTextSegmentT1(contextPtr: Long, index: Int): Long
     }
 }
 
 internal fun android.content.Context.whisperModelFile(): File =
-    File(filesDir, "whisper/ggml-base-q5_1.bin")
-
+    File(filesDir, "whisper/ggml-small-q5_1.bin")

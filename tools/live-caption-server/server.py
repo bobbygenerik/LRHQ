@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+import hmac
 import json
+import os
 import queue
 import shutil
 import signal
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -140,10 +143,20 @@ class CaptionServer:
                 self.model_error = str(exc)
                 return None
 
-    def create_session(self, payload: dict) -> CaptionSession:
-        stream_url = payload.get("streamUrl", "").strip()
+    @staticmethod
+    def validate_stream_url(raw_url: str) -> str:
+        stream_url = raw_url.strip()
         if not stream_url:
             raise ValueError("streamUrl is required")
+        if stream_url.startswith("-"):
+            raise ValueError("invalid streamUrl")
+        parsed = urlparse(stream_url)
+        if parsed.scheme.lower() not in ("http", "https") or not parsed.netloc:
+            raise ValueError("streamUrl must be an http:// or https:// URL")
+        return stream_url
+
+    def create_session(self, payload: dict) -> CaptionSession:
+        stream_url = self.validate_stream_url(payload.get("streamUrl", ""))
         session = CaptionSession(
             id=str(uuid.uuid4()),
             stream_url=stream_url,
@@ -206,9 +219,12 @@ class CaptionServer:
         chunk_bytes = self.args.chunk_seconds * SAMPLE_RATE * BYTES_PER_SAMPLE
         command = [
             "ffmpeg",
+            "-nostdin",
             "-hide_banner",
             "-loglevel",
             "warning",
+            "-protocol_whitelist",
+            "http,https,tcp,tls,crypto,udp,rtp",
             "-i",
             session.stream_url,
             "-vn",
@@ -264,11 +280,16 @@ class CaptionServer:
 
             if session.process.poll() not in (None, 0) and not session.error:
                 detail = "; ".join(stderr_tail)
-                session.error = f"ffmpeg exited ({session.process.returncode})" + (
-                    f": {detail}" if detail else ""
-                )
+                if detail and not self.args.quiet:
+                    print(
+                        f"session {session.id[:8]} ffmpeg exited ({session.process.returncode}): {detail}",
+                        file=sys.stderr,
+                    )
+                session.error = f"ffmpeg exited ({session.process.returncode})"
         except Exception as exc:
-            session.error = str(exc)
+            if not self.args.quiet:
+                print(f"session {session.id[:8]} error: {exc}", file=sys.stderr)
+            session.error = "transcription session error"
         finally:
             session.stop()
 
@@ -336,7 +357,8 @@ def build_handler(server_state: CaptionServer):
             if not token:
                 return True
             header = self.headers.get("Authorization", "")
-            return header == f"Bearer {token}"
+            expected = f"Bearer {token}"
+            return hmac.compare_digest(header.encode("utf-8"), expected.encode("utf-8"))
 
         def require_auth(self) -> bool:
             if self.authorized():
@@ -403,11 +425,16 @@ def build_handler(server_state: CaptionServer):
                 length = int(self.headers.get("Content-Length", "0"))
             except ValueError:
                 raise ValueError("invalid Content-Length")
+            if length < 0 or length > 65_536:
+                raise ValueError("request body too large")
             data = self.rfile.read(length).decode("utf-8", errors="replace")
             try:
-                return json.loads(data or "{}")
+                payload = json.loads(data or "{}")
             except json.JSONDecodeError as exc:
                 raise ValueError(f"invalid JSON body: {exc}")
+            if not isinstance(payload, dict):
+                raise ValueError("JSON body must be an object")
+            return payload
 
         def send_json(self, payload: dict, status: int = 200) -> None:
             body = json.dumps(payload).encode("utf-8")
@@ -442,9 +469,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--token",
-        default="",
-        help="Shared secret; when set, requests must send 'Authorization: Bearer <token>' "
-        "(configure the same token in LRHQ Settings). /health stays open.",
+        default=os.environ.get("CAPTION_SERVER_TOKEN", ""),
+        help="Shared secret (or set CAPTION_SERVER_TOKEN); when set, requests must send "
+        "'Authorization: Bearer <token>' (configure the same token in LRHQ Settings). /health stays open.",
     )
     parser.add_argument("--quiet", action="store_true")
     return parser.parse_args()
@@ -452,6 +479,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if args.host not in ("127.0.0.1", "localhost", "::1") and not args.token:
+        print(
+            "WARNING: binding to non-loopback interface without --token / CAPTION_SERVER_TOKEN. "
+            "Pass --token <secret> to prevent unauthorized LAN access.",
+            file=sys.stderr,
+        )
     state = CaptionServer(args)
     httpd = ThreadingHTTPServer((args.host, args.port), build_handler(state))
 

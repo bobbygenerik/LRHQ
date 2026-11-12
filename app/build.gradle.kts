@@ -33,6 +33,15 @@ val captionServerToken: String = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }.getProperty("caption.serverToken", "")
+val groqApiKey: String = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}.let { props ->
+    props.getProperty("groq.apiKey")
+        ?: props.getProperty("groq.api.key")
+        ?: System.getenv("GROQ_API_KEY")
+        ?: ""
+}
 val releaseSigningProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -41,6 +50,7 @@ val releaseSigningProps = Properties().apply {
 android {
     namespace = "com.livingroomhq"
     compileSdk = 35
+    ndkVersion = "29.0.13113456"
 
     defaultConfig {
         applicationId = "com.livingroomhq"
@@ -53,8 +63,11 @@ android {
         buildConfigField("String", "GOOGLE_PHOTOS_CLIENT_ID", "\"$googlePhotosClientId\"")
         buildConfigField("String", "CAPTION_SERVER_URL", "\"$captionServerUrl\"")
         buildConfigField("String", "CAPTION_SERVER_TOKEN", "\"$captionServerToken\"")
+        buildConfigField("String", "GROQ_API_KEY", "\"$groqApiKey\"")
         // M1 PCM tap PoC WAV writer. Off by default; ASR pipeline owns capture now.
         buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
+        // Opt-in local evidence for subtitle accuracy checks; never uploads audio.
+        buildConfigField("boolean", "CAPTION_DIAGNOSTICS", providers.gradleProperty("captionDiagnostics").orNull?.toBooleanStrictOrNull()?.toString() ?: "false")
 
         ndk {
             abiFilters += listOf("arm64-v8a")
@@ -117,7 +130,11 @@ android {
             initWith(getByName("release"))
             isMinifyEnabled = false
             isShrinkResources = false
-            signingConfig = signingConfigs.getByName("projectDebug")
+            signingConfig = if (signingConfigs.getByName("release").storeFile?.exists() == true) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("projectDebug")
+            }
             matchingFallbacks.add("release")
             buildConfigField("boolean", "PCM_CAPTURE_POC", "false")
         }
@@ -128,6 +145,12 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -136,6 +159,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+composeCompiler {
+    stabilityConfigurationFile.set(rootProject.layout.projectDirectory.file("compose_stability.conf"))
 }
 
 dependencies {
@@ -169,4 +196,5 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.json:json:20240303")
 }

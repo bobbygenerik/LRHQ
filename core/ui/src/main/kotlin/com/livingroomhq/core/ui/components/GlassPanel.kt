@@ -5,8 +5,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,10 +16,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,20 @@ import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqMotion
 import com.livingroomhq.core.ui.theme.rememberReducedMotion
+
+private val GlassSheenGradient = Brush.verticalGradient(
+    0f to HqColors.GlassSheenTop,
+    0.25f to Color.Transparent,
+    1f to HqColors.GlassVignette,
+)
+
+private val SheenSweepColors = listOf(
+    Color.Transparent,
+    Color.White.copy(alpha = 0.08f),
+    Color.White.copy(alpha = 0.22f),
+    Color.White.copy(alpha = 0.08f),
+    Color.Transparent,
+)
 
 /**
  * Frosted glass panel — the base surface of every card and pane in the
@@ -50,78 +66,92 @@ fun GlassPanel(
     sheenOnFocus: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(cornerRadius)
+    val shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
     val reducedMotion = rememberReducedMotion()
 
-    val fill by animateColorAsState(
+    val fillState = animateColorAsState(
         targetValue = if (focused) HqColors.GlassFillFocused else HqColors.GlassFill,
         animationSpec = HqMotion.colorFast(),
         label = "glassFill",
     )
-    val stroke by animateColorAsState(
+    val strokeState = animateColorAsState(
         targetValue = if (focused) HqColors.GlassStrokeFocused else HqColors.GlassStroke,
         animationSpec = HqMotion.colorFast(),
         label = "glassStroke",
     )
-    val scale by animateFloatAsState(
+    val scaleState = animateFloatAsState(
         targetValue = if (focused && !reducedMotion) HqMotion.FocusScale else 1f,
         animationSpec = HqMotion.focusSpring(),
         label = "glassScale",
     )
 
-    val sheenProgress = remember { Animatable(0f) }
-    LaunchedEffect(focused, sheenOnFocus, reducedMotion) {
-        if (focused && sheenOnFocus && !reducedMotion) {
-            sheenProgress.snapTo(0f)
-            sheenProgress.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 650, easing = LinearEasing)
-            )
-        } else {
-            sheenProgress.snapTo(0f)
+    val sheenProgress = if (sheenOnFocus) {
+        remember { Animatable(0f) }.also { anim ->
+            LaunchedEffect(focused, reducedMotion) {
+                if (focused && !reducedMotion) {
+                    anim.snapTo(0f)
+                    anim.animateTo(
+                        targetValue = 1f,
+                        animationSpec = tween(durationMillis = 650, easing = LinearEasing),
+                    )
+                } else {
+                    anim.snapTo(0f)
+                }
+            }
         }
+    } else {
+        null
     }
 
     Box(
         modifier = modifier
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+                val s = scaleState.value
+                scaleX = s
+                scaleY = s
             }
             .clip(shape)
-            .background(fill)
-            .background(
-                Brush.verticalGradient(
-                    0f to HqColors.GlassSheenTop,
-                    0.25f to Color.Transparent,
-                    1f to HqColors.GlassVignette,
-                )
-            )
-            .border(1.dp, stroke, shape)
-            .drawWithContent {
-                drawContent()
-                if (focused && sheenProgress.value > 0f && sheenProgress.value < 1f) {
-                    val width = size.width
-                    val height = size.height
-                    val progress = sheenProgress.value
-
-                    val sheenWidth = (width * 0.4f).coerceAtLeast(80.dp.toPx())
-                    val xOffset = -sheenWidth + (width + 2 * sheenWidth) * progress
-
-                    val brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.White.copy(alpha = 0.08f),
-                            Color.White.copy(alpha = 0.22f),
-                            Color.White.copy(alpha = 0.08f),
-                            Color.Transparent
-                        ),
-                        start = Offset(xOffset, 0f),
-                        end = Offset(xOffset + sheenWidth, height)
+            .drawWithCache {
+                val cornerPx = cornerRadius.toPx()
+                val strokeWidth = 1.dp.toPx()
+                val halfStroke = strokeWidth / 2f
+                val strokeStyle = Stroke(width = strokeWidth)
+                onDrawBehind {
+                    drawRect(color = fillState.value)
+                    drawRect(brush = GlassSheenGradient)
+                    drawRoundRect(
+                        color = strokeState.value,
+                        topLeft = Offset(halfStroke, halfStroke),
+                        size = Size((size.width - strokeWidth).coerceAtLeast(0f), (size.height - strokeWidth).coerceAtLeast(0f)),
+                        cornerRadius = CornerRadius(cornerPx, cornerPx),
+                        style = strokeStyle,
                     )
-                    drawRect(brush = brush)
                 }
             }
+            .then(
+                if (sheenProgress != null && focused) {
+                    Modifier.drawWithContent {
+                        drawContent()
+                        val progress = sheenProgress.value
+                        if (progress > 0f && progress < 1f) {
+                            val width = size.width
+                            val height = size.height
+
+                            val sheenWidth = (width * 0.4f).coerceAtLeast(80.dp.toPx())
+                            val xOffset = -sheenWidth + (width + 2 * sheenWidth) * progress
+
+                            val brush = Brush.linearGradient(
+                                colors = SheenSweepColors,
+                                start = Offset(xOffset, 0f),
+                                end = Offset(xOffset + sheenWidth, height),
+                            )
+                            drawRect(brush = brush)
+                        }
+                    }
+                } else {
+                    Modifier
+                }
+            )
             .padding(contentPadding),
         content = content,
     )

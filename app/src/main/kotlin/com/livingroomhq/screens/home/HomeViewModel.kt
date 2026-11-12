@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -78,10 +79,10 @@ class HomeViewModel(
                 channels.channels,
                 channels.recents,
                 channels.epgRevision,
-                nowMillis,
-            ) { channelList, recents, _, _ ->
+            ) { channelList, recents, _ ->
                 recents.firstOrNull() ?: channelList.firstOrNull()
-            }.collect { current ->
+            }.distinctUntilChanged()
+            .collect { current ->
                 current?.id?.let { id ->
                     runLoggedCatching("home_epg") { channels.fetchEpgDetails(id) }
                 }
@@ -93,11 +94,11 @@ class HomeViewModel(
                 channels.channels,
                 channels.recents,
                 channels.epgRevision,
-                nowMillis,
-            ) { channelList, recents, _, tick ->
+            ) { channelList, recents, _ ->
                 val current = recents.firstOrNull() ?: channelList.firstOrNull()
-                current?.id to tick
-            }.collect { (excludeId, _) ->
+                current?.id
+            }.distinctUntilChanged()
+            .collect { excludeId ->
                 onNow.value = channels.computeOnNowRail(excludeChannelId = excludeId)
             }
         }

@@ -20,5 +20,15 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "ask": [
+      "Bash(./gradlew)",
+      "Bash(./gradlew *)",
+      "Bash(gradlew *)",
+      "Bash(gradle)",
+      "Bash(gradle *)",
+      "Bash(*gradlew*)"
+    ]
   }
 }

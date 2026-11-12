@@ -28,13 +28,14 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.core.data.model.Channel
@@ -58,14 +59,15 @@ internal fun HomeHeroContent(
     nowDescription: String?,
     progress: Float?,
     nextTitle: String?,
-    overlayAlpha: Float,
+    overlayAlpha: Float = 1f,
+    overlayAlphaProvider: () -> Float = { overlayAlpha },
     onSetupLiveTv: (() -> Unit)? = null,
     backdrop: @Composable () -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
         backdrop()
 
-        Box(Modifier.fillMaxSize().alpha(overlayAlpha)) {
+        Box(Modifier.fillMaxSize().graphicsLayer { alpha = overlayAlphaProvider() }) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,9 +162,9 @@ private fun ClockWeather(
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 clockTime,
-                style = HqType.Headline.copy(
+                style = HqType.Stat.copy(
+                    fontSize = 28.sp,
                     color = HqColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
                     shadow = heroTextShadow(),
                 ),
             )
@@ -304,5 +306,7 @@ private fun weatherIcon(condition: WeatherCondition?): ImageVector = when (condi
 }
 
 /** Slightly stronger than default so labels stay readable on bright live video. */
-private fun heroTextShadow(): Shadow =
+private val HeroTextShadow =
     Shadow(color = HqColors.Void.copy(alpha = 0.92f), offset = Offset(0f, 2f), blurRadius = 12f)
+
+private fun heroTextShadow(): Shadow = HeroTextShadow

@@ -172,6 +172,11 @@ class PersistentChannelRepositoryTest {
         assertEquals("Evening Report", now?.title)
         assertEquals("Late Show", next?.title)
         assertEquals("http://x/guide.xml", prefs.epgUrl.first())
+        val start = 1_716_062_400_000L
+        assertEquals(listOf("Evening Report", "Late Show"), repo.epgSchedule("one", start, start + 7_200_000L).map { it.title })
+        assertEquals(listOf("Late Show"), repo.epgSchedule("one", start + 3_600_000L, start + 7_200_000L).map { it.title })
+        assertTrue(repo.epgSchedule("unmapped", start, start + 7_200_000L).isEmpty())
+        assertTrue(repo.epgSchedule("one", start, start).isEmpty())
     }
 
     @Test
@@ -335,8 +340,7 @@ class PersistentChannelRepositoryTest {
             ingestDispatcher = dispatcher,
             fetchPlaylistStream = { error("network unavailable during restore test") },
         )
-        restored.restore()
-        runCurrent()
+        restored.restore()?.join()
 
         assertEquals("ABC World News", restored.epgNowNext(channelId).first?.title)
     }
@@ -683,6 +687,69 @@ class PersistentChannelRepositoryTest {
         val channelId = repo.channels.first().single().id
         assertNull(repo.epgNowNext(channelId).first)
     }
+
+    @Test
+    fun `loadXmltv with NotModified refreshes active window from database`() = runTest(UnconfinedTestDispatcher()) {
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val dao = FakeIptvDao()
+        val prefs = InMemoryPrefsStore()
+        var fetchCount = 0
+        var now = 1_716_062_430_000L
+
+        val initialGuide = """
+            <tv>
+              <channel id="one"><display-name>One</display-name></channel>
+              <programme start="20240518200000 +0000" stop="20240518210000 +0000" channel="one">
+                <title>Show 1</title>
+              </programme>
+              <programme start="20240518210000 +0000" stop="20240518220000 +0000" channel="one">
+                <title>Show 2</title>
+              </programme>
+            </tv>
+        """.trimIndent()
+
+        val repo = PersistentChannelRepository(
+            iptvDao = dao,
+            prefs = prefs,
+            scope = backgroundScope,
+            nowMillis = { now },
+            workDispatcher = dispatcher,
+            ingestDispatcher = dispatcher,
+            fetchPlaylistStream = { url ->
+                if (url.contains("guide")) initialGuide.byteInputStream() else playlist.byteInputStream()
+            },
+            conditionalFetch = { url, _ ->
+                if (url.contains("guide")) {
+                    fetchCount++
+                    if (fetchCount == 1) {
+                        com.livingroomhq.core.data.net.ConditionalFetchResult.Modified(
+                            stream = initialGuide.byteInputStream(),
+                            metadata = com.livingroomhq.core.data.net.HttpSyncMetadata(etag = "v1", lastModified = null),
+                        )
+                    } else {
+                        com.livingroomhq.core.data.net.ConditionalFetchResult.NotModified
+                    }
+                } else {
+                    com.livingroomhq.core.data.net.ConditionalFetchResult.Modified(
+                        stream = playlist.byteInputStream(),
+                        metadata = com.livingroomhq.core.data.net.HttpSyncMetadata(etag = "list-v1", lastModified = null),
+                    )
+                }
+            },
+        )
+        repo.loadM3u("http://x/list.m3u")
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        assertEquals("Show 1", repo.epgNowNext("one").first?.title)
+
+        // Advance time to 21:30:00 (Show 2 is now active)
+        now = 1_716_067_800_000L
+        repo.loadXmltv("http://x/guide.xml")
+        advanceUntilIdle()
+
+        assertEquals("Show 2", repo.epgNowNext("one").first?.title)
+    }
 }
 
 class FakeIptvDao : IptvDao {
@@ -735,6 +802,9 @@ class FakeIptvDao : IptvDao {
     override suspend fun getProgramsInWindow(now: Long, windowEnd: Long): List<ProgramBrief> =
         programsList.filter { it.endMillis > now && it.startMillis < windowEnd }
             .map { ProgramBrief(it.channelId, it.title, it.startMillis, it.endMillis) }
+
+    override suspend fun hasProgramsInWindow(now: Long, windowEnd: Long): Boolean =
+        programsList.any { it.endMillis > now && it.startMillis < windowEnd }
 
     override suspend fun getProgramsForChannelInWindow(
         channelId: String,

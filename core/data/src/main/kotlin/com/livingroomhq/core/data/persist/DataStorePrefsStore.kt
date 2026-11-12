@@ -40,6 +40,8 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
         val PINNED_APP_PACKAGES = stringPreferencesKey("pinned_app_packages")
         val LIVE_CAPTION_SERVER_URL = stringPreferencesKey("live_caption_server_url")
         val LIVE_CAPTION_SERVER_TOKEN = stringPreferencesKey("live_caption_server_token")
+        val VOD_SOURCE = stringPreferencesKey("setting_vod_source")
+        val CLIPBOX_PACKAGE_NAME = stringPreferencesKey("setting_clipbox_package")
     }
 
     override val favorites: Flow<Set<String>> =
@@ -134,6 +136,16 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
             .map { it[Keys.LIVE_CAPTION_SERVER_TOKEN] }
             .distinctUntilChanged()
 
+    override val vodSource: Flow<String> =
+        store.data
+            .map { it[Keys.VOD_SOURCE] ?: "BOTH" }
+            .distinctUntilChanged()
+
+    override val clipboxPackageName: Flow<String> =
+        store.data
+            .map { it[Keys.CLIPBOX_PACKAGE_NAME] ?: "org.clipbox.player" }
+            .distinctUntilChanged()
+
     override suspend fun setFavorites(ids: Set<String>) {
         store.edit { it[Keys.FAVORITES] = ids }
     }
@@ -222,5 +234,13 @@ class DataStorePrefsStore(context: Context) : LauncherPrefsStore {
             if (token.isNullOrBlank()) prefs.remove(Keys.LIVE_CAPTION_SERVER_TOKEN)
             else prefs[Keys.LIVE_CAPTION_SERVER_TOKEN] = token.trim()
         }
+    }
+
+    override suspend fun setVodSource(value: String) {
+        store.edit { it[Keys.VOD_SOURCE] = value }
+    }
+
+    override suspend fun setClipboxPackageName(value: String) {
+        store.edit { it[Keys.CLIPBOX_PACKAGE_NAME] = value.trim() }
     }
 }

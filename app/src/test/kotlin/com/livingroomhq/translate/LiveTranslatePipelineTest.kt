@@ -6,6 +6,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LiveTranslatePipelineTest {
+    @Test fun hyphenatedNumbersNamesAndAdjectivesSurviveCaptionCleanup() {
+        val text = "Twenty-three six-year-old children live in Saint-Jean."
+        assertEquals(text, LiveTranslatePipeline.collapseRepetitions(text))
+        assertEquals("It is -10 degrees.", LiveTranslatePipeline.collapseRepetitions("It is -10 degrees."))
+    }
 
     @Test
     fun testCollapseRepetitions_dashes() {
@@ -91,4 +96,21 @@ class LiveTranslatePipelineTest {
         LiveTranslatePipeline.dropFront(buf, 99)
         assertTrue(buf.isEmpty())
     }
+    @Test
+    fun ordinaryDialogueIsNotASoundEffect() {
+        for (line in listOf("She is laughing at me.", "The doorbell is broken.", "Je veux sourire.", "C'est un timbre.", "thank you", "Thank you!")) {
+            assertFalse(line, LiveTranslatePipeline.isNoiseOrEmpty(line))
+        }
+        assertTrue(LiveTranslatePipeline.isNoiseOrEmpty("[laughter]"))
+        assertTrue(LiveTranslatePipeline.isNoiseOrEmpty("doorbell"))
+    }
+
+    @Test
+    fun overlappingSpeechDoesNotMakeTheNewWordAHallucination() {
+        val buffer = com.livingroomhq.translate.streaming.HypothesisBuffer()
+        LiveTranslatePipeline.commitStreamingTranscript(buffer, "The committee has made a final decision about the budget", false)
+        val raw = "made a final decision about the budget today"
+        assertEquals("today", LiveTranslatePipeline.commitStreamingTranscript(buffer, raw, false))
+    }
+
 }

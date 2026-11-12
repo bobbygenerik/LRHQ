@@ -8,10 +8,12 @@ import java.util.concurrent.atomic.AtomicLong
  * [offer] pre-copied arrays. On overflow, drops the oldest chunk so latency
  * stays bounded instead of growing memory.
  */
+data class CapturedPcmChunk(val bytes: ByteArray, val capturedAtMs: Long)
+
 internal class BoundedPcmQueue(
     capacityChunks: Int = DEFAULT_CAPACITY_CHUNKS,
 ) {
-    private val queue = ArrayBlockingQueue<ByteArray>(capacityChunks)
+    private val queue = ArrayBlockingQueue<CapturedPcmChunk>(capacityChunks)
     private val dropped = AtomicLong(0)
     private val offered = AtomicLong(0)
     private val taken = AtomicLong(0)
@@ -23,7 +25,8 @@ internal class BoundedPcmQueue(
     val takenCount: Long get() = taken.get()
 
     /** Non-blocking. Copies are caller's responsibility. */
-    fun offer(chunk: ByteArray): Boolean {
+    fun offer(bytes: ByteArray, capturedAtMs: Long = System.nanoTime() / 1_000_000L): Boolean {
+        val chunk = CapturedPcmChunk(bytes, capturedAtMs)
         offered.incrementAndGet()
         if (queue.offer(chunk)) return true
         // Drop oldest, then try once more.
@@ -36,7 +39,9 @@ internal class BoundedPcmQueue(
         }
     }
 
-    fun poll(): ByteArray? {
+    fun poll(): ByteArray? = pollTimed()?.bytes
+
+    fun pollTimed(): CapturedPcmChunk? {
         val chunk = queue.poll()
         if (chunk != null) taken.incrementAndGet()
         return chunk

@@ -13,7 +13,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,36 +23,47 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,12 +72,11 @@ import com.livingroomhq.HqApplication
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.BackdropProvider
 import com.livingroomhq.components.HeroBackdrop
+import com.livingroomhq.components.LocalContentFocusActionMap
 import com.livingroomhq.components.LocalSidebarFocusRequester
-import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.components.SidebarCollapsedWidth
 import com.livingroomhq.components.restoreFocusOnReturn
 import com.livingroomhq.core.data.model.Channel
-import com.livingroomhq.core.ui.components.tvInitialFocus
 import com.livingroomhq.core.ui.components.yieldAndFocus
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -83,13 +92,18 @@ import com.livingroomhq.player.rememberLivePreviewActive
 import com.livingroomhq.screens.home.HomeEffect
 import com.livingroomhq.screens.home.HomeEvent
 import com.livingroomhq.screens.home.HomeViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Date
 import java.util.Locale
 
 private const val HERO_BACKDROP_ASSET_DIR = "hero_backdrops"
 private val HERO_BACKDROP_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "avif")
+@Volatile
+private var cachedHeroBackdrops: List<AmbientPhoto>? = null
 /** Clears the pinned compact bar so section headers sit below it when scrolled. */
 private val CompactTopBarHeight = 96.dp
 
@@ -113,10 +127,16 @@ fun HomeScreen(
     val customSettings = LocalCustomSettings.current
     val sidebarFocus = LocalSidebarFocusRequester.current
     val context = LocalContext.current
-    val heroBackdrops = remember(context) { bundledHeroBackdrops(context) }
+    val heroBackdrops by produceState(initialValue = cachedHeroBackdrops ?: emptyList(), key1 = context) {
+        if (cachedHeroBackdrops == null) {
+            value = withContext(Dispatchers.IO) { bundledHeroBackdrops(context) }
+        }
+    }
 
     val current = state.currentChannel
-    val (nowProgram, nextProgram) = current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
+    val (nowProgram, nextProgram) = remember(current?.id, state.nowMillis) {
+        current?.let { viewModel.epgNowNext(it.id) } ?: (null to null)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -132,6 +152,10 @@ fun HomeScreen(
 
     val recentFocusRequester = remember { FocusRequester() }
     val onNowFocusRequester = remember { FocusRequester() }
+    val heroNodeFocusRequester = remember { FocusRequester() }
+    val recentListState = rememberLazyListState()
+    val onNowListState = rememberLazyListState()
+    var focusVisibleRecentCard by remember { mutableStateOf<() -> Boolean>({ false }) }
 
     // Clock updates scoped here — only HomeHeroContent recomposes, not the entire screen.
     val clockState by produceState(initialValue = timeNow(context) to dateNow()) {
@@ -143,48 +167,47 @@ fun HomeScreen(
     val clockTime = clockState.first
     val clockDate = clockState.second
     val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val focusManager = LocalFocusManager.current
     val scrollScope = rememberCoroutineScope()
+    val initialHeightPx = remember(configuration, density) {
+        with(density) { configuration.screenHeightDp.dp.toPx() }.coerceAtLeast(1f)
+    }
+    var viewportHeightPx by remember { mutableFloatStateOf(initialHeightPx) }
+    val viewportHeight = with(density) { viewportHeightPx.toDp() }
+    var heroMovingDown by remember { mutableStateOf(false) }
 
-    BoxWithConstraints(
-        modifier = Modifier.fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { if (it.height > 0) viewportHeightPx = it.height.toFloat() },
     ) {
-        val viewportHeight = maxHeight
-        val viewportHeightPx = with(density) { viewportHeight.toPx() }
         val scrollState = rememberScrollState()
 
-        val scrollAlpha by remember(viewportHeightPx) {
+        val compactBarThresholdPx = with(density) { 260.dp.toPx() }
+        val showCompactTopBar by remember(compactBarThresholdPx) {
             derivedStateOf {
-                if (viewportHeightPx > 0f) {
-                    (1f - (scrollState.value / (viewportHeightPx * 0.4f))).coerceIn(0f, 1f)
-                } else {
-                    1f
-                }
+                scrollState.value > compactBarThresholdPx
             }
         }
-
-        val isScrolledDown by remember {
-            derivedStateOf {
-                scrollState.value > with(density) { 20.dp.toPx() }
-            }
-        }
-        val isHeroFullyCovered by remember {
-            derivedStateOf {
-                scrollState.value >= viewportHeightPx - 1f
-            }
-        }
-        val showCompactTopBar by remember {
-            derivedStateOf {
-                scrollState.value > with(density) { 260.dp.toPx() }
-            }
-        }
-        val compactBarInset by animateDpAsState(
+        val compactBarInsetState = animateDpAsState(
             targetValue = if (showCompactTopBar) CompactTopBarHeight else 0.dp,
             animationSpec = HqMotion.normal(),
             label = "compactBarInset",
         )
 
-        val contentFocus = LocalContentFocusRequester.current
-        val heroFocusRequester = contentFocus ?: remember { FocusRequester() }
+        val contentFocusActions = LocalContentFocusActionMap.current
+        DisposableEffect(contentFocusActions) {
+            contentFocusActions?.set(Zone.HOME) {
+                if (heroMovingDown || scrollState.value < viewportHeightPx.toInt() / 2) {
+                    runCatching { heroNodeFocusRequester.requestFocus() }.isSuccess
+                } else {
+                    focusVisibleRecentCard() || runCatching { onNowFocusRequester.requestFocus() }.isSuccess
+                }
+            }
+            onDispose { contentFocusActions?.remove(Zone.HOME) }
+        }
+
         val previewActive = rememberLivePreviewActive(nav, customSettings.showLivePreview)
         val heroLivePreview = previewActive && current != null
         val backdropSources = remember(
@@ -203,14 +226,19 @@ fun HomeScreen(
         val backdropAlpha = 1f
 
         var overlaysVisible by remember { mutableStateOf(true) }
-        LaunchedEffect(heroLivePreview, current?.id, nav.lastInteractionAt) {
-            overlaysVisible = true
-            if (!heroLivePreview) return@LaunchedEffect
-            delay(6_000L)
-            overlaysVisible = false
+        LaunchedEffect(heroLivePreview, current?.id) {
+            if (!heroLivePreview) {
+                overlaysVisible = true
+                return@LaunchedEffect
+            }
+            snapshotFlow { nav.lastInteractionAt }.collectLatest {
+                overlaysVisible = true
+                delay(6_000L)
+                overlaysVisible = false
+            }
         }
 
-        val overlayAlpha by animateFloatAsState(
+        val overlayAlphaState = animateFloatAsState(
             targetValue = if (!heroLivePreview || overlaysVisible) 1f else 0f,
             animationSpec = HqMotion.ambient(),
             label = "heroOverlayAlpha",
@@ -225,10 +253,10 @@ fun HomeScreen(
             applyBlur = false,
         )
 
+        // No start inset here: the rails run full-bleed so cards scroll all the way
+        // to the screen edge (under the collapsed sidebar). Hero/rails inset themselves.
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = SidebarCollapsedWidth),
+            modifier = Modifier.fillMaxSize(),
         ) {
             Column(
                 modifier = Modifier
@@ -238,27 +266,32 @@ fun HomeScreen(
                 HomeHero(
                     modifier = Modifier
                         .height(viewportHeight)
+                        .padding(start = SidebarCollapsedWidth)
                         .focusProperties {
-                            canFocus = scrollState.value < viewportHeightPx.toInt() / 2
-                            down = recentFocusRequester
-                            if (sidebarFocus != null) {
-                                left = sidebarFocus
-                            }
+                            canFocus = heroMovingDown || scrollState.value < viewportHeightPx.toInt() / 2
                         },
                     focusReturn = focusReturn,
-                    focusRequester = heroFocusRequester,
+                    focusRequester = heroNodeFocusRequester,
                     requestInitialFocus = true,
                     onDownPressed = {
                         scrollScope.launch {
-                            val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
-                            if (scrollState.value < targetScroll) {
-                                scrollState.animateScrollTo(targetScroll)
+                            heroMovingDown = true
+                            try {
+                                val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
+                                if (scrollState.value < targetScroll) {
+                                    scrollState.animateScrollTo(targetScroll)
+                                }
+                                if (!focusLazyRailItem(recentListState, recentFocusRequester) && state.onNow.isNotEmpty()) {
+                                    focusLazyRailItem(onNowListState, onNowFocusRequester)
+                                }
+                            } finally {
+                                heroMovingDown = false
                             }
-                            yieldAndFocus(recentFocusRequester)
                         }
                     },
-                    onLeftPressed = sidebarFocus?.let { requester ->
-                        {
+                    onLeftPressed = {
+                        sidebarFocus?.let { requester ->
+                            runCatching { requester.requestFocus() }
                             scrollScope.launch { yieldAndFocus(requester) }
                         }
                     },
@@ -283,9 +316,16 @@ fun HomeScreen(
                         showWeather = customSettings.showWeather,
                         nowTitle = nowProgram?.title,
                         nowDescription = nowProgram?.description,
-                        progress = nowProgram?.progressAt(System.currentTimeMillis()),
+                        progress = nowProgram?.progressAt(state.nowMillis),
                         nextTitle = nextProgram?.title,
-                        overlayAlpha = overlayAlpha * scrollAlpha,
+                        overlayAlphaProvider = {
+                            val scrollFactor = if (viewportHeightPx > 0f) {
+                                (1f - (scrollState.value / (viewportHeightPx * 0.4f))).coerceIn(0f, 1f)
+                            } else {
+                                1f
+                            }
+                            overlayAlphaState.value * scrollFactor
+                        },
                         onSetupLiveTv = { nav.goTo(Zone.SETTINGS) },
                         backdrop = {},
                     )
@@ -295,14 +335,13 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = viewportHeight)
-                            .background(Color.Transparent)
+                            .graphicsLayer {
+                                translationY = compactBarInsetState.value.toPx()
+                            }
                             .padding(
-                                start = HqDimens.SafeHorizontal,
                                 top = HqDimens.SafeVertical,
-                                bottom = HqDimens.SafeVertical,
+                                bottom = HqDimens.SafeVertical + CompactTopBarHeight,
                             )
-                            .padding(top = compactBarInset)
-                            .focusProperties { enter = { recentFocusRequester } }
                             .onFocusChanged {
                             val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
                             if (it.hasFocus && scrollState.value < targetScroll) {
@@ -311,26 +350,32 @@ fun HomeScreen(
                         },
                 ) {
                     RecentChannelsRow(
+                        startInset = SidebarCollapsedWidth,
                         focusReturn = focusReturn,
                         channels = state.channels,
                         recents = state.recents,
+                        nowPrograms = remember(state.onNow) { state.onNow.associate { (ch, prog) -> ch.id to prog } },
+                        listState = recentListState,
                         firstItemFocusRequester = recentFocusRequester,
                         leftFocusRequester = sidebarFocus,
-                        downFocusRequester = if (state.onNow.isNotEmpty()) onNowFocusRequester else null,
+                        onRegisterFocusAction = { action -> focusVisibleRecentCard = action },
                         onUpPressed = {
                             scrollScope.launch {
                                 scrollState.animateScrollTo(0)
-                                heroFocusRequester.requestFocus()
+                                yieldAndFocus(heroNodeFocusRequester)
                             }
                         },
                         onDownPressed = if (state.onNow.isNotEmpty()) {
                             {
-                                scrollScope.launch {
-                                    val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
-                                    if (scrollState.value < targetScroll) {
-                                        scrollState.animateScrollTo(targetScroll)
+                                val moved = runCatching { focusManager.moveFocus(FocusDirection.Down) }.getOrDefault(false)
+                                if (!moved) {
+                                    scrollScope.launch {
+                                        val targetScroll = minOf(viewportHeightPx.toInt(), scrollState.maxValue)
+                                        if (scrollState.value < targetScroll) {
+                                            scrollState.animateScrollTo(targetScroll)
+                                        }
+                                        focusLazyRailItem(onNowListState, onNowFocusRequester)
                                     }
-                                    yieldAndFocus(onNowFocusRequester)
                                 }
                             }
                         } else {
@@ -346,14 +391,19 @@ fun HomeScreen(
                     if (state.onNow.isNotEmpty()) {
                         Spacer(Modifier.height(HqDimens.SpaceSection))
                         OnNowRail(
+                            startInset = SidebarCollapsedWidth,
                             focusReturn = focusReturn,
                             items = state.onNow,
                             nowMillis = state.nowMillis,
+                            listState = onNowListState,
                             firstItemFocusRequester = onNowFocusRequester,
                             leftFocusRequester = sidebarFocus,
                             upFocusRequester = recentFocusRequester,
                             onUpPressed = {
-                                scrollScope.launch { yieldAndFocus(recentFocusRequester) }
+                                val moved = runCatching { focusManager.moveFocus(FocusDirection.Up) }.getOrDefault(false)
+                                if (!moved) {
+                                    scrollScope.launch { focusLazyRailItem(recentListState, recentFocusRequester) }
+                                }
                             },
                             onChannelSelected = { channel ->
                                 viewModel.onEvent(
@@ -364,24 +414,43 @@ fun HomeScreen(
                     }
                 }
             }
+        }
 
-            AnimatedVisibility(
-                visible = showCompactTopBar,
-                enter = fadeIn(animationSpec = HqMotion.normal()) +
-                    slideInVertically(animationSpec = HqMotion.normal()) { -it },
-                exit = fadeOut(animationSpec = HqMotion.fast()) +
-                    slideOutVertically(animationSpec = HqMotion.fast()) { -it },
-                modifier = Modifier.align(Alignment.TopStart)
-            ) {
-                CompactTopBar(
-                    channel = current,
-                    nowTitle = nowProgram?.title,
-                    nextTitle = nextProgram?.title,
-                    modifier = Modifier
-                )
-            }
+        AnimatedVisibility(
+            visible = showCompactTopBar,
+            enter = fadeIn(animationSpec = HqMotion.normal()) +
+                slideInVertically(animationSpec = HqMotion.normal()) { -it },
+            exit = fadeOut(animationSpec = HqMotion.fast()) +
+                slideOutVertically(animationSpec = HqMotion.fast()) { -it },
+            modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            CompactTopBar(
+                channel = current,
+                nowTitle = nowProgram?.title,
+                nextTitle = nextProgram?.title,
+                modifier = Modifier
+            )
         }
     }
+}
+
+private suspend fun focusLazyRailItem(
+    listState: LazyListState,
+    firstItemRequester: FocusRequester,
+): Boolean {
+    if (runCatching { firstItemRequester.requestFocus() }.isSuccess) {
+        return true
+    }
+    if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
+        listState.scrollToItem(0)
+    }
+    repeat(6) {
+        withFrameNanos { }
+        if (runCatching { firstItemRequester.requestFocus() }.isSuccess) {
+            return true
+        }
+    }
+    return false
 }
 
 @Composable
@@ -396,51 +465,66 @@ private fun HomeHero(
     onLeftPressed: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+    var centerDown by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
+
+    LaunchedEffect(requestInitialFocus, focusRequester) {
+        if (requestInitialFocus) {
+            withFrameNanos { }
+            yieldAndFocus(focusRequester)
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .restoreFocusOnReturn(focusReturn, homeHeroFocusTarget(), focusRequester)
-            .onFocusChanged {
-                if (it.isFocused) onFocused()
-            }
             .focusRequester(focusRequester)
+            .onFocusChanged { state ->
+                isFocused = state.isFocused
+                if (state.isFocused) {
+                    onFocused()
+                } else {
+                    centerDown = false
+                }
+            }
+            .onPreviewKeyEvent { event ->
+                when (event.key) {
+                    Key.DirectionLeft -> {
+                        if (event.type == KeyEventType.KeyDown && onLeftPressed != null) {
+                            onLeftPressed()
+                            true
+                        } else false
+                    }
+                    Key.DirectionDown -> {
+                        if (event.type == KeyEventType.KeyDown && onDownPressed != null) {
+                            onDownPressed()
+                            true
+                        } else false
+                    }
+                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            centerDown = true
+                            true
+                        } else if (event.type == KeyEventType.KeyUp) {
+                            if (centerDown) {
+                                centerDown = false
+                                onWatch()
+                            }
+                            true
+                        } else false
+                    }
+                    else -> false
+                }
+            }
             .focusable(interactionSource = interactionSource)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onWatch,
-            )
-            .then(
-                if (onDownPressed != null || onLeftPressed != null) {
-                    Modifier.onKeyEvent { keyEvent ->
-                        if (keyEvent.type != KeyEventType.KeyDown) return@onKeyEvent false
-                        when (keyEvent.key) {
-                            Key.DirectionDown -> {
-                                if (onDownPressed != null) {
-                                    onDownPressed()
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
-                            Key.DirectionLeft -> {
-                                if (onLeftPressed != null) {
-                                    onLeftPressed()
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
-                            else -> false
-                        }
-                    }
-                } else {
-                    Modifier
-                },
-            )
-            .then(if (requestInitialFocus) Modifier.tvInitialFocus(focusRequester) else Modifier),
+            ),
     ) {
         content()
     }
@@ -466,8 +550,9 @@ private fun dateNow(): String {
     return android.text.format.DateFormat.format(pattern, Date()).toString()
 }
 
-private fun bundledHeroBackdrops(context: android.content.Context): List<AmbientPhoto> =
-    context.assets.list(HERO_BACKDROP_ASSET_DIR)
+private fun bundledHeroBackdrops(context: android.content.Context): List<AmbientPhoto> {
+    cachedHeroBackdrops?.let { return it }
+    val loaded = context.assets.list(HERO_BACKDROP_ASSET_DIR)
         .orEmpty()
         .filter { name ->
             name.substringAfterLast('.', missingDelimiterValue = "")
@@ -477,6 +562,9 @@ private fun bundledHeroBackdrops(context: android.content.Context): List<Ambient
         .map { name ->
             AmbientPhoto(url = "file:///android_asset/$HERO_BACKDROP_ASSET_DIR/$name")
         }
+    cachedHeroBackdrops = loaded
+    return loaded
+}
 
 @Composable
 private fun CompactTopBar(
@@ -496,7 +584,12 @@ private fun CompactTopBar(
                     )
                 )
             )
-            .padding(horizontal = HqDimens.SafeHorizontal, vertical = HqDimens.PanelPaddingLounge),
+            .padding(
+                start = SidebarCollapsedWidth + HqDimens.SafeHorizontal,
+                end = HqDimens.SafeHorizontal,
+                top = HqDimens.PanelPaddingLounge,
+                bottom = HqDimens.PanelPaddingLounge,
+            ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

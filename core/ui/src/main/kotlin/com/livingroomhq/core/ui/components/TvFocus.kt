@@ -2,9 +2,8 @@ package com.livingroomhq.core.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
@@ -16,16 +15,18 @@ import com.livingroomhq.core.ui.theme.rememberReducedMotion
 /** Shared D-pad focus scale — matches [GlassPanel] / MASTER.md. */
 const val TV_FOCUS_SCALE = HqMotion.FocusScale
 
-fun Modifier.tvFocusScale(focused: Boolean): Modifier = composed {
+@Composable
+fun Modifier.tvFocusScale(focused: Boolean): Modifier {
     val reducedMotion = rememberReducedMotion()
-    val scale by animateFloatAsState(
+    val scaleState = animateFloatAsState(
         targetValue = if (focused && !reducedMotion) TV_FOCUS_SCALE else 1f,
         animationSpec = HqMotion.focusSpring(),
         label = "tvFocusScale",
     )
-    graphicsLayer {
-        scaleX = scale
-        scaleY = scale
+    return this.graphicsLayer {
+        val s = scaleState.value
+        scaleX = s
+        scaleY = s
     }
 }
 

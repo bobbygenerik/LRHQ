@@ -3,6 +3,8 @@ package com.livingroomhq
 import android.app.Application
 import coil.Coil
 import coil.ImageLoader
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
 import com.livingroomhq.backdrop.AmbientBackdrops
 import com.livingroomhq.backdrop.AmbientPhoto
 import com.livingroomhq.backdrop.AmbientPhotoCacheRepository
@@ -16,10 +18,12 @@ import com.livingroomhq.core.data.persist.DataStorePrefsStore
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import com.livingroomhq.core.data.repo.AmbientInfoRepository
 import com.livingroomhq.core.data.repo.ChannelRepository
+import com.livingroomhq.core.data.repo.DefaultVodRepository
 import com.livingroomhq.core.data.repo.InstalledAppsRepository
 import com.livingroomhq.core.data.repo.LocalMediaRepository
 import com.livingroomhq.core.data.repo.MediaRepository
 import com.livingroomhq.core.data.repo.PersistentChannelRepository
+import com.livingroomhq.core.data.repo.VodRepository
 import com.livingroomhq.core.data.sync.IptvSyncRepositoryProvider
 import com.livingroomhq.core.data.sync.IptvSyncWorker
 import com.livingroomhq.core.data.repo.RealAmbientInfoRepository
@@ -27,6 +31,7 @@ import com.livingroomhq.core.data.repo.SystemMonitor
 import com.livingroomhq.core.widget.WidgetRegistry
 import com.livingroomhq.crash.CrashLog
 import com.livingroomhq.navigation.FullscreenFocusReturn
+import com.livingroomhq.navigation.LauncherNavController
 import com.livingroomhq.tvintegration.WatchNextPublisher
 import com.livingroomhq.tvintegration.toWatchNextEntry
 import com.livingroomhq.ui.SnackbarController
@@ -35,6 +40,7 @@ import com.livingroomhq.widgets.registerBuiltInWidgets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -70,6 +76,14 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
     override fun iptvRepositoryForSync(): PersistentChannelRepository =
         channels as PersistentChannelRepository
     val media: MediaRepository by lazy { LocalMediaRepository(this, appScope) }
+    val vod: VodRepository by lazy {
+        DefaultVodRepository(
+            context = this,
+            prefs = prefs,
+            channelRepository = channels,
+            scope = appScope,
+        )
+    }
     val ambientInfo: AmbientInfoRepository by lazy { RealAmbientInfoRepository(appScope) }
     val systemMonitor: SystemMonitor by lazy { SystemMonitor(this) }
     val installedApps: InstalledAppsRepository by lazy {
@@ -86,6 +100,7 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
     val googlePhotosPicker: GooglePhotosPickerClient by lazy { GooglePhotosPickerClient(ambientPhotoCache) }
     val livePreviewEngine: LivePreviewEngine by lazy { LivePreviewEngine(this) }
     val fullscreenFocusReturn: FullscreenFocusReturn by lazy { FullscreenFocusReturn() }
+    val nav: LauncherNavController by lazy { LauncherNavController() }
 
     private val _ready = MutableStateFlow(false)
     val ready: StateFlow<Boolean> = _ready.asStateFlow()
@@ -102,18 +117,35 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
         UiMessages.bind(snackbar)
         Coil.setImageLoader(
             ImageLoader.Builder(this)
-                .crossfade(true)
+                .allowHardware(true)
+                .allowRgb565(true)
+                .crossfade(false)
+                .memoryCache {
+                    MemoryCache.Builder(this)
+                        .maxSizePercent(0.20)
+                        .build()
+                }
+                .diskCache {
+                    DiskCache.Builder()
+                        .directory(cacheDir.resolve("image_cache"))
+                        .maxSizeBytes(96L * 1024 * 1024)
+                        .build()
+                }
                 .build(),
         )
         appScope.launch(Dispatchers.IO) {
             database
             channels
+            // Warm VOD catalog + installed-apps scan so those tabs aren't empty on first visit.
+            vod
+            runCatching { installedApps.launchableApps() }
             ambientPhotoCache.restore()
             IptvSyncWorker.schedule(this@HqApplication)
             _ready.value = true
         }
-        // Keep the system Watch Next row in step with the library.
+        // Keep the system Watch Next row in step with the library after initial launch frames.
         appScope.launch {
+            delay(2_000L)
             media.library.collect { items ->
                 watchNext.sync(items.mapNotNull { it.toWatchNextEntry() })
             }
@@ -127,6 +159,7 @@ class HqApplication : Application(), IptvSyncRepositoryProvider {
         }
         // Refresh the ambient backdrop pool; disk-cached ~12h (demo tier: 50 req/hr).
         appScope.launch {
+            delay(2_500L)
             val photos = UnsplashClient.fetchLandscapePhotos(cacheDir = cacheDir)
             if (photos.isNotEmpty()) {
                 _remoteAmbientPhotos.value = photos

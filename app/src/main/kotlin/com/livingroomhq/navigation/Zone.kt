@@ -12,8 +12,9 @@ package com.livingroomhq.navigation
 enum class Zone(val order: Int) {
     HOME(0),
     LIVE(1),
-    TOOLS(2),
-    COMMAND_CENTER(3),
-    SETTINGS(4),
-    AMBIENT(5),
+    VOD(2),
+    TOOLS(3),
+    COMMAND_CENTER(4),
+    SETTINGS(5),
+    AMBIENT(6),
 }

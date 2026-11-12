@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val PREVIEW_FOCUS_DEBOUNCE_MS = 450L
 private const val EPG_PREFETCH_DELAY_MS = 300L
 private const val EPG_PREFETCH_CAP = 48
 
@@ -38,19 +37,34 @@ data class LiveTvUiState(
     val focusedChannelId: String? = null,
     val previewChannelId: String? = null,
     val isGridFocused: Boolean = false,
+    /** False until the channel store has been read once; avoids flashing the empty state. */
+    val isLoaded: Boolean = false,
+    internal val channelById: Map<String, Channel> = emptyMap(),
+    internal val favoriteChannels: List<Channel> = emptyList(),
 ) {
     val isEmpty: Boolean get() = channels.isEmpty()
+    val showEmptyState: Boolean get() = isLoaded && channels.isEmpty()
 
     val visibleChannels: List<Channel>
         get() = when (selectedCategoryId) {
             null -> channels
-            "favorites" -> channels.filter { it.isFavorite }
+            "favorites" -> if (favoriteChannels.isNotEmpty() || channelById.isNotEmpty()) {
+                favoriteChannels
+            } else {
+                channels.filter { it.isFavorite }
+            }
             "recent" -> recents
             else -> channelsByGroup[selectedCategoryId].orEmpty()
         }
 
     val previewChannel: Channel?
-        get() = channels.firstOrNull { it.id == previewChannelId }
+        get() = if (previewChannelId == null) {
+            null
+        } else if (channelById.isNotEmpty()) {
+            channelById[previewChannelId]
+        } else {
+            channels.firstOrNull { it.id == previewChannelId }
+        }
 
     fun epgTitleFor(channelId: String, lookup: (String) -> String): String =
         lookup(channelId)
@@ -59,6 +73,7 @@ data class LiveTvUiState(
 sealed interface LiveTvEvent {
     data class SelectCategory(val id: String?) : LiveTvEvent
     data class FocusChannel(val channelId: String) : LiveTvEvent
+    data class SyncReturnedChannel(val channelId: String) : LiveTvEvent
     data class OpenChannel(val channel: Channel) : LiveTvEvent
     data class OpenPreviewFullscreen(val channel: Channel) : LiveTvEvent
     data class SetGridFocused(val focused: Boolean) : LiveTvEvent
@@ -71,6 +86,20 @@ sealed interface LiveTvEffect {
     data class ArmPreviewFocus(val channelId: String) : LiveTvEffect
     data object FocusCategories : LiveTvEffect
 }
+
+private class IndexedChannels(
+    val channels: List<Channel>,
+    val byId: Map<String, Channel>,
+    val favorites: List<Channel>,
+    val loaded: Boolean,
+)
+
+private fun indexChannels(channels: List<Channel>, loaded: Boolean) = IndexedChannels(
+    channels = channels,
+    byId = channels.associateBy { it.id },
+    favorites = channels.filter { it.isFavorite },
+    loaded = loaded,
+)
 
 class LiveTvViewModel(
     private val channelRepository: ChannelRepository,
@@ -85,22 +114,32 @@ class LiveTvViewModel(
     private val _effects = EffectChannel<LiveTvEffect>(capacity = EffectChannel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
+    private val indexedChannels = combine(
+        channelRepository.channels,
+        channelRepository.channelsLoaded,
+    ) { channels, loaded -> indexChannels(channels, loaded || channels.isNotEmpty()) }
+
+    private val baseCatalogState = combine(
+        indexedChannels,
+        channelRepository.recents,
+        channelRepository.groups,
+        channelRepository.channelsByGroup,
+        channelRepository.epgRevision,
+    ) { indexed, recents, groups, channelsByGroup, epgRevision ->
+        LiveTvUiState(
+            channels = indexed.channels,
+            isLoaded = indexed.loaded,
+            recents = recents,
+            groups = groups,
+            channelsByGroup = channelsByGroup,
+            epgRevision = epgRevision,
+            channelById = indexed.byId,
+            favoriteChannels = indexed.favorites,
+        )
+    }
+
     val uiState: StateFlow<LiveTvUiState> = combine(
-        combine(
-            channelRepository.channels,
-            channelRepository.recents,
-            channelRepository.groups,
-            channelRepository.channelsByGroup,
-            channelRepository.epgRevision,
-        ) { channels, recents, groups, channelsByGroup, epgRevision ->
-            LiveTvUiState(
-                channels = channels,
-                recents = recents,
-                groups = groups,
-                channelsByGroup = channelsByGroup,
-                epgRevision = epgRevision,
-            )
-        },
+        baseCatalogState,
         combine(
             selectedCategoryId,
             focusedChannelId,
@@ -116,30 +155,40 @@ class LiveTvViewModel(
             previewChannelId = focus[2] as String?,
             isGridFocused = focus[3] as Boolean,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveTvUiState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initialState())
+
+    /** Seed from the repository's current values so the first frame isn't a blank/empty screen. */
+    private fun initialState(): LiveTvUiState {
+        val channels = channelRepository.channels.value
+        val indexed = indexChannels(channels, channelRepository.channelsLoaded.value || channels.isNotEmpty())
+        return LiveTvUiState(
+            channels = channels,
+            isLoaded = indexed.loaded,
+            recents = channelRepository.recents.value,
+            groups = channelRepository.groups.value,
+            channelsByGroup = channelRepository.channelsByGroup.value,
+            epgRevision = channelRepository.epgRevision.value,
+            channelById = indexed.byId,
+            favoriteChannels = indexed.favorites,
+        )
+    }
 
     init {
         combine(channelRepository.channels, channelRepository.recents) { channels, recents ->
             channels to recents
         }.onEach { (channels, recents) ->
-            if (!initializedSelection.compareAndSet(false, true)) return@onEach
             if (channels.isEmpty()) return@onEach
-            val initial = recents.firstOrNull()?.id
+            if (!initializedSelection.compareAndSet(false, true)) return@onEach
+            val initial = recents.firstOrNull()?.id ?: channels.first().id
             previewChannelId.value = initial
             focusedChannelId.value = initial
         }.launchIn(viewModelScope)
 
+        // Guide browsing changes the detail panel, while the tuned preview keeps playing.
         @OptIn(FlowPreview::class)
-        focusedChannelId
-            .debounce(PREVIEW_FOCUS_DEBOUNCE_MS)
-            .distinctUntilChanged()
-            .filterNotNull()
-            .onEach { id ->
-                if (focusedChannelId.value == id) {
-                    previewChannelId.value = id
-                }
-            }
-            .launchIn(viewModelScope)
+        focusedChannelId.filterNotNull().debounce(180L).distinctUntilChanged().onEach { id ->
+            runCatching { channelRepository.fetchEpgDetails(id) }
+        }.launchIn(viewModelScope)
 
         previewChannelId
             .filterNotNull()
@@ -149,9 +198,10 @@ class LiveTvViewModel(
             }
             .launchIn(viewModelScope)
 
-        combine(selectedCategoryId, uiState.map { it.visibleChannels }) { _: String?, visible: List<Channel> ->
-            visible.take(EPG_PREFETCH_CAP).map { it.id }
-        }.distinctUntilChanged().onEach { ids: List<String> ->
+        combine(selectedCategoryId, baseCatalogState) { categoryId: String?, base: LiveTvUiState ->
+            val ids = base.copy(selectedCategoryId = categoryId).visibleChannels.take(EPG_PREFETCH_CAP).map { it.id }
+            ids to (base.epgRevision > 0L)
+        }.distinctUntilChanged().onEach { (ids, _) ->
             if (ids.isEmpty()) return@onEach
             delay(EPG_PREFETCH_DELAY_MS)
             runCatching { channelRepository.prefetchEpgForChannels(ids) }
@@ -162,6 +212,10 @@ class LiveTvViewModel(
         when (event) {
             is LiveTvEvent.SelectCategory -> selectedCategoryId.value = event.id
             is LiveTvEvent.FocusChannel -> focusedChannelId.value = event.channelId
+            is LiveTvEvent.SyncReturnedChannel -> {
+                previewChannelId.value = event.channelId
+                focusedChannelId.value = event.channelId
+            }
             is LiveTvEvent.SetGridFocused -> isGridFocused.value = event.focused
             is LiveTvEvent.OpenChannel -> {
                 val channel = event.channel
@@ -187,6 +241,12 @@ class LiveTvViewModel(
     }
 
     fun epgNowNext(channelId: String) = channelRepository.epgNowNext(channelId)
+
+    fun epgSchedule(channelId: String, startMillis: Long, endMillis: Long) =
+        channelRepository.epgSchedule(channelId, startMillis, endMillis)
+
+    suspend fun prefetchGuide(channelIds: List<String>) =
+        channelRepository.prefetchEpgForChannels(channelIds)
 
     companion object {
         fun factory(channelRepository: ChannelRepository): ViewModelProvider.Factory =

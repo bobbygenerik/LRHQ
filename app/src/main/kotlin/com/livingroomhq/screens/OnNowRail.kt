@@ -19,12 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Text
 import com.livingroomhq.components.restoreFocusOnReturn
@@ -36,12 +36,23 @@ import com.livingroomhq.core.ui.theme.HqDimens
 import com.livingroomhq.core.ui.theme.HqType
 import com.livingroomhq.navigation.FullscreenFocusReturn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.focus.focusRestorer
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun OnNowRail(
+    /** Extra leading inset (e.g. collapsed sidebar) applied inside the full-bleed row. */
+    startInset: Dp = 0.dp,
     focusReturn: FullscreenFocusReturn,
     items: List<Pair<Channel, Program>>,
     nowMillis: Long,
+    listState: LazyListState = rememberLazyListState(),
     firstItemFocusRequester: FocusRequester? = null,
     leftFocusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
@@ -50,14 +61,27 @@ internal fun OnNowRail(
 ) {
     if (items.isEmpty()) return
 
-    Text("On now", style = HqType.SectionLabel)
-    Spacer(Modifier.size(HqDimens.SpaceRail))
+    Text(
+        "On now",
+        style = HqType.SectionLabel,
+        modifier = Modifier.padding(start = startInset + HqDimens.SafeHorizontal),
+    )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
+    LazyRow(
+        state = listState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRestorer()
+            .focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(
+            start = startInset + HqDimens.SafeHorizontal + HqDimens.GridEdgeInset,
+            end = HqDimens.SafeHorizontal,
+            top = 14.dp,
+            bottom = 14.dp,
+        ),
     ) {
-        items.forEachIndexed { index, (channel, program) ->
+        itemsIndexed(items, key = { _, (channel, _) -> channel.id }) { index, (channel, program) ->
             val cardFocusRequester = if (index == 0 && firstItemFocusRequester != null) {
                 firstItemFocusRequester
             } else {
@@ -71,34 +95,29 @@ internal fun OnNowRail(
                 focusRequester = cardFocusRequester,
                 onClick = { onChannelSelected(channel) },
                 modifier = Modifier
-                    .then(
-                        if (index == 0 && leftFocusRequester != null) {
-                            Modifier.focusProperties { left = leftFocusRequester }
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .then(
-                        if (upFocusRequester != null) {
-                            Modifier.focusProperties { up = upFocusRequester }
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .then(
-                        if (index == 0 && onUpPressed != null) {
-                            Modifier.onKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.DirectionUp && keyEvent.type == KeyEventType.KeyDown) {
+                    .onPreviewKeyEvent { keyEvent ->
+                        if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        when (keyEvent.key) {
+                            Key.DirectionUp -> {
+                                if (onUpPressed != null) {
                                     onUpPressed()
                                     true
+                                } else if (upFocusRequester != null) {
+                                    runCatching { upFocusRequester.requestFocus() }.isSuccess
                                 } else {
                                     false
                                 }
                             }
-                        } else {
-                            Modifier
-                        },
-                    ),
+                            Key.DirectionLeft -> {
+                                if (index == 0 && leftFocusRequester != null) {
+                                    runCatching { leftFocusRequester.requestFocus() }.isSuccess
+                                } else {
+                                    false
+                                }
+                            }
+                            else -> false
+                        }
+                    },
             )
         }
     }

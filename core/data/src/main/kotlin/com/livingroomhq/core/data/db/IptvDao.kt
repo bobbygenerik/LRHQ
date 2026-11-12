@@ -45,6 +45,17 @@ interface IptvDao {
 
     @Query(
         """
+        SELECT EXISTS(
+            SELECT 1 FROM programs
+            WHERE endMillis > :now AND startMillis < :windowEnd
+            LIMIT 1
+        )
+        """,
+    )
+    suspend fun hasProgramsInWindow(now: Long, windowEnd: Long): Boolean
+
+    @Query(
+        """
         SELECT * FROM programs
         WHERE channelId = :channelId AND endMillis > :now AND startMillis < :windowEnd
         ORDER BY startMillis ASC

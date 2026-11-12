@@ -40,6 +40,7 @@ import com.livingroomhq.core.ui.components.GlassPanel
 import com.livingroomhq.core.ui.components.LoadingRow
 import com.livingroomhq.core.ui.components.tvInitialFocus
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import com.livingroomhq.core.ui.theme.CustomSettings
 import com.livingroomhq.core.ui.theme.HqColors
@@ -81,6 +82,7 @@ internal fun LiveTvSettingsPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .tvInitialFocus(firstFocusRequester)
+                        .focusProperties { up = FocusRequester.Cancel }
                         .linkLeftEdgeToSidebar(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -510,6 +512,36 @@ internal fun AppsAndCaptionsSettingsPanel(
                     onClick = onSaveCaptionUrl,
                 )
             }
+        }
+    }
+}
+
+@Composable
+internal fun VodSettingsPanel(
+    onRefreshVod: () -> Unit,
+) {
+    val accent = hqAccent()
+    Text("VIDEO ON DEMAND (VOD)", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    GlassPanel(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text("Native IPTV VOD Player", style = HqType.CardTitle)
+            Text(
+                "Movies and series are automatically scanned from your configured IPTV playlist. Content streams directly through LRHQ's hardware-accelerated built-in player.",
+                style = HqType.CardCaption,
+            )
+            SettingsActionButton(
+                label = "Refresh VOD Catalog",
+                color = accent,
+                onClick = onRefreshVod,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(16.dp),
+                    )
+                },
+            )
         }
     }
 }

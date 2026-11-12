@@ -1,6 +1,7 @@
 package com.livingroomhq.player.pcm
 
 import android.util.Log
+import android.os.SystemClock
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
@@ -20,6 +21,8 @@ object PcmCaptureHub : TeeAudioProcessor.AudioBufferSink {
     private const val TAG = "PcmCapture"
 
     private val capturing = AtomicBoolean(false)
+    private val defaultOwner = Any()
+    private var captureOwner: Any? = null
     private val queue = BoundedPcmQueue()
     private val bytesQueued = AtomicLong(0)
     private val format = AtomicReference(PcmFormat.UNKNOWN)
@@ -47,14 +50,18 @@ object PcmCaptureHub : TeeAudioProcessor.AudioBufferSink {
 
     fun isCapturing(): Boolean = capturing.get()
 
-    fun startCapture() {
+    @Synchronized fun startCapture(owner: Any = defaultOwner) {
+        captureOwner = owner
         queue.clear()
         bytesQueued.set(0)
         capturing.set(true)
         Log.i(TAG, "capture started")
     }
 
-    fun stopCapture() {
+    @Synchronized fun stopCapture(owner: Any = defaultOwner) {
+        // An old caption session must not stop a newly started consumer.
+        if (captureOwner !== owner) return
+        captureOwner = null
         capturing.set(false)
         Log.i(TAG, "capture stopped stats=${snapshot()}")
     }
@@ -80,6 +87,8 @@ object PcmCaptureHub : TeeAudioProcessor.AudioBufferSink {
     /** Background consumer only. */
     fun pollChunk(): ByteArray? = queue.poll()
 
+    fun pollTimedChunk(): CapturedPcmChunk? = queue.pollTimed()
+
     fun currentFormat(): PcmFormat = format.get()
 
     override fun flush(sampleRateHz: Int, channelCount: Int, encoding: Int) {
@@ -98,7 +107,7 @@ object PcmCaptureHub : TeeAudioProcessor.AudioBufferSink {
         val copy = ByteArray(remaining)
         val duplicate = buffer.asReadOnlyBuffer()
         duplicate.get(copy)
-        if (queue.offer(copy)) {
+        if (queue.offer(copy, SystemClock.elapsedRealtime())) {
             bytesQueued.addAndGet(remaining.toLong())
         }
     }

@@ -31,58 +31,47 @@ object PcmAudioNormalizer {
             C.ENCODING_PCM_16BIT -> {
                 val shorts = ShortArray(chunk.size / 2)
                 ByteBuffer.wrap(chunk).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts)
-                val frames = shorts.size / channels
-                FloatArray(frames) { i ->
-                    if (channels == 1) {
-                        shorts[i] / 32768f
-                    } else {
-                        val c0 = shorts[i * channels] / 32768f
-                        val c1 = shorts[i * channels + 1] / 32768f
-                        // Phase-safe mono mix: if out-of-phase (c0 * c1 < 0), pick larger magnitude to prevent destructive cancellation
-                        if (c0 * c1 < 0f) {
-                            if (kotlin.math.abs(c0) >= kotlin.math.abs(c1)) c0 else c1
-                        } else {
-                            (c0 + c1) * 0.5f
-                        }
-                    }
+                FloatArray(shorts.size / channels) { frame ->
+                    mixFrame(channels) { channel -> shorts[frame * channels + channel] / 32768f }
                 }
             }
             C.ENCODING_PCM_FLOAT -> {
                 val floats = FloatArray(chunk.size / 4)
                 ByteBuffer.wrap(chunk).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floats)
-                val frames = floats.size / channels
-                FloatArray(frames) { i ->
-                    if (channels == 1) {
-                        floats[i]
-                    } else {
-                        val c0 = floats[i * channels]
-                        val c1 = floats[i * channels + 1]
-                        if (c0 * c1 < 0f) {
-                            if (kotlin.math.abs(c0) >= kotlin.math.abs(c1)) c0 else c1
-                        } else {
-                            (c0 + c1) * 0.5f
-                        }
-                    }
+                FloatArray(floats.size / channels) { frame ->
+                    mixFrame(channels) { channel -> floats[frame * channels + channel] }
                 }
             }
             C.ENCODING_PCM_8BIT -> {
-                val frames = chunk.size / channels
-                FloatArray(frames) { i ->
-                    if (channels == 1) {
-                        (chunk[i].toInt() and 0xff) / 128f - 1f
-                    } else {
-                        val c0 = (chunk[i * channels].toInt() and 0xff) / 128f - 1f
-                        val c1 = (chunk[i * channels + 1].toInt() and 0xff) / 128f - 1f
-                        if (c0 * c1 < 0f) {
-                            if (kotlin.math.abs(c0) >= kotlin.math.abs(c1)) c0 else c1
-                        } else {
-                            (c0 + c1) * 0.5f
-                        }
-                    }
+                FloatArray(chunk.size / channels) { frame ->
+                    mixFrame(channels) { channel -> (chunk[frame * channels + channel].toInt() and 0xff) / 128f - 1f }
                 }
             }
             else -> null
         }
+    }
+
+    private inline fun mixFrame(channels: Int, sample: (Int) -> Float): Float {
+        if (channels == 1) return sample(0)
+        val left = sample(0)
+        val right = sample(1)
+        // Preserve the existing phase-safe stereo behavior.
+        var mono = if (left * right < 0f) {
+            if (kotlin.math.abs(left) >= kotlin.math.abs(right)) left else right
+        } else {
+            (left + right) * .5f
+        }
+        // Android interleaved PCM: L/R/C for 3 channels, quad L/R/rears,
+        // and L/R/C/LFE/surrounds for 5.1 and 7.1. LFE carries no dialogue.
+        if (channels == 3 || channels >= 5) mono += sample(2) * .70710677f
+        val firstSurround = when {
+            channels == 4 -> 2
+            channels == 5 -> 3
+            channels >= 6 -> 4
+            else -> channels
+        }
+        for (channel in firstSurround until channels) mono += sample(channel) * .35355338f
+        return mono.coerceIn(-1f, 1f)
     }
 
     private fun resampleLinear(input: FloatArray, srcRate: Int, dstRate: Int): FloatArray {

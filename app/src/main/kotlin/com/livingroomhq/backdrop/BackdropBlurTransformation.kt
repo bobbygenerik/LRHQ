@@ -58,6 +58,8 @@ class BackdropBlurTransformation(
             blur.setInput(inputAlloc)
             blur.forEach(outputAlloc)
             outputAlloc.copyTo(output)
+        } catch (e: Throwable) {
+            android.util.Log.w("BackdropBlur", "RenderScript blur failed, returning scaled fallback", e)
         } finally {
             blur?.destroy()
             inputAlloc?.destroy()

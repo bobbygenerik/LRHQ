@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import com.livingroomhq.components.Sidebar
 import com.livingroomhq.components.SidebarCollapsedWidth
+import com.livingroomhq.components.LocalContentFocusActionMap
 import com.livingroomhq.components.LocalSidebarFocusRequester
 import com.livingroomhq.components.LocalContentFocusRequester
 import com.livingroomhq.components.rememberSidebarFocusRequesters
@@ -49,6 +50,7 @@ import com.livingroomhq.screens.HomeScreen
 import com.livingroomhq.screens.LiveScreen
 import com.livingroomhq.screens.SettingsScreen
 import com.livingroomhq.screens.ToolsScreen
+import com.livingroomhq.screens.VodScreen
 import com.livingroomhq.ui.LocalSnackbarController
 import com.livingroomhq.ui.MessageOverlay
 import kotlinx.coroutines.delay
@@ -62,6 +64,7 @@ class MainActivity : ComponentActivity() {
     private var homeBackTapCount = 0
     private var homeBackWindowStart = 0L
     private var isResumedState = false
+    private var resumeUptimeMillis = 0L
 
     companion object {
         /** TV remotes are slower than phones; keep the double-Back window generous. */
@@ -73,12 +76,19 @@ class MainActivity : ComponentActivity() {
 
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
+            // Guard against the Back press that dismissed ChannelPlayerActivity
+            // from leaking into MainActivity and immediately resetting the launcher to Home.
+            val now = SystemClock.uptimeMillis()
+            val focusReturn = (application as HqApplication).fullscreenFocusReturn
+            if (now - resumeUptimeMillis < 900L || focusReturn.isRecentlyExited(now, windowMillis = 900L)) {
+                return
+            }
             when (nav.zone) {
                 Zone.AMBIENT -> {
                     resetHomeBackGesture()
                     nav.exitAmbient()
                 }
-                Zone.HOME -> handleHomeBack(SystemClock.uptimeMillis())
+                Zone.HOME -> handleHomeBack(now)
                 else -> {
                     resetHomeBackGesture()
                     nav.goHome()
@@ -93,7 +103,7 @@ class MainActivity : ComponentActivity() {
         applyLauncherWindowPolicy()
 
         val app = application as HqApplication
-        nav = LauncherNavController()
+        nav = app.nav
         onBackPressedDispatcher.addCallback(this, backCallback)
 
         setContent {
@@ -136,6 +146,7 @@ class MainActivity : ComponentActivity() {
             val sidebarFocusRequester = sidebarFocusRequesters[controller.underlyingZone]
             val contentFocusRequesters = rememberContentFocusRequesters()
             val contentFocusRequester = contentFocusRequesters[controller.underlyingZone]
+            val contentFocusActions = remember { mutableMapOf<Zone, () -> Boolean>() }
 
             // Idle ticker that drops the launcher into Ambient Mode.
             LaunchedEffect(settings.idleTimeSeconds) {
@@ -148,12 +159,20 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            // Release hardware video decoders and preview resources when browsing non-video zones.
+            LaunchedEffect(controller.underlyingZone) {
+                if (controller.underlyingZone !in setOf(Zone.HOME, Zone.LIVE)) {
+                    app.livePreviewEngine.trimMemory()
+                }
+            }
+
             CompositionLocalProvider(
                 LocalCustomSettings provides settings,
                 LocalAccentColor provides accent,
                 LocalSnackbarController provides app.snackbar,
                 LocalSidebarFocusRequester provides sidebarFocusRequester,
                 LocalContentFocusRequester provides contentFocusRequester,
+                LocalContentFocusActionMap provides contentFocusActions,
             ) {
                 Box(Modifier.fillMaxSize()) {
                     // Content is inset by the collapsed rail width; the rail floats
@@ -173,6 +192,7 @@ class MainActivity : ComponentActivity() {
                                     focusReturn = app.fullscreenFocusReturn,
                                 )
                                 Zone.LIVE -> LiveScreen(nav = controller, focusReturn = app.fullscreenFocusReturn)
+                                Zone.VOD -> VodScreen(nav = controller, focusReturn = app.fullscreenFocusReturn)
                                 Zone.TOOLS -> ToolsScreen(nav = controller)
                                 Zone.COMMAND_CENTER -> CommandCenterScreen()
                                 Zone.SETTINGS -> SettingsScreen(
@@ -223,6 +243,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        resumeUptimeMillis = SystemClock.uptimeMillis()
         if (::nav.isInitialized) {
             nav.resetIdleTimer()
         }
@@ -303,11 +324,24 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val app = application as HqApplication
+        val returningFromExternal = app.installedApps.launchedExternalApp
+        val wasAlreadyResumed = isResumedState
+        val returningFromFullscreen =
+            app.fullscreenFocusReturn.isArmed || app.fullscreenFocusReturn.isRecentlyExited()
+        val suppressReset = app.installedApps.consumeSuppressHomeReset() || returningFromFullscreen
         app.installedApps.onHomePressed()
+
         if (!::nav.isInitialized) return
-        if (!intent.hasCategory(Intent.CATEGORY_HOME)) return
-        if (app.installedApps.consumeSuppressHomeReset()) return
-        nav.goHome()
+        val hasHomeCategory = intent.hasCategory(Intent.CATEGORY_HOME)
+        if (com.livingroomhq.navigation.HomeIntentPolicy.shouldGoHome(
+                hasHomeCategory = hasHomeCategory,
+                returningFromExternal = returningFromExternal,
+                suppressHomeReset = suppressReset,
+                wasAlreadyResumed = wasAlreadyResumed,
+            )
+        ) {
+            nav.goHome()
+        }
     }
 
     override fun onUserInteraction() {

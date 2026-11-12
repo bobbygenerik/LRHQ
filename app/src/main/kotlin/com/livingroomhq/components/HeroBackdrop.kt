@@ -87,7 +87,7 @@ fun HeroBackdrop(
                         modifier = Modifier.fillMaxSize(),
                         ownerTag = "home-hero",
                         showLabel = false,
-                        deferStartupMillis = 800L,
+                        deferStartupMillis = 0L,
                     )
                     is BackdropSource.Artwork -> ArtworkBackdrop(
                         url = source.url,

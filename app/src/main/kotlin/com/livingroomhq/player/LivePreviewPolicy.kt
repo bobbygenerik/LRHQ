@@ -14,5 +14,6 @@ fun rememberLivePreviewActive(
     settingEnabled: Boolean,
 ): Boolean {
     if (!settingEnabled) return false
-    return nav.zone != Zone.AMBIENT
+    val zone = nav.underlyingZone
+    return nav.zone != Zone.AMBIENT && (zone == Zone.HOME || zone == Zone.LIVE)
 }

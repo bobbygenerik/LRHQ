@@ -1,6 +1,5 @@
 package com.livingroomhq.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.runtime.Composable
@@ -61,6 +61,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,11 +81,15 @@ val LocalSidebarFocusRequester = compositionLocalOf<FocusRequester?> { null }
 /** Focus target for the screen's main content element; wire sidebar's RIGHT edge / Back to this. */
 val LocalContentFocusRequester = compositionLocalOf<FocusRequester?> { null }
 
+/** Optional per-zone hook to focus the active leaf node when dismissing the sidebar. */
+val LocalContentFocusActionMap = compositionLocalOf<MutableMap<Zone, () -> Boolean>?> { null }
+
 @Composable
 fun rememberSidebarFocusRequesters(): Map<Zone, FocusRequester> = remember {
     mapOf(
         Zone.HOME to FocusRequester(),
         Zone.LIVE to FocusRequester(),
+        Zone.VOD to FocusRequester(),
         Zone.TOOLS to FocusRequester(),
         Zone.COMMAND_CENTER to FocusRequester(),
         Zone.SETTINGS to FocusRequester(),
@@ -96,6 +101,7 @@ fun rememberContentFocusRequesters(): Map<Zone, FocusRequester> = remember {
     mapOf(
         Zone.HOME to FocusRequester(),
         Zone.LIVE to FocusRequester(),
+        Zone.VOD to FocusRequester(),
         Zone.TOOLS to FocusRequester(),
         Zone.COMMAND_CENTER to FocusRequester(),
         Zone.SETTINGS to FocusRequester(),
@@ -103,13 +109,16 @@ fun rememberContentFocusRequesters(): Map<Zone, FocusRequester> = remember {
 }
 
 /** Pins D-pad LEFT from a leading-edge item to the active sidebar tab. */
-@androidx.compose.ui.ExperimentalComposeUiApi
 fun Modifier.linkLeftEdgeToSidebar(): Modifier = composed {
     val sidebar = LocalSidebarFocusRequester.current
     if (sidebar == null) {
         this
     } else {
-        focusProperties { left = sidebar }
+        onPreviewKeyEvent { event ->
+            if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionLeft) {
+                runCatching { sidebar.requestFocus() }.isSuccess
+            } else false
+        }
     }
 }
 
@@ -124,6 +133,16 @@ data class NavigationItem(
 val SidebarCollapsedWidth = 68.dp
 private val COLLAPSED_WIDTH = SidebarCollapsedWidth
 private val EXPANDED_WIDTH = 196.dp
+private val FocusBarShape = RoundedCornerShape(1.5.dp)
+
+private val NavItems = listOf(
+    NavigationItem("Home", Icons.Default.Home, Zone.HOME),
+    NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
+    NavigationItem("VOD", Icons.Default.Movie, Zone.VOD),
+    NavigationItem("Apps", Icons.Default.Apps, Zone.TOOLS),
+    NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
+    NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
+)
 
 /**
  * Collapsible navigation rail. Expands with cinematic ease-out (no bounce);
@@ -142,34 +161,51 @@ fun Sidebar(
     LaunchedEffect(expanded) { onExpandedChanged(expanded) }
     val localContentFocus = LocalContentFocusRequester.current
     val currentContentFocus = localContentFocus ?: contentFocusRequesters[currentZone]
+    val contentFocusActions = LocalContentFocusActionMap.current
     val focusManager = LocalFocusManager.current
     val reducedMotion = rememberReducedMotion()
 
-    BackHandler(enabled = expanded) {
-        val target = contentFocusRequesters[currentZone] ?: currentContentFocus
-        if (target != null) {
-            runCatching { target.requestFocus() }
-        } else {
-            focusManager.moveFocus(FocusDirection.Right)
+    val dismissToContent: (Zone, FocusRequester?) -> Boolean = { targetZone, fallbackRequester ->
+        val action = contentFocusActions?.get(targetZone)
+        when {
+            action != null && action() -> true
+            fallbackRequester != null && runCatching { fallbackRequester.requestFocus() }.isSuccess -> true
+            else -> runCatching { focusManager.moveFocus(FocusDirection.Right) }.getOrDefault(false)
         }
     }
 
+
     var pendingSelection by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pendingSelection) {
+    LaunchedEffect(pendingSelection, currentZone) {
         if (pendingSelection) {
-            withFrameNanos { }
-            focusManager.moveFocus(FocusDirection.Right)
+            var success = false
+            // Clear LauncherNavHost's 280ms transition + lazy content composition window.
+            for (frame in 0 until 24) {
+                withFrameNanos { }
+                val action = contentFocusActions?.get(currentZone)
+                val target = contentFocusRequesters[currentZone] ?: currentContentFocus
+                if ((action != null && action()) || (target != null && runCatching { target.requestFocus() }.isSuccess)) {
+                    success = true
+                    break
+                }
+            }
+            if (!success) {
+                if (!runCatching { focusManager.moveFocus(FocusDirection.Right) }.getOrDefault(false)) {
+                    withFrameNanos { }
+                    runCatching { focusManager.moveFocus(FocusDirection.Right) }
+                }
+            }
             pendingSelection = false
         }
     }
 
-    val width by animateDpAsState(
+    val widthState = animateDpAsState(
         targetValue = if (expanded) EXPANDED_WIDTH else COLLAPSED_WIDTH,
         animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
         label = "sidebarWidth",
     )
-    val scrimAlpha by animateFloatAsState(
+    val scrimAlphaState = animateFloatAsState(
         targetValue = if (expanded) 0.6f else 0f,
         animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
         label = "scrimAlpha",
@@ -185,30 +221,38 @@ fun Sidebar(
         )
     }
 
-    val navItems = listOf(
-        NavigationItem("Home", Icons.Default.Home, Zone.HOME),
-        NavigationItem("Live TV", Icons.Default.Tv, Zone.LIVE),
-        NavigationItem("Apps", Icons.Default.Apps, Zone.TOOLS),
-        NavigationItem("Command Center", Icons.Default.Dashboard, Zone.COMMAND_CENTER),
-        NavigationItem("Settings", Icons.Default.Settings, Zone.SETTINGS),
-    )
-
-    Box(modifier = modifier.fillMaxSize()) {
-        if (scrimAlpha > 0f) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        drawRect(color = HqColors.Void.copy(alpha = scrimAlpha))
-                    },
-            )
-        }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .drawBehind {
+                val alpha = scrimAlphaState.value
+                if (alpha > 0f) {
+                    drawRect(color = HqColors.Void.copy(alpha = alpha))
+                }
+            },
+    ) {
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .fillMaxHeight()
-                .width(width)
+                .layout { measurable, constraints ->
+                    val w = widthState.value.roundToPx()
+                    val placeable = measurable.measure(constraints.copy(minWidth = w, maxWidth = w))
+                    layout(w, placeable.height) {
+                        placeable.placeRelative(0, 0)
+                    }
+                }
                 .background(scrimBrush)
+                // Compose 1.7 turns an unconsumed Back KeyDown into moveFocus(Exit),
+                // which clears focus at the root before a BackHandler (KeyUp) can run.
+                // Consume Back here and dismiss to content on KeyUp instead.
+                .onPreviewKeyEvent { event ->
+                    if (event.key != Key.Back) return@onPreviewKeyEvent false
+                    if (event.type == KeyEventType.KeyUp) {
+                        dismissToContent(currentZone, contentFocusRequesters[currentZone] ?: currentContentFocus)
+                    }
+                    true
+                }
                 .focusGroup()
                 .onFocusChanged { expanded = it.hasFocus },
         ) {
@@ -220,13 +264,15 @@ fun Sidebar(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                LaunchedEffect(expanded, currentZone) {
+                LaunchedEffect(expanded) {
                     if (!expanded) return@LaunchedEffect
                     withFrameNanos { }
-                    runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
+                    if (expanded) {
+                        runCatching { itemFocusRequesters[currentZone]?.requestFocus() }
+                    }
                 }
 
-                navItems.forEach { item ->
+                NavItems.forEach { item ->
                     val contentFocus = contentFocusRequesters[item.zone] ?: (if (item.zone == currentZone) currentContentFocus else null)
                     SidebarItem(
                         title = item.title,
@@ -234,14 +280,12 @@ fun Sidebar(
                         active = currentZone == item.zone,
                         expanded = expanded,
                         reducedMotion = reducedMotion,
-                        contentFocusRequester = contentFocus,
+                        onMoveRight = { dismissToContent(item.zone, contentFocus) },
                         onClick = {
                             if (item.zone != currentZone) {
                                 onZoneSelected(item.zone)
                             }
-                            if (contentFocus != null) {
-                                runCatching { contentFocus.requestFocus() }
-                            }
+                            pendingSelection = true
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -260,11 +304,12 @@ private fun SidebarItem(
     active: Boolean,
     expanded: Boolean,
     reducedMotion: Boolean,
+    onMoveRight: () -> Boolean,
     onClick: () -> Unit,
-    contentFocusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
 ) {
     var focused by remember { mutableStateOf(false) }
+    var centerPressed by remember { mutableStateOf(false) }
 
     val contentColor = when {
         active -> HqColors.Accent.value
@@ -272,50 +317,52 @@ private fun SidebarItem(
         else -> HqColors.TextTertiary
     }
 
-    val focusBarHeight by animateDpAsState(
+    val focusBarScaleState = animateFloatAsState(
         targetValue = when {
-            focused -> 22.dp
-            active -> 14.dp
-            else -> 0.dp
+            focused -> 1f
+            active -> 14f / 22f
+            else -> 0f
         },
         animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.normal(),
-        label = "focusBarHeight",
+        label = "focusBarScale",
     )
-    val focusBarAlpha by animateFloatAsState(
+    val focusBarAlphaState = animateFloatAsState(
         targetValue = when {
             focused -> 1f
             active -> 0.55f
             else -> 0f
         },
-        animationSpec = if (reducedMotion) HqMotion.fast() else HqMotion.fast(),
+        animationSpec = HqMotion.fast(),
         label = "focusBarAlpha",
     )
 
-    val itemContentFocus = contentFocusRequester
     Box(
         modifier = modifier
-            .onFocusChanged { focused = it.isFocused }
-            .focusProperties {
-                if (itemContentFocus != null) {
-                    right = itemContentFocus
-                }
+            .onFocusChanged {
+                focused = it.isFocused
+                if (!it.isFocused) centerPressed = false
             }
             .onPreviewKeyEvent { event ->
-                if (event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.DirectionRight -> {
-                            if (itemContentFocus != null) {
-                                runCatching { itemContentFocus.requestFocus() }
-                                true
-                            } else false
-                        }
-                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
-                            onClick()
-                            true
-                        }
-                        else -> false
+                when (event.key) {
+                    Key.DirectionRight -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            onMoveRight()
+                        } else false
                     }
-                } else false
+                    Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            centerPressed = true
+                            true
+                        } else if (event.type == KeyEventType.KeyUp) {
+                            if (centerPressed) {
+                                centerPressed = false
+                                onClick()
+                            }
+                            true
+                        } else false
+                    }
+                    else -> false
+                }
             }
             .focusable()
             .clickable { onClick() }
@@ -330,16 +377,17 @@ private fun SidebarItem(
             },
         contentAlignment = if (expanded) Alignment.CenterStart else Alignment.Center,
     ) {
-        if (focusBarAlpha > 0.01f && focusBarHeight > 0.dp) {
-            Box(
-                Modifier
-                    .align(Alignment.CenterStart)
-                    .width(3.dp)
-                    .height(focusBarHeight)
-                    .graphicsLayer { alpha = focusBarAlpha }
-                    .background(HqColors.Accent.value, RoundedCornerShape(1.5.dp)),
-            )
-        }
+        Box(
+            Modifier
+                .align(Alignment.CenterStart)
+                .width(3.dp)
+                .height(22.dp)
+                .graphicsLayer {
+                    alpha = focusBarAlphaState.value
+                    scaleY = focusBarScaleState.value
+                }
+                .background(HqColors.Accent.value, FocusBarShape),
+        )
 
         Row(
             modifier = Modifier.padding(start = if (expanded) 14.dp else 0.dp),

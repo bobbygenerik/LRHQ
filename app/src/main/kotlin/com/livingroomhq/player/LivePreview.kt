@@ -46,18 +46,21 @@ fun LivePreview(
     showLabel: Boolean = true,
     maxVideoWidth: Int = 1280,
     maxVideoHeight: Int = 720,
-    /** Delay ExoPlayer bind until after the first frame (Home hero launch jank). */
-    deferStartupMillis: Long = 0L,
+    enableAudio: Boolean = false,
+    /** Delay ExoPlayer bind until after navigation settles (prevents decoder churn). */
+    deferStartupMillis: Long = 350L,
 ) {
     val context = LocalContext.current
     val engine = remember { (context.applicationContext as HqApplication).livePreviewEngine }
     val textureView = remember { TextureView(context) }
-    var previewReady by remember(channel?.id, deferStartupMillis) {
-        mutableStateOf(deferStartupMillis <= 0L)
+    val streamUrl = channel?.streamUrl?.takeIf { it.isNotBlank() }
+    val isWarm = streamUrl != null && engine.activeUrl == streamUrl
+    var previewReady by remember(channel?.id, isWarm) {
+        mutableStateOf(deferStartupMillis <= 0L || isWarm)
     }
 
-    LaunchedEffect(channel?.id, deferStartupMillis) {
-        if (deferStartupMillis <= 0L) {
+    LaunchedEffect(channel?.id, isWarm, deferStartupMillis) {
+        if (deferStartupMillis <= 0L || isWarm) {
             previewReady = true
             return@LaunchedEffect
         }
@@ -68,8 +71,8 @@ fun LivePreview(
     }
 
     if (previewReady) {
-        DisposableEffect(ownerTag, channel?.id, maxVideoWidth, maxVideoHeight) {
-            engine.bind(ownerTag, channel, textureView, maxVideoWidth, maxVideoHeight)
+        DisposableEffect(ownerTag, channel?.id, maxVideoWidth, maxVideoHeight, enableAudio) {
+            engine.bind(ownerTag, channel, textureView, maxVideoWidth, maxVideoHeight, enableAudio = enableAudio)
             onDispose { engine.unbind(ownerTag, textureView) }
         }
     }

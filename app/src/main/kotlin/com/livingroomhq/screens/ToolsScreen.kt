@@ -3,10 +3,11 @@ package com.livingroomhq.screens
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
-import coil.compose.AsyncImage
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,15 +48,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.livingroomhq.HqApplication
@@ -80,9 +85,13 @@ import com.livingroomhq.core.ui.theme.hqAccent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 private const val COLUMNS = 5
 private const val ARM_LAUNCH_MS = 2_500L
+private const val ICON_BITMAP_PX = 144
+private val AppCardShape = RoundedCornerShape(HqDimens.CornerMd)
+private val appIconCache = ConcurrentHashMap<String, ImageBitmap>()
 
 @kotlin.OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
@@ -119,7 +128,7 @@ fun ToolsScreen(
     var menuPackage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(state.detected, state.savedOrder) {
-        if (movingPackage == null) {
+        if (movingPackage == null && apps.toList() != state.apps) {
             apps.clear()
             apps.addAll(state.apps)
         }
@@ -127,7 +136,10 @@ fun ToolsScreen(
 
     val gridState = rememberLazyGridState()
     val moverFocus = remember { FocusRequester() }
-    val firstItemFocusRequester = remember { FocusRequester() }
+    val firstItemFocusRequester = contentFocus ?: remember { FocusRequester() }
+    val cardRequesters = remember { HashMap<String, FocusRequester>() }
+    var focusedPackage by remember { mutableStateOf<String?>(null) }
+    var initialFocusGranted by remember { mutableStateOf(false) }
     var moveTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(moveTick, movingPackage) {
         val pkg = movingPackage ?: return@LaunchedEffect
@@ -136,13 +148,32 @@ fun ToolsScreen(
         runCatching { moverFocus.requestFocus() }
     }
 
+    LaunchedEffect(apps.isNotEmpty()) {
+        if (apps.isNotEmpty() && !initialFocusGranted) {
+            initialFocusGranted = true
+            withFrameNanos { }
+            val targetPkg = focusedPackage ?: apps.firstOrNull()?.packageName
+            val restored = targetPkg?.let { pkg ->
+                runCatching { cardRequesters[pkg]?.requestFocus() }.isSuccess
+            } ?: false
+            if (!restored) {
+                runCatching { firstItemFocusRequester.requestFocus() }
+            }
+        }
+    }
+
     /** Dismiss the action menu after the current key event finishes composing. */
-    fun dismissMenuAfterKey() {
+    fun dismissMenuAfterKey(restorePackage: String? = menuPackage) {
         scope.launch {
             withFrameNanos { }
             menuPackage = null
-            withFrameNanos { }
-            runCatching { firstItemFocusRequester.requestFocus() }
+            if (restorePackage != null) {
+                withFrameNanos { }
+                val restored = runCatching { cardRequesters[restorePackage]?.requestFocus() }.isSuccess
+                if (!restored) {
+                    runCatching { firstItemFocusRequester.requestFocus() }
+                }
+            }
         }
     }
 
@@ -156,14 +187,34 @@ fun ToolsScreen(
     }
 
     fun commitMove() {
+        val pkg = movingPackage
         viewModel.saveOrder(apps.map { it.packageName })
         movingPackage = null
+        if (pkg != null) {
+            focusedPackage = pkg
+            scope.launch {
+                withFrameNanos { }
+                runCatching { cardRequesters[pkg]?.requestFocus() }
+            }
+        }
     }
 
     fun cancelMove() {
+        val pkg = movingPackage
         movingPackage = null
-        apps.clear()
-        apps.addAll(state.apps)
+        if (apps.toList() != state.apps) {
+            apps.clear()
+            apps.addAll(state.apps)
+        }
+        if (pkg != null) {
+            focusedPackage = pkg
+            scope.launch {
+                val idx = apps.indexOfFirst { it.packageName == pkg }
+                if (idx >= 0) runCatching { gridState.scrollToItem(idx) }
+                withFrameNanos { }
+                runCatching { cardRequesters[pkg]?.requestFocus() }
+            }
+        }
     }
 
     fun openApp(packageName: String) {
@@ -184,7 +235,16 @@ fun ToolsScreen(
         }
     }
 
-    BackHandler(enabled = menuPackage != null) { menuPackage = null }
+    BackHandler(enabled = menuPackage != null) {
+        val restorePkg = menuPackage
+        menuPackage = null
+        if (restorePkg != null) {
+            scope.launch {
+                withFrameNanos { }
+                runCatching { cardRequesters[restorePkg]?.requestFocus() }
+            }
+        }
+    }
     BackHandler(enabled = movingPackage != null) { cancelMove() }
 
     // Do not set focusProperties.enter to a LazyGrid item FocusRequester — if that
@@ -216,16 +276,20 @@ fun ToolsScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     EmptyStatePanel(
-                        title = "No apps found",
-                        message = "Install apps from the Play Store, then return here to launch and organize them.",
+                        title = if (state.isLoading) "Loading apps…" else "No apps found",
+                        message = if (state.isLoading) "Scanning installed apps on this device." else "Install apps from the Play Store, then return here to launch and organize them.",
                         icon = Icons.Default.Apps,
-                        actionLabel = "Open Play Store",
+                        actionLabel = if (state.isLoading) null else "Open Play Store",
                         onAction = {
                             context.startActivity(
                                 Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details"))
                                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                             )
                         },
+                        modifier = Modifier
+                            .tvInitialFocus(firstItemFocusRequester)
+                            .linkLeftEdgeToSidebar()
+                            .focusable(),
                     )
                 }
             } else {
@@ -243,8 +307,17 @@ fun ToolsScreen(
                     ),
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    itemsIndexed(apps, key = { _, app -> app.packageName }) { index, entry ->
+                    itemsIndexed(
+                        items = apps,
+                        key = { _, app -> app.packageName },
+                        contentType = { _, _ -> "app_card" },
+                    ) { index, entry ->
                         val isMoving = entry.packageName == movingPackage
+                        val cardRequester = remember(entry.packageName) {
+                            cardRequesters.getOrPut(entry.packageName) { FocusRequester() }
+                        }
+                        val isPrimaryContentTarget =
+                            entry.packageName == (focusedPackage ?: apps.firstOrNull()?.packageName)
                         AppCard(
                             entry = entry,
                             accent = accent,
@@ -257,6 +330,10 @@ fun ToolsScreen(
                             },
                             onClick = { requestLaunch(entry.packageName, entry.label) },
                             onLongClick = { menuPackage = entry.packageName },
+                            onFocused = {
+                                focusedPackage = entry.packageName
+                                initialFocusGranted = true
+                            },
                             onDisarm = {
                                 if (armedPackage == entry.packageName) disarmLaunch()
                             },
@@ -277,14 +354,23 @@ fun ToolsScreen(
                                     }
                                 else -> Modifier
                             },
-                            modifier = if (index == 0) {
-                                Modifier
-                                    .tvInitialFocus(firstItemFocusRequester)
-                                    .then(if (contentFocus != null) Modifier.focusRequester(contentFocus) else Modifier)
-                                    .linkLeftEdgeToSidebar()
-                            } else {
-                                Modifier
-                            }
+                            modifier = Modifier
+                                .focusRequester(cardRequester)
+                                .then(
+                                    if (isPrimaryContentTarget) {
+                                        Modifier.focusRequester(firstItemFocusRequester)
+                                    } else Modifier
+                                )
+                                .then(
+                                    if (index < COLUMNS && !isMoving) {
+                                        Modifier.focusProperties { up = FocusRequester.Cancel }
+                                    } else Modifier
+                                )
+                                .then(
+                                    if (index % COLUMNS == 0) {
+                                        Modifier.linkLeftEdgeToSidebar()
+                                    } else Modifier
+                                )
                         )
                     }
                 }
@@ -299,18 +385,18 @@ fun ToolsScreen(
                     onOpen = {
                         disarmLaunch()
                         openApp(pkg)
-                        dismissMenuAfterKey()
+                        dismissMenuAfterKey(restorePackage = pkg)
                     },
                     onSettings = {
                         disarmLaunch()
                         viewModel.openAppSettings(pkg)
-                        dismissMenuAfterKey()
+                        dismissMenuAfterKey(restorePackage = pkg)
                     },
                     onMove = {
                         disarmLaunch()
                         movingPackage = pkg
                         moveTick++
-                        dismissMenuAfterKey()
+                        dismissMenuAfterKey(restorePackage = null)
                     },
                 )
             }
@@ -327,6 +413,7 @@ private fun AppCard(
     packageManagerIcon: suspend () -> Drawable?,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onFocused: () -> Unit,
     onDisarm: () -> Unit,
     moveModifier: Modifier,
     modifier: Modifier = Modifier,
@@ -334,11 +421,17 @@ private fun AppCard(
     val cardModifier = Modifier
         .fillMaxWidth()
         .height(148.dp)
-        .onFocusChanged { if (!it.isFocused) onDisarm() }
+        .onFocusChanged {
+            if (it.isFocused) {
+                onFocused()
+            } else {
+                onDisarm()
+            }
+        }
         .then(
             when {
-                isMoving -> Modifier.border(2.dp, accent, RoundedCornerShape(HqDimens.CornerMd))
-                isArmed -> Modifier.border(2.dp, accent.copy(alpha = 0.85f), RoundedCornerShape(HqDimens.CornerMd))
+                isMoving -> Modifier.border(2.dp, accent, AppCardShape)
+                isArmed -> Modifier.border(2.dp, accent.copy(alpha = 0.85f), AppCardShape)
                 else -> Modifier
             },
         )
@@ -361,19 +454,35 @@ private fun AppCard(
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(RoundedCornerShape(HqDimens.CornerMd))
+                    .clip(AppCardShape)
                     .background(HqColors.IconWell),
                 contentAlignment = Alignment.Center,
             ) {
-                var appIcon by remember(entry.packageName) { mutableStateOf<Drawable?>(null) }
+                var appIcon by remember(entry.packageName) {
+                    mutableStateOf<ImageBitmap?>(appIconCache[entry.packageName])
+                }
                 LaunchedEffect(entry.packageName) {
-                    withContext(Dispatchers.IO) { appIcon = packageManagerIcon() }
+                    if (appIcon == null) {
+                        val loaded = withContext(Dispatchers.IO) {
+                            runCatching {
+                                packageManagerIcon()
+                                    ?.toBitmap(width = ICON_BITMAP_PX, height = ICON_BITMAP_PX)
+                                    ?.asImageBitmap()
+                            }.getOrNull()
+                        }
+                        if (loaded != null) {
+                            appIconCache[entry.packageName] = loaded
+                            appIcon = loaded
+                        }
+                    }
                 }
 
-                if (appIcon != null) {
-                    AsyncImage(
-                        model = appIcon,
+                val iconBitmap = appIcon
+                if (iconBitmap != null) {
+                    Image(
+                        bitmap = iconBitmap,
                         contentDescription = entry.label,
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import com.livingroomhq.core.ui.theme.HqColors
 import com.livingroomhq.core.ui.theme.HqDimens
@@ -37,13 +38,17 @@ fun CaptionOverlay(
         ) {
             Text(
                 text = text.orEmpty(),
-                style = HqType.Caption.copy(textAlign = TextAlign.Center),
+                style = HqType.Caption.copy(
+                    textAlign = TextAlign.Center,
+                    lineHeight = 28.sp,
+                ),
+                maxLines = 3,
                 modifier = Modifier
                     .background(
-                        HqColors.Void.copy(alpha = 0.72f),
+                        HqColors.Void.copy(alpha = 0.78f),
                         RoundedCornerShape(HqDimens.CornerSm),
                     )
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
             )
         }
     }

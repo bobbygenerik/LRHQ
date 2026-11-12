@@ -27,6 +27,8 @@ interface LauncherPrefsStore {
     val pinnedAppPackages: Flow<List<String>>
     val liveCaptionServerUrl: Flow<String?>
     val liveCaptionServerToken: Flow<String?>
+    val vodSource: Flow<String>
+    val clipboxPackageName: Flow<String>
 
     suspend fun setFavorites(ids: Set<String>)
     suspend fun setRecents(ids: List<String>)
@@ -46,6 +48,8 @@ interface LauncherPrefsStore {
     suspend fun setPinnedAppPackages(packages: List<String>)
     suspend fun setLiveCaptionServerUrl(url: String?)
     suspend fun setLiveCaptionServerToken(token: String?)
+    suspend fun setVodSource(value: String)
+    suspend fun setClipboxPackageName(value: String)
 }
 
 class InMemoryPrefsStore : LauncherPrefsStore {
@@ -67,6 +71,8 @@ class InMemoryPrefsStore : LauncherPrefsStore {
     override val pinnedAppPackages = MutableStateFlow<List<String>>(emptyList())
     override val liveCaptionServerUrl = MutableStateFlow<String?>(null)
     override val liveCaptionServerToken = MutableStateFlow<String?>(null)
+    override val vodSource = MutableStateFlow("BOTH")
+    override val clipboxPackageName = MutableStateFlow("org.clipbox.player")
 
     override suspend fun setFavorites(ids: Set<String>) { favorites.value = ids }
     override suspend fun setRecents(ids: List<String>) { recents.value = ids }
@@ -86,4 +92,6 @@ class InMemoryPrefsStore : LauncherPrefsStore {
     override suspend fun setPinnedAppPackages(packages: List<String>) { pinnedAppPackages.value = packages }
     override suspend fun setLiveCaptionServerUrl(url: String?) { liveCaptionServerUrl.value = url }
     override suspend fun setLiveCaptionServerToken(token: String?) { liveCaptionServerToken.value = token }
+    override suspend fun setVodSource(value: String) { vodSource.value = value }
+    override suspend fun setClipboxPackageName(value: String) { clipboxPackageName.value = value }
 }

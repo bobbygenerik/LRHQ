@@ -63,7 +63,7 @@ class IptvSyncWorker(
             wm.enqueueUniquePeriodicWork(
                 MAINTENANCE_WORK,
                 ExistingPeriodicWorkPolicy.KEEP,
-                PeriodicWorkRequestBuilder<IptvSyncWorker>(12, TimeUnit.HOURS)
+                PeriodicWorkRequestBuilder<IptvSyncWorker>(6, TimeUnit.HOURS)
                     .setInputData(androidx.work.workDataOf(KEY_TASK to TASK_MAINTENANCE))
                     .build(),
             )

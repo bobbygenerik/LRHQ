@@ -26,9 +26,12 @@ class LauncherNavController {
     private var ambientEnteredAt = 0L
 
     fun touch() {
-        lastInteractionAt = SystemClock.elapsedRealtime()
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastInteractionAt >= TOUCH_COALESCE_MS || lastInteractionAt == 0L) {
+            lastInteractionAt = now
+        }
         if (zone == Zone.AMBIENT && autoAmbient) {
-            if (SystemClock.elapsedRealtime() - ambientEnteredAt < AMBIENT_WAKE_GRACE_MS) return
+            if (now - ambientEnteredAt < AMBIENT_WAKE_GRACE_MS) return
             exitAmbient()
         }
     }
@@ -67,5 +70,6 @@ class LauncherNavController {
 
     private companion object {
         const val AMBIENT_WAKE_GRACE_MS = 1_200L
+        const val TOUCH_COALESCE_MS = 250L
     }
 }

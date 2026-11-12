@@ -27,6 +27,9 @@ import com.livingroomhq.player.pcm.PcmForcedAudioSink
 /** Shared ExoPlayer setup for IPTV streams (redirects + HLS). */
 @OptIn(UnstableApi::class)
 object IptvExoPlayer {
+    private const val DEFAULT_USER_AGENT =
+        "TiviMate/4.7.0 (Linux; Android 11)"
+
     /** Hold more live edge buffer so brief CDN gaps do not spin the UI spinner. */
     private val loadControl =
         DefaultLoadControl.Builder()
@@ -69,6 +72,15 @@ object IptvExoPlayer {
             }
         }
 
+    fun isLikelyVod(url: String): Boolean {
+        val lower = url.lowercase()
+        return lower.endsWith(".mp4") || lower.endsWith(".mkv") ||
+            lower.endsWith(".avi") || lower.endsWith(".mov") ||
+            lower.endsWith(".m4v") || lower.endsWith(".flv") ||
+            lower.contains("/movie/") || lower.contains("/series/") ||
+            lower.contains("/vod/")
+    }
+
     fun create(context: Context): ExoPlayer =
         ExoPlayer.Builder(context, renderersFactory(context.applicationContext))
             .setLoadControl(loadControl)
@@ -77,6 +89,7 @@ object IptvExoPlayer {
                     DefaultDataSource.Factory(
                         context,
                         DefaultHttpDataSource.Factory()
+                            .setUserAgent(DEFAULT_USER_AGENT)
                             .setAllowCrossProtocolRedirects(true)
                             .setConnectTimeoutMs(20_000)
                             // Live HLS can go quiet between segments; avoid mid-play read timeouts.
@@ -91,17 +104,19 @@ object IptvExoPlayer {
             )
             .build()
 
-    fun mediaItemForUrl(url: String): MediaItem =
-        MediaItem.Builder()
-            .setUri(url)
-            .setLiveConfiguration(
+    fun mediaItemForUrl(url: String, isLive: Boolean = !isLikelyVod(url)): MediaItem {
+        val builder = MediaItem.Builder().setUri(url)
+        if (isLive) {
+            builder.setLiveConfiguration(
                 MediaItem.LiveConfiguration.Builder()
                     .setTargetOffsetMs(3_000)
                     .setMinOffsetMs(1_500)
                     .setMaxOffsetMs(15_000)
                     .build(),
             )
-            .build()
+        }
+        return builder.build()
+    }
 
     fun prepareChannel(player: ExoPlayer, channel: Channel, playWhenReady: Boolean = true) {
         player.setMediaItem(mediaItemForUrl(channel.streamUrl))
@@ -109,15 +124,26 @@ object IptvExoPlayer {
         player.prepare()
     }
 
-    fun configureForPreview(player: ExoPlayer, maxVideoWidth: Int, maxVideoHeight: Int) {
-        player.setAudioAttributes(mediaAudioAttributes(), /* handleAudioFocus = */ false)
+    fun configureForPreview(
+        player: ExoPlayer,
+        maxVideoWidth: Int = 1920,
+        maxVideoHeight: Int = 1080,
+        enableAudio: Boolean = false,
+    ) {
+        player.setAudioAttributes(mediaAudioAttributes(), /* handleAudioFocus = */ enableAudio)
         player.trackSelectionParameters =
             player.trackSelectionParameters
                 .buildUpon()
-                .setMaxVideoSize(maxVideoWidth, maxVideoHeight)
-                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                .apply {
+                    if (maxVideoWidth in 1 until Int.MAX_VALUE && maxVideoHeight in 1 until Int.MAX_VALUE) {
+                        setMaxVideoSize(maxVideoWidth, maxVideoHeight)
+                    } else {
+                        clearVideoSizeConstraints()
+                    }
+                }
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, !enableAudio)
                 .build()
-        player.volume = 0f
+        player.volume = if (enableAudio) 1f else 0f
     }
 
     fun configureForFullscreen(player: ExoPlayer) {
@@ -160,5 +186,48 @@ object IptvExoPlayer {
         player.trackSelectionParameters =
             base.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false).build()
         player.volume = 1f
+    }
+
+    /**
+     * Adjust live playback delay automatically so speech recognition (~2.5-3.0s latency)
+     * aligns with audio/video output when captions are active.
+     * The user does not need to seek manually.
+     */
+    fun applyCaptionDelay(player: ExoPlayer, enabled: Boolean) {
+        val targetOffsetMs = if (enabled) 6_500L else 3_000L
+        val minOffsetMs = if (enabled) 4_000L else 1_500L
+        val maxOffsetMs = if (enabled) 18_000L else 15_000L
+        player.currentMediaItem?.let { current ->
+            val updated = current.buildUpon()
+                .setLiveConfiguration(
+                    MediaItem.LiveConfiguration.Builder()
+                        .setTargetOffsetMs(targetOffsetMs)
+                        .setMinOffsetMs(minOffsetMs)
+                        .setMaxOffsetMs(maxOffsetMs)
+                        .build()
+                )
+                .build()
+            player.setMediaItem(updated, /* resetPosition = */ false)
+        }
+
+        if (enabled) {
+            // If live stream has buffered behind live edge, seek back 3000ms.
+            // Otherwise, pause for 3000ms while ExoPlayer buffers the incoming stream.
+            val currentPos = player.currentPosition
+            val isLive = player.isCurrentMediaItemLive
+            if (isLive && currentPos > 4_000L) {
+                player.seekTo((currentPos - 3_000L).coerceAtLeast(0L))
+            } else {
+                player.pause()
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    player.play()
+                }, 3_000L)
+            }
+        } else {
+            // When captions are turned off, snap back to the live edge.
+            if (player.isCurrentMediaItemLive) {
+                player.seekToDefaultPosition()
+            }
+        }
     }
 }

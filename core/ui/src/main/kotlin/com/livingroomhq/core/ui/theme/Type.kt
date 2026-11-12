@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
@@ -15,26 +16,28 @@ private val defaultTextShadow = Shadow(
 
 /**
  * 10-foot typography — see MASTER.md.
- * System sans; hierarchy via size, weight, and tracking.
+ * System sans for display/copy paired with monospace for telemetry, clocks, and badges.
  */
 object HqType {
     val Display = TextStyle(
-        fontSize = 48.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = 54.sp,
+        fontWeight = FontWeight.Bold,
         color = HqColors.TextPrimary,
-        letterSpacing = (-1).sp,
+        letterSpacing = (-1.5).sp,
         shadow = defaultTextShadow,
     )
     val Title = TextStyle(
-        fontSize = 24.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = 34.sp,
+        fontWeight = FontWeight.Bold,
         color = HqColors.TextPrimary,
+        letterSpacing = (-0.8).sp,
         shadow = defaultTextShadow,
     )
     val Headline = TextStyle(
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.SemiBold,
         color = HqColors.TextPrimary,
+        letterSpacing = (-0.3).sp,
         shadow = defaultTextShadow,
     )
     val Body = TextStyle(
@@ -44,16 +47,19 @@ object HqType {
         shadow = defaultTextShadow,
     )
     val Label = TextStyle(
+        fontFamily = FontFamily.Monospace,
         fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
         color = HqColors.TextTertiary,
-        letterSpacing = 1.2.sp,
+        letterSpacing = 1.4.sp,
         shadow = defaultTextShadow,
     )
     val Stat = TextStyle(
-        fontSize = 22.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontFamily = FontFamily.Monospace,
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
         color = HqColors.TextPrimary,
+        letterSpacing = (-0.5).sp,
         shadow = defaultTextShadow,
     )
 
@@ -75,7 +81,11 @@ object HqType {
         letterSpacing = 1.4.sp,
     )
 
-    val Badge = Label.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+    val Badge = Label.copy(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.2.sp,
+    )
 
     /** Closed captions over video. */
     val Caption = Body.copy(
@@ -85,6 +95,10 @@ object HqType {
     )
 
     /** Dense settings helper / meta lines. */
-    val Meta = Label.copy(fontSize = 11.sp, letterSpacing = 0.6.sp)
+    val Meta = Label.copy(
+        fontFamily = FontFamily.Monospace,
+        fontSize = 11.sp,
+        letterSpacing = 0.8.sp,
+    )
     val MetaBody = Body.copy(fontSize = 12.sp, color = HqColors.TextPrimary)
 }

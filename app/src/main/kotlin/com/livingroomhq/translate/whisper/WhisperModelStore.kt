@@ -11,7 +11,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Ensures [ggml-base-q5_1.bin] is on disk with SHA-256 verification.
+ * Ensures ggml-small-q5_1.bin is on disk with SHA-256 verification.
  * Download → `.partial` → hash check → atomic rename.
  * Cached under app files permanently; no network after install.
  */
@@ -34,7 +34,7 @@ class WhisperModelStore(
             return false
         }
         val len = modelFile.length()
-        // Avoid re-hashing ~60MB on every ensureModel()/transcribe path.
+        // Avoid re-hashing the model on every ensureModel()/transcribe path.
         if (verifiedBytes == len) return true
         val ok =
             runCatching {
@@ -79,7 +79,7 @@ class WhisperModelStore(
                     body.byteStream().use { input -> input.copyTo(out) }
                 }
             }
-            ModelIntegrity.verifyFileOrThrow(partial, EXPECTED_SHA256, "whisper base-q5_1")
+            ModelIntegrity.verifyFileOrThrow(partial, EXPECTED_SHA256, "whisper small-q5_1")
             if (!partial.renameTo(modelFile)) {
                 partial.copyTo(modelFile, overwrite = true)
                 partial.delete()
@@ -97,9 +97,9 @@ class WhisperModelStore(
     companion object {
         private const val TAG = "WhisperModel"
         const val MODEL_URL =
-            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin"
-        /** Content SHA-256 of ggml-base-q5_1.bin (HF ggerganov/whisper.cpp LFS oid). */
+            "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin"
+        /** Content SHA-256 from the model publisher's LFS object. */
         const val EXPECTED_SHA256 =
-            "422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898"
+            "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb"
     }
 }

@@ -111,8 +111,7 @@ fun SettingsScreen(
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .focusProperties { enter = { firstItemFocusRequester } },
+            .fillMaxSize(),
     ) {
         LazyColumn(
             modifier = Modifier
@@ -167,6 +166,14 @@ fun SettingsScreen(
             }
             item {
                 AppearanceSettingsPanel(settings = settings, onSettingsChanged = onSettingsChanged)
+            }
+            item {
+                VodSettingsPanel(
+                    onRefreshVod = {
+                        app.vod.refresh()
+                        snackbar.post("VOD catalog refreshed")
+                    },
+                )
             }
             item {
                 AppsAndCaptionsSettingsPanel(

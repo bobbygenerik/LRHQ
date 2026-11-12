@@ -23,6 +23,8 @@ data class SettingsUiState(
     val pinnedAppPackages: List<String> = emptyList(),
     val liveCaptionServerUrl: String? = null,
     val liveCaptionServerToken: String? = null,
+    val vodSource: String = "BOTH",
+    val clipboxPackageName: String = "org.clipbox.player",
     val syncStatus: SyncStatus = SyncStatus(),
     val syncStatusText: String = "",
 )
@@ -33,6 +35,8 @@ sealed interface SettingsEvent {
     data class LoadSamplePlaylist(val url: String, val name: String) : SettingsEvent
     data class SavePinnedAppPackages(val packages: List<String>) : SettingsEvent
     data class SaveLiveCaptionServer(val url: String?, val token: String?) : SettingsEvent
+    data class SaveVodSource(val source: String) : SettingsEvent
+    data class SaveClipboxPackage(val packageName: String) : SettingsEvent
     data object RunMaintenance : SettingsEvent
     data object ClearPlaylist : SettingsEvent
     data object ClearGuide : SettingsEvent
@@ -61,18 +65,19 @@ class SettingsViewModel(
     val maintenanceStatus: StateFlow<SettingsActionResult> = _maintenanceStatus.asStateFlow()
 
     val uiState: StateFlow<SettingsUiState> = combine(
-        prefs.playlistUrl,
-        prefs.epgUrl,
-        prefs.pinnedAppPackages,
+        combine(prefs.playlistUrl, prefs.epgUrl, prefs.pinnedAppPackages) { p, e, pin -> Triple(p, e, pin) },
         combine(prefs.liveCaptionServerUrl, prefs.liveCaptionServerToken) { url, token -> url to token },
+        combine(prefs.vodSource, prefs.clipboxPackageName) { src, pkg -> src to pkg },
         FaultLog.syncStatus,
-    ) { playlist, epg, pinned, (captionUrl, captionToken), sync ->
+    ) { (playlist, epg, pinned), (captionUrl, captionToken), (vodSrc, cbPkg), sync ->
         SettingsUiState(
             playlistUrl = playlist,
             epgUrl = epg,
             pinnedAppPackages = pinned,
             liveCaptionServerUrl = captionUrl,
             liveCaptionServerToken = captionToken,
+            vodSource = vodSrc,
+            clipboxPackageName = cbPkg,
             syncStatus = sync,
             syncStatusText = FaultLog.formatSyncStatus(sync),
         )
@@ -89,6 +94,12 @@ class SettingsViewModel(
             is SettingsEvent.SaveLiveCaptionServer -> viewModelScope.launch {
                 prefs.setLiveCaptionServerUrl(event.url)
                 prefs.setLiveCaptionServerToken(event.token)
+            }
+            is SettingsEvent.SaveVodSource -> viewModelScope.launch {
+                prefs.setVodSource(event.source)
+            }
+            is SettingsEvent.SaveClipboxPackage -> viewModelScope.launch {
+                prefs.setClipboxPackageName(event.packageName)
             }
             SettingsEvent.RunMaintenance -> runMaintenance()
             SettingsEvent.ClearPlaylist -> clearPlaylist()

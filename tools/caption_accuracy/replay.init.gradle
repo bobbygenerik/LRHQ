@@ -1,0 +1,10 @@
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.project(':app')
+    app.tasks.register('captionAccuracyReplay', JavaExec) {
+        dependsOn app.tasks.named('compileProfileUnitTestKotlin')
+        mainClass.set('com.livingroomhq.translate.CaptionAccuracyReplay')
+        classpath = app.tasks.named('testProfileUnitTest').get().classpath
+        args app.findProperty('captionAudioDir'), app.findProperty('captionEvidenceDir'),
+            app.findProperty('captionReplayMode') ?: 'current'
+    }
+}

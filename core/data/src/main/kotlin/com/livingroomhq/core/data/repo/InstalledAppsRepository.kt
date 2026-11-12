@@ -40,6 +40,10 @@ class InstalledAppsRepository(
     /** Increments on every host [onHostResumed] so UI can drop stale launch arms. */
     val hostResumeTick: StateFlow<Int> = _hostResumeTick.asStateFlow()
 
+    private val _lastScan = MutableStateFlow<List<LaunchableApp>?>(null)
+    /** Most recent [launchableApps] result; null until the first scan finishes (warmed at app start). */
+    val lastScan: StateFlow<List<LaunchableApp>?> = _lastScan.asStateFlow()
+
     fun setHostActivity(activity: Activity) {
         hostActivity = activity
     }
@@ -105,7 +109,8 @@ class InstalledAppsRepository(
             }
         }
 
-        (detected + extraApps).sortedBy { it.label.lowercase() }
+        (detected + extraApps).distinctBy { it.packageName }.sortedBy { it.label.lowercase() }
+            .also { _lastScan.value = it }
     }
 
     /**

@@ -29,8 +29,9 @@ class ToolsViewModel(
     private val prefs: LauncherPrefsStore,
 ) : ViewModel() {
 
-    private val detected = MutableStateFlow<List<LaunchableApp>>(emptyList())
-    private val isLoading = MutableStateFlow(true)
+    // Seed from the app-start warm scan so the first visit renders the grid immediately.
+    private val detected = MutableStateFlow(installedApps.lastScan.value.orEmpty())
+    private val isLoading = MutableStateFlow(installedApps.lastScan.value == null)
 
     val uiState: StateFlow<ToolsUiState> = combine(
         detected,
@@ -44,7 +45,11 @@ class ToolsViewModel(
             hostResumeTick = resumeTick,
             isLoading = loading,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ToolsUiState())
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        ToolsUiState(detected = detected.value, isLoading = isLoading.value),
+    )
 
     init {
         refresh()
@@ -55,7 +60,8 @@ class ToolsViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            isLoading.value = true
+            // Only show the loading panel when there's nothing to show yet.
+            if (detected.value.isEmpty()) isLoading.value = true
             detected.value = runCatching { installedApps.launchableApps() }
                 .onFailure { /* silently logged by InstalledAppsRepository */ }
                 .getOrDefault(emptyList())
@@ -91,10 +97,12 @@ private fun mergeOrder(
     detected: List<LaunchableApp>,
     savedOrder: List<String>,
 ): List<LaunchableApp> {
-    if (savedOrder.isEmpty()) return detected
-    val byPackage = detected.associateBy { it.packageName }
-    val ordered = savedOrder.mapNotNull { byPackage[it] }
-    val savedSet = savedOrder.toHashSet()
-    val rest = detected.filter { it.packageName !in savedSet }
-    return ordered + rest
+    val uniqueDetected = detected.distinctBy { it.packageName }
+    if (savedOrder.isEmpty()) return uniqueDetected
+    val byPackage = uniqueDetected.associateBy { it.packageName }
+    val distinctOrder = savedOrder.distinct()
+    val ordered = distinctOrder.mapNotNull { byPackage[it] }
+    val savedSet = distinctOrder.toHashSet()
+    val rest = uniqueDetected.filter { it.packageName !in savedSet }
+    return (ordered + rest).distinctBy { it.packageName }
 }

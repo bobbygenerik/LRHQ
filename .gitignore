@@ -1,3 +1,25 @@
+# Secrets, signing keys, and local machine config (NEVER commit)
+local.properties
+local/
+*.jks
+*.keystore
+!app/debug.keystore
+.env
+.env.*
+
+# Android / Gradle build outputs & caches
+.gradle/
+.kotlin/
+.idea/
+build/
+**/build/
+app/.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Project tools & generated artifacts
 graphify-out/
 tools/live-caption-server/.venv/
 __pycache__/

@@ -15,22 +15,31 @@ class WhisperSpeechRecognizer(
     override suspend fun ensureReady() {
         modelStore.ensureModel()
         if (ctx == null) {
-            synchronized(this) {
+            val created = synchronized(this) {
                 if (ctx == null) {
                     Log.i(TAG, "loading whisper context")
-                    ctx = WhisperContext.create(modelStore.modelPath())
-                }
+                    WhisperContext.create(modelStore.modelPath()).also { ctx = it }
+                } else null
             }
+            // Compile/allocate the inference path while the UI still says loading,
+            // before capturing speech. Exactly one second would skip native encoding.
+            created?.transcribe(WhisperAudioInput.prepare(FloatArray(1)), "en", false)
         }
     }
 
-    override suspend fun transcribe(pcm16kMono: FloatArray, languageCode: String): AsrResult {
+    override suspend fun transcribe(
+        pcm16kMono: FloatArray,
+        languageCode: String,
+        translateToEnglish: Boolean,
+        prompt: String?,
+    ): AsrResult {
+        if (pcm16kMono.isEmpty()) return AsrResult("")
         val engine = ctx ?: run {
             ensureReady()
             ctx ?: error("whisper not ready")
         }
         val lang = languageCode.lowercase().take(2)
-        return engine.transcribe(pcm16kMono, lang)
+        return engine.transcribe(WhisperAudioInput.prepare(pcm16kMono), lang, translateToEnglish, prompt)
     }
 
     override suspend fun release() {

@@ -23,6 +23,8 @@ class InMemoryPrefsStoreTest {
         assertEquals(300, store.idleTimeSeconds.first())
         assertEquals("Smooth", store.animations.first())
         assertEquals(true, store.soundEffects.first())
+        assertEquals("BOTH", store.vodSource.first())
+        assertEquals("org.clipbox.player", store.clipboxPackageName.first())
     }
 
     @Test
@@ -40,6 +42,8 @@ class InMemoryPrefsStoreTest {
         store.setIdleTimeSeconds(600)
         store.setAnimations("Fast")
         store.setSoundEffects(false)
+        store.setVodSource("CLIPBOX")
+        store.setClipboxPackageName("com.myclipbox.custom")
 
         assertEquals(setOf("a", "b"), store.favorites.first())
         assertEquals(listOf("b", "a"), store.recents.first())
@@ -53,5 +57,7 @@ class InMemoryPrefsStoreTest {
         assertEquals(600, store.idleTimeSeconds.first())
         assertEquals("Fast", store.animations.first())
         assertEquals(false, store.soundEffects.first())
+        assertEquals("CLIPBOX", store.vodSource.first())
+        assertEquals("com.myclipbox.custom", store.clipboxPackageName.first())
     }
 }

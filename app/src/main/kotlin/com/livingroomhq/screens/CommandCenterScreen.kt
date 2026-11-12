@@ -76,9 +76,10 @@ fun CommandCenterScreen(
             CommandCenterViewModel.factory(
                 app.systemMonitor,
                 remember {
+                    val (localIp, tailscaleIp) = resolveNetworkAddresses()
                     CommandCenterUiState(
-                        localIp = getLocalIpAddress(),
-                        tailscaleIp = getTailscaleIpAddress(),
+                        localIp = localIp,
+                        tailscaleIp = tailscaleIp,
                         deviceModel = Build.MODEL.ifEmpty { "Android TV Device" },
                         appVersion = runCatching {
                             context.packageManager.getPackageInfo(context.packageName, 0).versionName
@@ -133,8 +134,7 @@ fun CommandCenterScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .zonePadding()
-            .focusProperties { enter = { firstCardFocusRequester } },
+            .zonePadding(),
     ) {
         Text("Command Center", style = HqType.Title)
         Spacer(Modifier.height(16.dp))
@@ -161,6 +161,7 @@ fun CommandCenterScreen(
                     onClick = { open(Settings.ACTION_SETTINGS) },
                     modifier = Modifier
                         .tvInitialFocus(firstCardFocusRequester)
+                        .focusProperties { up = FocusRequester.Cancel }
                         .linkLeftEdgeToSidebar(),
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -191,6 +192,7 @@ fun CommandCenterScreen(
                     icon = Icons.Default.Memory,
                     description = "Memory, ${pct.times(100).toInt()} percent used",
                     onClick = { open(Settings.ACTION_SETTINGS) },
+                    modifier = Modifier.focusProperties { up = FocusRequester.Cancel },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("RAM", style = HqType.CardTitle)
@@ -214,6 +216,7 @@ fun CommandCenterScreen(
                     icon = Icons.Default.Folder,
                     description = "Storage, ${(usedPct * 100).toInt()} percent used",
                     onClick = { open(Settings.ACTION_INTERNAL_STORAGE_SETTINGS) },
+                    modifier = Modifier.focusProperties { up = FocusRequester.Cancel },
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("Internal Storage", style = HqType.CardTitle)
@@ -403,20 +406,24 @@ private fun formatUptime(millis: Long): String {
     }
 }
 
-private fun getLocalIpAddress(): String =
+private fun resolveNetworkAddresses(): Pair<String, String?> =
     runCatching {
-        NetworkInterface.getNetworkInterfaces().asSequence()
-            .flatMap { it.inetAddresses.asSequence() }
-            .filterIsInstance<Inet4Address>()
-            .filter { !it.isLoopbackAddress }
-            .firstOrNull()?.hostAddress ?: "Unavailable"
-    }.getOrDefault("Unavailable")
-
-private fun getTailscaleIpAddress(): String? =
-    runCatching {
-        NetworkInterface.getNetworkInterfaces().asSequence()
-            .filter { it.name.contains("tun") || it.name.contains("tailscale") }
-            .flatMap { it.inetAddresses.asSequence() }
-            .filterIsInstance<Inet4Address>()
-            .firstOrNull()?.hostAddress
-    }.getOrNull()
+        var localIp: String? = null
+        var tailscaleIp: String? = null
+        val interfaces = NetworkInterface.getNetworkInterfaces() ?: return@runCatching "Unavailable" to null
+        for (iface in interfaces.asSequence()) {
+            val isTunnel = iface.name.contains("tun") || iface.name.contains("tailscale")
+            for (addr in iface.inetAddresses.asSequence()) {
+                if (addr is Inet4Address && !addr.isLoopbackAddress) {
+                    if (isTunnel && tailscaleIp == null) {
+                        tailscaleIp = addr.hostAddress
+                    }
+                    if (localIp == null) {
+                        localIp = addr.hostAddress
+                    }
+                }
+            }
+            if (localIp != null && tailscaleIp != null) break
+        }
+        (localIp ?: "Unavailable") to tailscaleIp
+    }.getOrDefault("Unavailable" to null)
