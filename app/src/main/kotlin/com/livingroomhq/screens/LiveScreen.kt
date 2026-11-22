@@ -106,7 +106,7 @@ fun LiveScreen(
     }
     Row(Modifier.fillMaxSize().zonePadding(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         Column(Modifier.width(180.dp).fillMaxHeight()) {
-            Text("LIVE TV", style = HqType.Title)
+            Text("Live TV", style = HqType.Title)
             Spacer(Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

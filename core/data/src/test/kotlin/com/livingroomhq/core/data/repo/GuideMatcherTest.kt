@@ -12,11 +12,12 @@ class GuideMatcherTest {
         name: String,
         tvgId: String? = null,
         tvgName: String? = null,
+        group: String = "General",
     ) = Channel(
         id = id,
         number = 1,
         name = name,
-        group = "General",
+        group = group,
         streamUrl = "http://example.com/stream",
         tvgId = tvgId,
         tvgName = tvgName,
@@ -127,5 +128,123 @@ class GuideMatcherTest {
 
         val resolved = GuideMatcher.resolveGuideChannelId(ch, guideAliases, aliasIndex)
         assertEquals("foxnews.us", resolved)
+    }
+
+    @Test
+    fun `BBC One in UK category resolves to London flagship despite regional collision and word-vs-digit difference`() {
+        // Playlist channel has word "ONE", group "UK"
+        val bbcOne = channel(id = "stream-bbc1", name = "BBC ONE", group = "UK")
+
+        // XMLTV has multiple regional BBC One channels with "BBC 1" or "BBC One" display names
+        val guideAliases = mapOf(
+            "BBC1London.uk" to GuideMatcher.guideAliasKeys("BBC1London.uk", listOf("BBC 1", "BBC One London")),
+            "BBC1Scotland.uk" to GuideMatcher.guideAliasKeys("BBC1Scotland.uk", listOf("BBC 1", "BBC One Scotland")),
+            "BBC1Wales.uk" to GuideMatcher.guideAliasKeys("BBC1Wales.uk", listOf("BBC 1", "BBC One Wales")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved = GuideMatcher.resolveGuideChannelId(bbcOne, guideAliases, aliasIndex)
+        assertEquals("BBC1London.uk", resolved)
+    }
+
+    @Test
+    fun `BBC One Scotland in UK category resolves to Scotland regional feed over London flagship`() {
+        val bbcScotland = channel(id = "stream-bbc1-scot", name = "BBC One Scotland", group = "UK")
+
+        val guideAliases = mapOf(
+            "BBC1London.uk" to GuideMatcher.guideAliasKeys("BBC1London.uk", listOf("BBC One", "BBC 1 London")),
+            "BBC1Scotland.uk" to GuideMatcher.guideAliasKeys("BBC1Scotland.uk", listOf("BBC One", "BBC 1 Scotland")),
+            "BBC1Wales.uk" to GuideMatcher.guideAliasKeys("BBC1Wales.uk", listOf("BBC One", "BBC 1 Wales")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved = GuideMatcher.resolveGuideChannelId(bbcScotland, guideAliases, aliasIndex)
+        assertEquals("BBC1Scotland.uk", resolved)
+    }
+
+    @Test
+    fun `France 3 in France category resolves to France 3 National despite regional collision`() {
+        val france3 = channel(id = "stream-fr3", name = "France 3", group = "France")
+
+        val guideAliases = mapOf(
+            "France3National.fr" to GuideMatcher.guideAliasKeys("France3National.fr", listOf("France 3", "France 3 National")),
+            "France3ParisIledeFrance.fr" to GuideMatcher.guideAliasKeys("France3ParisIledeFrance.fr", listOf("France 3", "France 3 Paris")),
+            "France3Alsace.fr" to GuideMatcher.guideAliasKeys("France3Alsace.fr", listOf("France 3", "France 3 Alsace")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved = GuideMatcher.resolveGuideChannelId(france3, guideAliases, aliasIndex)
+        assertEquals("France3National.fr", resolved)
+    }
+
+    @Test
+    fun `France 3 with bracketed or hyphenated country prefix resolves properly`() {
+        val frPrefixBracket = channel(id = "stream-fr-bracket", name = "[FR] France 3", group = "Other")
+        val frPrefixHyphen = channel(id = "stream-fr-hyphen", name = "FR - France 3 HD", group = "General")
+
+        val guideAliases = mapOf(
+            "France3National.fr" to GuideMatcher.guideAliasKeys("France3National.fr", listOf("France 3", "France 3 National")),
+            "France3Alsace.fr" to GuideMatcher.guideAliasKeys("France3Alsace.fr", listOf("France 3", "France 3 Alsace")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolvedBracket = GuideMatcher.resolveGuideChannelId(frPrefixBracket, guideAliases, aliasIndex)
+        val resolvedHyphen = GuideMatcher.resolveGuideChannelId(frPrefixHyphen, guideAliases, aliasIndex)
+
+        assertEquals("France3National.fr", resolvedBracket)
+        assertEquals("France3National.fr", resolvedHyphen)
+    }
+
+    @Test
+    fun `Number word normalization equates word numbers with digits`() {
+        assertEquals("bbc1", GuideMatcher.normalizeNumberWords("BBC One").normalizedGuideKey())
+        assertEquals("france3", GuideMatcher.normalizeNumberWords("France Trois").normalizedGuideKey())
+        assertEquals("itv4", GuideMatcher.normalizeNumberWords("ITV Four").normalizedGuideKey())
+    }
+
+    @Test
+    fun `Telefe in Argentina group resolves to Telefe ar despite regional collision and ARG prefix`() {
+        val telefe = channel(id = "stream-telefe", name = "Telefe", group = "Argentina")
+
+        val guideAliases = mapOf(
+            "Telefe.ar" to GuideMatcher.guideAliasKeys("Telefe.ar", listOf("ARG: TELEFE ᴴᴰ")),
+            "24/7CanaldeNoticias.ar" to GuideMatcher.guideAliasKeys("24/7CanaldeNoticias.ar", listOf("ARG: TELEFE ᴴᴰ")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved = GuideMatcher.resolveGuideChannelId(telefe, guideAliases, aliasIndex)
+        assertEquals("Telefe.ar", resolved)
+    }
+
+    @Test
+    fun `Az Tv in Azerbaijan group matches AZ Az Tv with prefix stripping`() {
+        val azTv = channel(id = "stream-aztv", name = "Az Tv", group = "Azerbaijan")
+
+        val guideAliases = mapOf(
+            "20000248" to GuideMatcher.guideAliasKeys("20000248", listOf("AZ: Az TV")),
+            "Space.ar" to GuideMatcher.guideAliasKeys("Space.ar", listOf("Az: SPACE TV")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved = GuideMatcher.resolveGuideChannelId(azTv, guideAliases, aliasIndex)
+        assertEquals("20000248", resolved)
+    }
+
+    @Test
+    fun `Channel with leading logical channel number in guide display name resolves properly`() {
+        val channel4 = channel(id = "stream-ch4", name = "Channel 4", group = "UK")
+        val itv1 = channel(id = "stream-itv1", name = "ITV 1", group = "UK")
+
+        val guideAliases = mapOf(
+            "Channel4.uk" to GuideMatcher.guideAliasKeys("Channel4.uk", listOf("104 Channel 4 HD")),
+            "ITV1London.uk" to GuideMatcher.guideAliasKeys("ITV1London.uk", listOf("103 ITV1 HD London")),
+        )
+        val aliasIndex = GuideMatcher.buildAliasIndex(guideAliases)
+
+        val resolved4 = GuideMatcher.resolveGuideChannelId(channel4, guideAliases, aliasIndex)
+        val resolvedItv = GuideMatcher.resolveGuideChannelId(itv1, guideAliases, aliasIndex)
+
+        assertEquals("Channel4.uk", resolved4)
+        assertEquals("ITV1London.uk", resolvedItv)
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.livingroomhq.core.data.json.StreamingJsonReader
 import com.livingroomhq.core.data.json.StreamingJsonWriter
 import android.util.Log
+import com.livingroomhq.core.data.model.DisplayNames
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.EpisodeItem
 import com.livingroomhq.core.data.model.SeriesCategory
@@ -68,6 +69,12 @@ class DefaultVodRepository(
     private val _isLoading = MutableStateFlow(true)
     private var lastLoadedKey: String? = null
     private var activeEndpoint: XtreamEndpoint? = null
+    /**
+     * Which Xtream endpoint the series catalog (and so every seriesId in it) came from.
+     * Series ids are per-provider, so episode lookups must go back to this endpoint, not
+     * to whichever endpoint happens to be checked first when a cached catalog is reused.
+     */
+    @Volatile private var seriesSourceKey: String? = null
     private val seriesDetailCache = ConcurrentHashMap<Int, SeriesDetail>()
     private val seriesItemLookup = ConcurrentHashMap<Int, SeriesItem>()
 
@@ -85,6 +92,7 @@ class DefaultVodRepository(
                 loadSeriesDiskCache()?.let { cachedSeries ->
                     if (_seriesCategories.value.isEmpty() && cachedSeries.isNotEmpty()) {
                         _seriesCategories.value = cachedSeries
+                        seriesSourceKey = loadSeriesSourceKey()
                         for (cat in cachedSeries) {
                             for (s in cat.series) {
                                 seriesItemLookup[s.seriesId] = s
@@ -125,7 +133,8 @@ class DefaultVodRepository(
                         } else {
                             _xtreamCategories.value
                         }
-                        val fetchedSeries = if (_seriesCategories.value.isEmpty() || refreshSeq > 0) {
+                        val seriesFresh = _seriesCategories.value.isEmpty() || refreshSeq > 0
+                        val fetchedSeries = if (seriesFresh) {
                             withContext(ioDispatcher) { fetchXtreamSeriesCatalog(endpoint) }
                         } else {
                             _seriesCategories.value
@@ -139,6 +148,11 @@ class DefaultVodRepository(
                             if (fetchedMovies.isNotEmpty()) {
                                 _xtreamCategories.value = fetchedMovies
                                 withContext(ioDispatcher) { saveDiskCache(fetchedMovies) }
+                            }
+                            if (fetchedSeries.isNotEmpty() && seriesFresh) {
+                                seriesSourceKey = endpoint.cacheKey
+                                seriesDetailCache.clear()
+                                withContext(ioDispatcher) { saveSeriesSourceKey(endpoint.cacheKey) }
                             }
                             if (fetchedSeries.isNotEmpty()) {
                                 _seriesCategories.value = fetchedSeries
@@ -182,28 +196,96 @@ class DefaultVodRepository(
     override suspend fun getSeriesDetail(seriesId: Int): SeriesDetail? = withContext(ioDispatcher) {
         seriesDetailCache[seriesId]?.let { return@withContext it }
 
-        val endpoint = activeEndpoint ?: run {
-            val endpoints = discoverXtreamEndpoints(
-                channelRepository.channels.value,
-                prefs.epgUrl.firstOrNull(),
-                prefs.playlistUrl.firstOrNull(),
-            )
-            endpoints.firstOrNull()
-        } ?: return@withContext null
+        val discovered = discoverXtreamEndpoints(
+            channelRepository.channels.value,
+            prefs.epgUrl.firstOrNull(),
+            prefs.playlistUrl.firstOrNull(),
+        )
+        val sourceKey = seriesSourceKey
+        val source = (discovered + listOfNotNull(activeEndpoint)).firstOrNull { it.cacheKey == sourceKey }
+        val seriesItem = seriesItemLookup[seriesId] ?: SeriesItem(
+            id = "xtream_series_$seriesId",
+            seriesId = seriesId,
+            title = "Series $seriesId",
+        )
 
+        if (source != null) {
+            val fetched = fetchSeriesDetail(source, seriesItem)
+            if (fetched != null) {
+                seriesDetailCache[seriesId] = fetched.detail
+                return@withContext fetched.detail
+            }
+            Log.w("VodRepository", "Primary source ${source.cacheKey} returned no episodes for series $seriesId, falling back to candidates")
+        }
+
+        // Catalog source unknown or primary returned null: try each provider.
+        // Ids collide across providers, so prefer the one whose show name matches the title.
+        val candidates = (listOfNotNull(activeEndpoint) + discovered).distinctBy { it.cacheKey }
+        var fallback: Pair<XtreamEndpoint, SeriesDetail>? = null
+        for (endpoint in candidates) {
+            if (endpoint.cacheKey == source?.cacheKey) continue
+            val fetched = fetchSeriesDetail(endpoint, seriesItem) ?: continue
+            if (seriesNamesMatch(fetched.providerName, seriesItem.title)) {
+                rememberSeriesSource(endpoint)
+                seriesDetailCache[seriesId] = fetched.detail
+                return@withContext fetched.detail
+            }
+            if (fallback == null) fallback = endpoint to fetched.detail
+        }
+        fallback?.let { (endpoint, detail) ->
+            Log.w("VodRepository", "Series $seriesId: no title match, using ${endpoint.baseUrl}")
+            seriesDetailCache[seriesId] = detail
+            detail
+        } ?: run {
+            Log.w("VodRepository", "Series $seriesId: no episodes from ${candidates.size} endpoint(s)")
+            null
+        }
+    }
+
+    private class FetchedSeriesDetail(val detail: SeriesDetail, val providerName: String)
+
+    private suspend fun fetchSeriesDetail(endpoint: XtreamEndpoint, seriesItem: SeriesItem): FetchedSeriesDetail? =
         runCatching {
             val url =
-                "${endpoint.baseUrl}/player_api.php?username=${endpoint.username}&password=${endpoint.password}&action=get_series_info&series_id=$seriesId"
-            val jsonStr = executeGet(url) ?: return@withContext null
-            val seriesItem = seriesItemLookup[seriesId] ?: SeriesItem(
-                id = "xtream_series_$seriesId",
-                seriesId = seriesId,
-                title = "Series $seriesId",
-            )
-            parseSeriesDetail(endpoint, seriesItem, jsonStr)?.also {
-                seriesDetailCache[seriesId] = it
+                "${endpoint.baseUrl}/player_api.php?username=${endpoint.username}&password=${endpoint.password}&action=get_series_info&series_id=${seriesItem.seriesId}"
+            val jsonStr = executeGet(url)
+            if (jsonStr == null) {
+                Log.w("VodRepository", "get_series_info for ${seriesItem.seriesId} on ${endpoint.baseUrl} returned null")
+                return null
             }
+            val detail = parseSeriesDetail(endpoint, seriesItem, jsonStr)
+            if (detail == null) {
+                val preview = jsonStr.take(200).replace("\n", " ")
+                Log.w("VodRepository", "parseSeriesDetail returned null for ${seriesItem.seriesId} on ${endpoint.baseUrl}. Preview: $preview")
+                return null
+            }
+            val name = runCatching {
+                JSONObject(jsonStr).optJSONObject("info")?.optString("name").orEmpty()
+            }.getOrDefault("")
+            FetchedSeriesDetail(detail, name)
+        }.onFailure {
+            Log.w("VodRepository", "get_series_info exception on ${endpoint.baseUrl} for ${seriesItem.seriesId}: ${it.javaClass.simpleName}: ${it.message}")
         }.getOrNull()
+
+    private fun rememberSeriesSource(endpoint: XtreamEndpoint) {
+        if (seriesSourceKey == endpoint.cacheKey) return
+        seriesSourceKey = endpoint.cacheKey
+        saveSeriesSourceKey(endpoint.cacheKey)
+        Log.i("VodRepository", "Series catalog source resolved to ${endpoint.baseUrl}")
+    }
+
+    private fun loadSeriesSourceKey(): String? = runCatching {
+        File(context.cacheDir ?: return null, SERIES_SOURCE_FILE_NAME)
+            .takeIf { it.exists() }
+            ?.readText()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+    }.getOrNull()
+
+    private fun saveSeriesSourceKey(key: String) {
+        runCatching {
+            File(context.cacheDir ?: return, SERIES_SOURCE_FILE_NAME).writeText(key)
+        }
     }
 
     private suspend fun fetchXtreamVodCatalog(endpoint: XtreamEndpoint): List<VodCategory> {
@@ -238,6 +320,7 @@ class DefaultVodRepository(
         if (fetchXtreamJson != null) return fetchXtreamJson.invoke(url)
         val host = runCatching { URI(url).host.orEmpty().lowercase() }.getOrDefault("")
         if (host.isBlank() || host == "example.com" || host.endsWith(".example") || host == "s" || host == "x") {
+            Log.w("VodRepository", "executeGet rejected host '$host' for url: $url")
             return null
         }
         return withContext(ioDispatcher) {
@@ -245,10 +328,17 @@ class DefaultVodRepository(
                 .url(url)
                 .header("User-Agent", IPTV_USER_AGENT)
                 .build()
-            LrhqHttpClient.client.newCall(req).execute().use { resp ->
-                if (!resp.isSuccessful) return@use null
-                resp.body?.string()
-            }
+            runCatching {
+                LrhqHttpClient.client.newCall(req).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        Log.w("VodRepository", "executeGet HTTP ${resp.code} for ${req.url}")
+                        return@use null
+                    }
+                    resp.body?.string()
+                }
+            }.onFailure {
+                Log.w("VodRepository", "executeGet network failure for ${req.url}: ${it.javaClass.simpleName}: ${it.message}")
+            }.getOrNull()
         }
     }
 
@@ -505,6 +595,8 @@ class DefaultVodRepository(
     companion object {
         private const val CACHE_FILE_NAME = "xtream_vod_cache_v2.json"
         private const val SERIES_CACHE_FILE_NAME = "xtream_series_cache_v2.json"
+        /** Endpoint cacheKey the series cache was fetched from (base URL + username, no password). */
+        private const val SERIES_SOURCE_FILE_NAME = "xtream_series_cache_v2.source"
         private const val MAX_ITEMS_PER_RAIL = 150
         internal const val IPTV_USER_AGENT = "TiviMate/4.7.0 (Linux; Android 11)"
 
@@ -627,11 +719,8 @@ class DefaultVodRepository(
                         VodItem(
                             id = "xtream_${streamId}",
                             title = cleanTitle,
-                            description = buildString {
-                                append(catName)
-                                if (year > 0) append(" • $year")
-                                if (ratingStr != null) append(" • $ratingStr")
-                            },
+                            // The stream list has no plot; don't synthesize one from fields the UI already shows.
+                            description = "",
                             posterUrl = icon,
                             backdropUrl = icon,
                             year = year,
@@ -739,68 +828,112 @@ class DefaultVodRepository(
             return result
         }
 
+        /** Loose show-name comparison: provider names carry "(2007)", "PT: " tags and odd spacing. */
+        internal fun seriesNamesMatch(providerName: String, title: String): Boolean {
+            fun key(s: String) = DisplayNames.title(extractTitleAndYear(s).first)
+                .lowercase()
+                .replace(Regex("[^\\p{L}\\p{N}]+"), "")
+            val a = key(providerName)
+            val b = key(title)
+            return a.isNotEmpty() && b.isNotEmpty() && (a == b || a.startsWith(b) || b.startsWith(a))
+        }
+
         internal fun parseSeriesDetail(
             endpoint: XtreamEndpoint,
             series: SeriesItem,
             detailJson: String,
         ): SeriesDetail? = runCatching {
             val root = JSONObject(detailJson)
-            val episodesObj = root.optJSONObject("episodes") ?: return null
+            val episodesObj = root.optJSONObject("episodes")
+            val episodesArray = root.optJSONArray("episodes")
+            if (episodesObj == null && episodesArray == null) {
+                Log.w("VodRepository", "Series ${series.seriesId}: 'episodes' missing or not JSON object/array")
+                return null
+            }
+
             val seasonsList = mutableListOf<Int>()
             val episodesBySeason = LinkedHashMap<Int, MutableList<EpisodeItem>>()
 
-            val seasonKeys = episodesObj.keys()
-            val sortedSeasonNums = mutableListOf<Int>()
-            while (seasonKeys.hasNext()) {
-                val key = seasonKeys.next()
-                key.toIntOrNull()?.let { sortedSeasonNums.add(it) }
-            }
-            sortedSeasonNums.sort()
-
-            for (seasonNum in sortedSeasonNums) {
-                val epArray = episodesObj.optJSONArray(seasonNum.toString()) ?: continue
-                if (epArray.length() == 0) continue
-                seasonsList.add(seasonNum)
-                val epList = episodesBySeason.getOrPut(seasonNum) { ArrayList() }
-
-                for (i in 0 until epArray.length()) {
-                    val epObj = epArray.optJSONObject(i) ?: continue
-                    val id = epObj.optString("id").trim()
-                    if (id.isEmpty()) continue
-                    val epNum = epObj.optInt("episode_num", i + 1)
-                    val rawTitle = epObj.optString("title", "").trim()
-                    val title = rawTitle.ifEmpty { "Episode $epNum" }
-                    val ext = epObj.optString("container_extension", "mkv").trim().ifEmpty { "mkv" }
-                    val streamUrl = "${endpoint.baseUrl}/series/${endpoint.username}/${endpoint.password}/$id.$ext"
-
-                    val infoObj = epObj.optJSONObject("info")
-                    val epPlot = infoObj?.optString("plot", "")?.trim().orEmpty()
-                    val epPoster = infoObj?.optString("movie_image", "")?.trim()?.takeIf { it.isNotBlank() } ?: series.posterUrl
-                    val durationSecs = infoObj?.optInt("duration_secs", 0) ?: 0
-                    val durationMins = if (durationSecs > 0) durationSecs / 60 else 0
-
-                    epList.add(
-                        EpisodeItem(
-                            id = "xtream_ep_$id",
-                            episodeNum = epNum,
-                            seasonNum = seasonNum,
-                            title = title,
-                            plot = epPlot,
-                            posterUrl = epPoster,
-                            durationMinutes = durationMins,
-                            streamUrl = streamUrl,
-                        ),
-                    )
+            if (episodesObj != null) {
+                val seasonKeys = episodesObj.keys()
+                val sortedSeasonNums = mutableListOf<Int>()
+                while (seasonKeys.hasNext()) {
+                    val key = seasonKeys.next()
+                    key.toIntOrNull()?.let { sortedSeasonNums.add(it) }
                 }
+                sortedSeasonNums.sort()
+
+                for (seasonNum in sortedSeasonNums) {
+                    val epArray = episodesObj.optJSONArray(seasonNum.toString()) ?: continue
+                    if (epArray.length() == 0) continue
+                    val epList = episodesBySeason.getOrPut(seasonNum) { ArrayList() }
+
+                    for (i in 0 until epArray.length()) {
+                        val epObj = epArray.optJSONObject(i) ?: continue
+                        val epItem = parseEpisodeObject(endpoint, series, epObj, seasonNum, i + 1) ?: continue
+                        epList.add(epItem)
+                    }
+                    if (epList.isNotEmpty() && !seasonsList.contains(seasonNum)) {
+                        seasonsList.add(seasonNum)
+                    }
+                }
+            } else if (episodesArray != null) {
+                // Flat episodes list format: [{"season": 1, "episode_num": 1, ...}]
+                for (i in 0 until episodesArray.length()) {
+                    val epObj = episodesArray.optJSONObject(i) ?: continue
+                    val seasonNum = epObj.optInt("season", epObj.optInt("season_num", 1)).coerceAtLeast(1)
+                    val epList = episodesBySeason.getOrPut(seasonNum) { ArrayList() }
+                    val epItem = parseEpisodeObject(endpoint, series, epObj, seasonNum, i + 1) ?: continue
+                    epList.add(epItem)
+                }
+                seasonsList.addAll(episodesBySeason.keys.sorted())
             }
 
-            if (seasonsList.isEmpty()) return null
+            if (seasonsList.isEmpty()) {
+                Log.w("VodRepository", "Series ${series.seriesId}: parsed 0 seasons from episodes structure")
+                return null
+            }
             SeriesDetail(
                 series = series,
                 seasons = seasonsList,
                 episodesBySeason = episodesBySeason,
             )
+        }.onFailure {
+            Log.w("VodRepository", "parseSeriesDetail exception for Series ${series.seriesId}: ${it.javaClass.simpleName}: ${it.message}")
         }.getOrNull()
+
+        private fun parseEpisodeObject(
+            endpoint: XtreamEndpoint,
+            series: SeriesItem,
+            epObj: JSONObject,
+            seasonNum: Int,
+            fallbackEpNum: Int,
+        ): EpisodeItem? {
+            val id = epObj.optString("id").trim()
+            if (id.isEmpty()) return null
+            val epNum = epObj.optInt("episode_num", fallbackEpNum)
+            val rawTitle = epObj.optString("title", "").trim()
+            val title = rawTitle.ifEmpty { "Episode $epNum" }
+            val ext = epObj.optString("container_extension", "mkv").trim().ifEmpty { "mkv" }
+            val streamUrl = "${endpoint.baseUrl}/series/${endpoint.username}/${endpoint.password}/$id.$ext"
+
+            val infoObj = epObj.optJSONObject("info")
+            val epPlot = infoObj?.optString("plot", "")?.trim().orEmpty()
+            val epPoster = infoObj?.optString("movie_image", "")?.trim()?.takeIf { it.isNotBlank() } ?: series.posterUrl
+            val durationSecs = infoObj?.optInt("duration_secs", 0) ?: 0
+            val durationMins = if (durationSecs > 0) durationSecs / 60 else 0
+
+            return EpisodeItem(
+                id = "xtream_ep_$id",
+                episodeNum = epNum,
+                seasonNum = seasonNum,
+                title = title,
+                plot = epPlot,
+                posterUrl = epPoster,
+                durationMinutes = durationMins,
+                streamUrl = streamUrl,
+            )
+        }
 
         internal fun buildM3uVodCategories(
             channels: List<Channel>,

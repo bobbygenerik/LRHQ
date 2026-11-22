@@ -1,5 +1,6 @@
 package com.livingroomhq.screens.live
 
+import com.livingroomhq.core.data.model.displayName
 import android.content.Context
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -258,8 +259,8 @@ internal fun LiveGuideContent(
                             true
                         }
                         .semantics {
-                            contentDescription = "TV guide. ${selectedChannel.name}. ${selectedProgram?.title ?: "Schedule unavailable"}. ${selectedProgram?.let { formatProgramWindow(is24Hour, it) }.orEmpty()}"
-                            onClick("Watch ${selectedChannel.name} live") { watchSelected(); true }
+                            contentDescription = "TV guide. ${selectedChannel.displayName}. ${selectedProgram?.title ?: "No listings"}. ${selectedProgram?.let { formatProgramWindow(is24Hour, it) }.orEmpty()}"
+                            onClick("Watch ${selectedChannel.displayName} live") { watchSelected(); true }
                         }
                         .focusable()) {
                         GuideTimeHeader(is24Hour, windowStart, clock, timelineWidth, Modifier.fillMaxWidth())
@@ -297,12 +298,6 @@ internal fun LiveGuideContent(
                         }
                     }
                 }
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(if (channels.isEmpty()) "←  Categories" else "↑ ↓  Channels     ← →  Schedule", style = HqType.Meta)
-                Spacer(Modifier.weight(1f))
-                if (channels.isNotEmpty()) Text(if (selectedProgram != null && selectedProgram.startMillis > clock) "OK  Watch channel live" else "OK  Watch live", style = HqType.Meta.copy(color = HqColors.TextSecondary))
             }
         }
     }
@@ -422,7 +417,7 @@ private fun GuideHero(
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, HqColors.Scrim), startY = 60f)))
             Row(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(previewChannel?.name ?: "Live preview", style = HqType.CardCaption.copy(color = HqColors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(previewChannel?.displayName ?: "Live preview", style = HqType.CardCaption.copy(color = HqColors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (previewProgram != null) Text(previewProgram.title, style = HqType.Meta, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Icon(Icons.Default.Fullscreen, "Open preview fullscreen", tint = HqColors.TextPrimary, modifier = Modifier.size(18.dp))
@@ -435,15 +430,18 @@ private fun GuideHero(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(if (isLive) "ON NOW" else if (program != null) "COMING UP" else "LIVE TV", style = HqType.Meta.copy(color = accent, fontWeight = FontWeight.Bold))
                 Spacer(Modifier.width(10.dp))
-                Text(channel?.name ?: "Browse the guide", style = HqType.CardCaption, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(channel?.displayName ?: "Browse the guide", style = HqType.CardCaption, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.height(6.dp))
-            Text(program?.title ?: channel?.name ?: "Your live TV guide", style = HqType.Title.copy(fontSize = 23.sp, lineHeight = 26.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(program?.title ?: channel?.displayName ?: "Your live TV guide", style = HqType.Title.copy(fontSize = 23.sp, lineHeight = 26.sp), maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
-            Text(program?.let { formatProgramWindow(is24Hour, it) + "   ·   " + ((it.endMillis - it.startMillis) / 60_000).toString() + " min" }
-                ?: "Schedule unavailable · Watch this channel live", style = HqType.Meta.copy(color = HqColors.TextSecondary), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // Only show fields that have data — no "unavailable" filler.
+            if (program != null) {
+                Text(formatProgramWindow(is24Hour, program) + "   ·   " + ((program.endMillis - program.startMillis) / 60_000).toString() + " min",
+                    style = HqType.Meta.copy(color = HqColors.TextSecondary), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             Spacer(Modifier.height(6.dp))
-            Text(program?.description?.takeIf { it.isNotBlank() } ?: if (program != null) "No description provided." else "You can still watch live when this channel has no guide listings.",
+            Text(program?.description?.takeIf { it.isNotBlank() }.orEmpty(),
                 style = HqType.Body.copy(fontSize = 13.sp, lineHeight = 18.sp), maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             if (isLive) {
                 Spacer(Modifier.height(6.dp))
@@ -487,7 +485,7 @@ private fun GuideChannelRow(
         Row(Modifier.width(ChannelColumnWidth).fillMaxHeight()
             .background(if (selected) HqColors.GlassFillFocused else HqColors.GlassFill, RowStartShape)
             .pointerInput(channel.id) { detectTapGestures(onTap = { onWatch() }) }
-            .semantics { contentDescription = channel.name; onClick("Watch live") { onWatch(); true } }
+            .semantics { contentDescription = channel.displayName; onClick("Watch live") { onWatch(); true } }
             .padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(30.dp).clip(LogoWellShape).background(HqColors.IconWell), contentAlignment = Alignment.Center) {
                 if (channel.logoUrl != null) {
@@ -503,7 +501,7 @@ private fun GuideChannelRow(
                 } else Icon(Icons.Default.Tv, null, tint = HqColors.TextSecondary, modifier = Modifier.size(18.dp))
             }
             Spacer(Modifier.width(8.dp))
-            Text(channel.name, style = HqType.MetaBody.copy(fontWeight = FontWeight.SemiBold), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Text(channel.displayName, style = HqType.MetaBody.copy(fontWeight = FontWeight.SemiBold), maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             if (channel.isFavorite) Icon(Icons.Default.Star, "Favorite", tint = HqColors.Favorite, modifier = Modifier.size(10.dp))
         }
         Box(Modifier.weight(1f).fillMaxHeight().clip(RowEndShape)) {
@@ -532,11 +530,12 @@ private fun GuideChannelRow(
                         )
                     }
                     .semantics {
-                        contentDescription = "${channel.name}, ${slot.program?.title ?: "Schedule unavailable"}"
+                        contentDescription = "${channel.displayName}, ${slot.program?.title ?: "no listings"}"
                         onClick("Select program") { onSelect(slot.startMillis); true }
                     }
                     .padding(horizontal = if (width > 90.dp) 10.dp else 4.dp, vertical = 7.dp)) {
-                    if (width > 26.dp) Column {
+                    // Empty slots stay as a quiet bar instead of repeating "unavailable" on every row.
+                    if (width > 26.dp && slot.program != null) Column {
                         Text(slot.program?.title ?: "Schedule unavailable", style = HqType.CardTitle.copy(fontSize = 13.sp, lineHeight = 16.sp,
                             color = if (slot.program == null) HqColors.TextTertiary else HqColors.TextPrimary), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (width >= 90.dp) Text(slot.program?.let { formatProgramWindow(is24Hour, it) } ?: "Watch channel live",

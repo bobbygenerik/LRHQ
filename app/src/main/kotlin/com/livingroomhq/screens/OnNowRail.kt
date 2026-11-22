@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -153,7 +154,7 @@ private fun OnNowCard(
         ) {
             Column {
                 Text(
-                    channel.name,
+                    channel.displayName,
                     style = HqType.CardCaption.copy(
                         color = if (focused) HqColors.Accent.value else HqColors.TextTertiary,
                     ),

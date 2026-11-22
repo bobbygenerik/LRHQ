@@ -1,5 +1,7 @@
 package com.livingroomhq.screens
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
@@ -223,16 +225,12 @@ fun ToolsScreen(
         viewModel.launch(packageName, context)
     }
 
+    // Single OK opens, like every other launcher. Phantom relaunches after returning
+    // from an app are already blocked by InstalledAppsRepository.canLaunch() guards.
+    @Suppress("UNUSED_PARAMETER")
     fun requestLaunch(packageName: String, label: String) {
         if (!viewModel.canLaunch()) return
-        val now = SystemClock.uptimeMillis()
-        if (armedPackage == packageName && now - armedAt <= ARM_LAUNCH_MS) {
-            openApp(packageName)
-        } else {
-            armedPackage = packageName
-            armedAt = now
-            snackbar.post("Press OK again to open $label")
-        }
+        openApp(packageName)
     }
 
     BackHandler(enabled = menuPackage != null) {
@@ -256,18 +254,15 @@ fun ToolsScreen(
                 .fillMaxSize()
                 .zonePadding(),
         ) {
-            Text("APPS", style = HqType.Title)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = if (movingPackage != null) {
-                    "D-pad to position · OK to place · Back to cancel"
-                } else {
-                    "Press OK twice to open · hold OK for more"
-                },
-                style = HqType.Label.copy(
-                    color = if (movingPackage != null) accent else HqColors.TextSecondary,
-                ),
-            )
+            Text("Apps", style = HqType.Title)
+            // Only explain controls while in move mode, where they aren't obvious.
+            if (movingPackage != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "D-pad to position · OK to place · Back to cancel",
+                    style = HqType.Label.copy(color = accent),
+                )
+            }
             Spacer(Modifier.height(16.dp))
 
             if (apps.isEmpty()) {
@@ -499,21 +494,8 @@ private fun AppCard(
                 text = entry.label,
                 style = HqType.CardTitle,
                 maxLines = 2,
-            )
-            Text(
-                text = when {
-                    isArmed -> "Press OK again"
-                    entry.isTvApp -> "TV app"
-                    else -> "Mobile app"
-                },
-                style = HqType.CardCaption.copy(
-                    color = when {
-                        isArmed -> accent
-                        entry.isTvApp -> accent
-                        else -> HqColors.TextSecondary
-                    },
-                ),
-                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
             )
         }
     }

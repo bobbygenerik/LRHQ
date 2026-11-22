@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.livingroomhq.backdrop.AmbientPhotoCacheRepository
 import com.livingroomhq.backdrop.GooglePhotosPickerClient
 import com.livingroomhq.core.data.fault.FaultLog
+import com.livingroomhq.core.data.fault.FriendlyErrors
 import com.livingroomhq.core.data.fault.FaultLog.SyncStatus
 import com.livingroomhq.core.data.persist.LauncherPrefsStore
 import com.livingroomhq.core.data.repo.ChannelRepository
@@ -128,7 +129,7 @@ class SettingsViewModel(
             _playlistStatus.value = SettingsActionResult.Loading("Loading stream playlist...")
             runCatching { channels.loadM3u(url.trim()) }
                 .onSuccess { _playlistStatus.value = SettingsActionResult.Success("IPTV channels loaded successfully!") }
-                .onFailure { _playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or Network error"}") }
+                .onFailure { _playlistStatus.value = SettingsActionResult.Failure(FriendlyErrors.from(it)) }
         }
     }
 
@@ -137,7 +138,7 @@ class SettingsViewModel(
             _guideStatus.value = SettingsActionResult.Loading("Loading guide...")
             runCatching { channels.loadXmltv(url.trim()) }
                 .onSuccess { _guideStatus.value = SettingsActionResult.Success("Guide loaded successfully!") }
-                .onFailure { _guideStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or network error"}") }
+                .onFailure { _guideStatus.value = SettingsActionResult.Failure(FriendlyErrors.from(it)) }
         }
     }
 
@@ -146,7 +147,7 @@ class SettingsViewModel(
             _playlistStatus.value = SettingsActionResult.Loading("Loading $name...")
             runCatching { channels.loadM3u(url) }
                 .onSuccess { _playlistStatus.value = SettingsActionResult.Success("$name loaded successfully!") }
-                .onFailure { _playlistStatus.value = SettingsActionResult.Failure("Failed: ${it.localizedMessage ?: "Invalid URL or network error"}") }
+                .onFailure { _playlistStatus.value = SettingsActionResult.Failure(FriendlyErrors.from(it)) }
         }
     }
 
@@ -163,7 +164,7 @@ class SettingsViewModel(
                     )
                 }
                 .onFailure {
-                    _maintenanceStatus.value = SettingsActionResult.Failure("Maintenance failed: ${it.localizedMessage}")
+                    _maintenanceStatus.value = SettingsActionResult.Failure("Maintenance didn't finish. Try again.")
                 }
         }
     }

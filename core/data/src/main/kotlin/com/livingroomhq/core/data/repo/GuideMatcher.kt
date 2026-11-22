@@ -31,7 +31,67 @@ object GuideMatcher {
     private val callSign = Regex("(?<![A-Za-z])([KW][A-Z]{2,3}|C[A-Z]{3})(?:[0-9]+)?(?![A-Za-z])")
     private val subchannelRegex = Regex("(?i)([0-9]+[.-][0-9]+|[- ](?:DT|TV)[- ]?[0-9]+)")
     internal val hyphenCallsignRegex = Regex("^([A-Za-z0-9]+)-[A-Za-z0-9]+(\\.[A-Za-z0-9]+)$")
-    internal val prefixStripRegex = Regex("^(?:(?:ca|qc|us|uk|fr|de|it|es|mx|pl|carib)\\s*[:|]?\\s*(?:prime\\s+)?)", RegexOption.IGNORE_CASE)
+    internal val leadingLcnRegex = Regex("^[0-9]{1,4}\\s+")
+    internal val regionalCitySuffixRegex = Regex(
+        "\\s+(london|paris|england|scotland|wales|toronto|montreal|berlin|madrid|rome|roma|sydney|dublin)$",
+        RegexOption.IGNORE_CASE,
+    )
+    internal val prefixStripRegex = Regex(
+        "^(?:[\\(\\[]?(?:argentina|azerbaijan|albania|brazil|brasil|russia|turkey|romania|france|united kingdom|great britain|carib|prime|arg|alb|bra|rus|tur|ind|rou|cze|hun|grc|prt|dnk|swe|fin|nor|chl|col|per|usa|deu|ita|esp|mex|pol|irl|aus|nld|bel|aze|ca|qc|us|uk|gb|fr|de|it|es|mx|pl|ie|au|nl|be|ar|az|al|br|ru|tr|in|ro|cz|hu|gr|pt|dk|se|fi|no|cl|co|pe)[\\)\\]]?\\s*[:|\\-]?\\s*(?:prime\\s+)?)",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private val groupCountryMap = mapOf(
+        "uk" to "uk", "united kingdom" to "uk", "great britain" to "uk", "gb" to "uk",
+        "fr" to "fr", "fra" to "fr", "france" to "fr",
+        "us" to "us", "usa" to "us", "united states" to "us",
+        "ca" to "ca", "canada" to "ca", "qc" to "ca", "quebec" to "ca",
+        "de" to "de", "deu" to "de", "germany" to "de", "deutschland" to "de",
+        "es" to "es", "esp" to "es", "spain" to "es", "espana" to "es",
+        "it" to "it", "ita" to "it", "italy" to "it", "italia" to "it",
+        "pl" to "pl", "pol" to "pl", "poland" to "pl", "polska" to "pl",
+        "pt" to "pt", "prt" to "pt", "portugal" to "pt",
+        "nl" to "nl", "nld" to "nl", "netherlands" to "nl",
+        "be" to "be", "bel" to "be", "belgium" to "be",
+        "au" to "au", "aus" to "au", "australia" to "au",
+        "ie" to "ie", "irl" to "ie", "ireland" to "ie",
+        "mx" to "mx", "mex" to "mx", "mexico" to "mx",
+        "ar" to "ar", "arg" to "ar", "argentina" to "ar",
+        "az" to "az", "aze" to "az", "azerbaijan" to "az",
+        "al" to "al", "alb" to "al", "albania" to "al",
+        "br" to "br", "bra" to "br", "brazil" to "br", "brasil" to "br",
+        "ru" to "ru", "rus" to "ru", "russia" to "ru",
+        "tr" to "tr", "tur" to "tr", "turkey" to "tr",
+        "ro" to "ro", "rou" to "ro", "romania" to "ro",
+        "in" to "in", "ind" to "in", "india" to "in",
+        "cz" to "cz", "cze" to "cz",
+        "hu" to "hu", "hun" to "hu",
+        "gr" to "gr", "grc" to "gr", "greece" to "gr",
+        "cl" to "cl", "chl" to "cl", "chile" to "cl",
+        "co" to "co", "col" to "co", "colombia" to "co",
+        "pe" to "pe", "per" to "pe", "peru" to "pe",
+        "dk" to "dk", "dnk" to "dk", "denmark" to "dk",
+        "se" to "se", "swe" to "se", "sweden" to "se",
+        "no" to "no", "nor" to "no", "norway" to "no",
+        "fi" to "fi", "fin" to "fi", "finland" to "fi",
+    )
+
+    private val nameCountryPrefixRegex = Regex(
+        "^(?:[\\[(]([A-Za-z]{2,})[\\])]|([A-Za-z]{2,})\\s*[:|\\-])",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private val numberWordRegex = Regex("(?i)\\b(one|two|three|four|five|six|seven|eight|nine|ten|un|deux|trois|quatre)\\b")
+    private val numberWordReplacements = mapOf(
+        "one" to "1", "two" to "2", "three" to "3", "four" to "4", "five" to "5",
+        "six" to "6", "seven" to "7", "eight" to "8", "nine" to "9", "ten" to "10",
+        "un" to "1", "deux" to "2", "trois" to "3", "quatre" to "4",
+    )
+
+    internal fun normalizeNumberWords(s: String): String =
+        numberWordRegex.replace(s) { match ->
+            numberWordReplacements[match.value.lowercase()] ?: match.value
+        }
 
     /** Whole names only: a shared word is not evidence of channel identity. */
     fun channelAliases(channel: Channel): Set<String> = buildSet {
@@ -49,10 +109,10 @@ object GuideMatcher {
         }
     }
 
-    /** Ambiguous aliases remain absent, independent of provider channel order. */
+    /** Ambiguous aliases remain absent from direct keys, but preserved under ambig: prefix for fallback. */
     fun buildAliasIndex(guideAliases: Map<String, Set<String>>): Map<String, String> {
         val index = mutableMapOf<String, String>()
-        val ambiguous = mutableSetOf<String>()
+        val ambiguous = mutableMapOf<String, MutableSet<String>>()
         guideAliases.forEach { (id, aliases) ->
             val baseKeys = aliases + id.guideMatchKeys()
             val region = country(id)
@@ -69,14 +129,19 @@ object GuideMatcher {
             }
             val keys = baseKeys + baseKeys.map { "country:$region:$it" } + idKeys
             keys.forEach { key ->
-                if (key !in ambiguous) {
+                if (key in ambiguous) {
+                    ambiguous[key]?.add(id)
+                } else {
                     val previous = index.putIfAbsent(key, id)
                     if (previous != null && previous != id) {
                         index.remove(key)
-                        ambiguous.add(key)
+                        ambiguous[key] = mutableSetOf(previous, id)
                     }
                 }
             }
+        }
+        ambiguous.forEach { (key, set) ->
+            index["ambig:$key"] = set.joinToString("|")
         }
         return index
     }
@@ -150,23 +215,161 @@ object GuideMatcher {
         }
 
         val names = channelAliases(channel)
+        val channelCountry = countryForChannel(channel)
         val fullMatches = names.mapNotNull {
-            aliasIndex["country:${country(channel.tvgId)}:$it"] ?: aliasIndex[it]
+            aliasIndex["country:$channelCountry:$it"] ?: aliasIndex[it]
         }.filter {
             compatibleCountry(channel, it) && !hasConflictingDirection(channel.name, it)
         }.distinct()
         if (fullMatches.size == 1) return fullMatches.single()
-        if (fullMatches.size > 1) return null
+        if (fullMatches.size > 1) {
+            disambiguateRegionalFeed(fullMatches, channel)?.let { return it }
+            return null
+        }
+
+        // When multiple regional feeds collide on the same name, they are preserved under ambig:
+        val ambiguousCandidates = names.flatMap { alias ->
+            val ambigKey = if (channelCountry != null) {
+                aliasIndex["ambig:country:$channelCountry:$alias"] ?: aliasIndex["ambig:$alias"]
+            } else {
+                aliasIndex["ambig:$alias"]
+            }
+            ambigKey?.split('|') ?: emptyList()
+        }.distinct().filter {
+            compatibleCountry(channel, it) && !hasConflictingDirection(channel.name, it)
+        }
+        if (ambiguousCandidates.isNotEmpty()) {
+            disambiguateRegionalFeed(ambiguousCandidates, channel)?.let { return it }
+        }
 
         val stations = listOfNotNull(channel.name, channel.tvgName).flatMap { name ->
             stationKeys(name)
         }.distinct()
         val stationMatches = stations.mapNotNull {
-            aliasIndex["country:${country(channel.tvgId)}:$it"] ?: aliasIndex[it]
+            aliasIndex["country:$channelCountry:$it"] ?: aliasIndex[it]
         }
             .filter { compatibleCountry(channel, it) && !hasConflictingDirection(channel.name, it) }
             .distinct()
-        return stationMatches.singleOrNull()
+        if (stationMatches.size == 1) return stationMatches.single()
+        if (stationMatches.size > 1) {
+            disambiguateRegionalFeed(stationMatches, channel)?.let { return it }
+            return null
+        }
+
+        if (stationMatches.isEmpty() && stations.isNotEmpty()) {
+            val ambigStations = stations.flatMap { st ->
+                val ambigKey = if (channelCountry != null) {
+                    aliasIndex["ambig:country:$channelCountry:$st"] ?: aliasIndex["ambig:$st"]
+                } else {
+                    aliasIndex["ambig:$st"]
+                }
+                ambigKey?.split('|') ?: emptyList()
+            }.distinct().filter {
+                compatibleCountry(channel, it) && !hasConflictingDirection(channel.name, it)
+            }
+            if (ambigStations.isNotEmpty()) {
+                disambiguateRegionalFeed(ambigStations, channel)?.let { return it }
+            }
+        }
+        return null
+    }
+
+    private val ignoredDisambiguationWords = setOf(
+        "bbc", "itv", "channel", "france", "tele", "television", "radio",
+        "news", "sports", "sport", "live", "plus", "extra", "hd", "fhd", "uhd",
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+        "un", "deux", "trois", "quatre", "the",
+    )
+
+    fun disambiguateRegionalFeed(candidates: List<String>, channel: Channel): String? {
+        if (candidates.isEmpty()) return null
+        if (candidates.size == 1) return candidates.single()
+
+        val channelCountry = countryForChannel(channel)
+        val channelLower = channel.name.lowercase()
+        val channelTokens = channelLower.split(nonAlphaNumSplitRegex)
+            .filter { it.length >= 3 && it !in ignoredDisambiguationWords }
+        val channelKeys = channelAliases(channel)
+
+        var foundSignal = false
+        val candidateScores = candidates.map { candidate ->
+            var score = 0
+            val candidateLower = candidate.lowercase()
+            val stripped = candidate.substringBefore('@').substringBeforeLast('.')
+            val strippedLower = stripped.lowercase()
+
+            // Exact base match: e.g. candidate "bbcone.uk" with channel "bbcone"
+            if (channelKeys.contains(strippedLower) || channelKeys.contains(strippedLower.normalizedGuideKey())) {
+                score += 100
+                foundSignal = true
+            }
+
+            // Region token in channel name explicitly matches candidate
+            val matchedToken = channelTokens.firstOrNull { token -> candidateLower.contains(token) }
+            if (matchedToken != null) {
+                score += 200
+                foundSignal = true
+            }
+
+            // National / flagship feeds
+            if ("national" in candidateLower || "main" in candidateLower) {
+                score += 50
+                foundSignal = true
+            }
+
+            when (channelCountry) {
+                "uk" -> if ("london" in candidateLower) { score += 40; foundSignal = true }
+                "fr" -> if ("paris" in candidateLower) { score += 40; foundSignal = true }
+                "ca" -> if ("toronto" in candidateLower || "ottawa" in candidateLower) { score += 40; foundSignal = true }
+                "us" -> if ("national" in candidateLower || "network" in candidateLower) { score += 40; foundSignal = true }
+                "de" -> if ("berlin" in candidateLower) { score += 40; foundSignal = true }
+                "es" -> if ("madrid" in candidateLower) { score += 40; foundSignal = true }
+                "it" -> if ("roma" in candidateLower || "rome" in candidateLower) { score += 40; foundSignal = true }
+                "au" -> if ("sydney" in candidateLower) { score += 40; foundSignal = true }
+                "ie" -> if ("dublin" in candidateLower) { score += 40; foundSignal = true }
+                "ar" -> if ("buenosaires" in candidateLower || "capital" in candidateLower) { score += 40; foundSignal = true }
+                "br" -> if ("brasilia" in candidateLower || "saopaulo" in candidateLower) { score += 40; foundSignal = true }
+                "al" -> if ("tirana" in candidateLower) { score += 40; foundSignal = true }
+                "tr" -> if ("istanbul" in candidateLower || "ankara" in candidateLower) { score += 40; foundSignal = true }
+            }
+
+            // Quality tag preference
+            val channelWantsHd = qualityTagRegex.containsMatchIn(channelLower)
+            val candidateHasHd = "hd" in candidateLower
+            if (channelWantsHd == candidateHasHd) {
+                score += 10
+            }
+
+            // Shorter IDs indicate root/national feed over regional feeds
+            score += (100 - candidate.length).coerceAtLeast(0)
+
+            candidate to score
+        }
+
+        if (!foundSignal) return null
+
+        val sorted = candidateScores.sortedByDescending { it.second }
+        if (sorted.size >= 2 && sorted[0].second == sorted[1].second) {
+            return null // Ambiguous tie
+        }
+        return sorted.firstOrNull()?.first
+    }
+
+    fun countryForChannel(channel: Channel): String? {
+        country(channel.tvgId)?.let { return it }
+        country(channel.id)?.let { return it }
+        if (channel.group.isNotBlank()) {
+            val tokens = channel.group.split(nonAlphaNumSplitRegex)
+            for (token in tokens) {
+                groupCountryMap[token.lowercase()]?.let { return it }
+            }
+        }
+        val namePrefixMatch = nameCountryPrefixRegex.find(channel.name)
+        if (namePrefixMatch != null) {
+            val code = (namePrefixMatch.groupValues[1].ifEmpty { namePrefixMatch.groupValues[2] }).lowercase()
+            groupCountryMap[code]?.let { return it }
+        }
+        return null
     }
 
     fun extractLogoIdHint(logoUrl: String?): String? {
@@ -198,7 +401,7 @@ object GuideMatcher {
         ?.lowercase()?.trimEnd { it.isDigit() }?.takeIf { it.length == 2 && it.all(Char::isLetter) }
 
     private fun compatibleCountry(channel: Channel, guideId: String): Boolean {
-        val source = country(channel.tvgId)
+        val source = countryForChannel(channel)
         val target = country(guideId)
         return source == null || target == null || source == target
     }
@@ -208,8 +411,8 @@ object GuideMatcher {
             hasConflictingDirection(channelName, guideIdOrName)
 
     fun hasConflictingNumber(a: String, b: String): Boolean {
-        val digitsA = a.filter { it.isDigit() }
-        val digitsB = b.filter { it.isDigit() }
+        val digitsA = normalizeNumberWords(a).filter { it.isDigit() }
+        val digitsB = normalizeNumberWords(b).filter { it.isDigit() }
         return (digitsA.isNotEmpty() || digitsB.isNotEmpty()) && digitsA != digitsB
     }
 
@@ -274,7 +477,7 @@ internal fun String.guideMatchKeys(): Set<String> {
 }
 
 private val nonAlphaNumSplitRegex = Regex("[^A-Za-z0-9]+")
-private val qualityTagRegex = Regex("\\b(hd|fhd|uhd|sd|us|usa|4k|1080p|720p)\\b")
+private val qualityTagRegex = Regex("\\b(hd|fhd|uhd|sd|us|usa|4k|1080p|720p|50fps|hevc)\\b")
 private val nonLowerAlphaNumRegex = Regex("[^a-z0-9]+")
 
 internal fun String.normalizedGuideTokens(): Set<String> {
@@ -292,12 +495,54 @@ internal fun String.normalizedGuideKey(): String =
 /** Remove provider labels and quality markers, retaining every meaningful word. */
 private fun String.fullGuideNameKeys(): Set<String> = buildSet {
     add(normalizedGuideKey())
+    val withNumbers = GuideMatcher.normalizeNumberWords(this@fullGuideNameKeys)
+    if (withNumbers != this@fullGuideNameKeys) {
+        val normalized = withNumbers.normalizedGuideKey()
+        if (normalized.isNotEmpty()) add(normalized)
+    }
     val prefixStripped = replace(GuideMatcher.prefixStripRegex, "").trim()
     if (prefixStripped != this@fullGuideNameKeys) {
         val normalized = prefixStripped.normalizedGuideKey()
-        if (normalized.isNotEmpty()) add(normalized)
+        if (normalized.isNotEmpty()) {
+            add(normalized)
+            val strippedWithNumbers = GuideMatcher.normalizeNumberWords(prefixStripped)
+            if (strippedWithNumbers != prefixStripped) {
+                val numNorm = strippedWithNumbers.normalizedGuideKey()
+                if (numNorm.isNotEmpty()) add(numNorm)
+            }
+        }
     }
     // XMLTV often prefixes a complete name with "US:", "Xumo:" or state/city pipes.
     val display = substringAfterLast('|').substringAfterLast(':').trim()
     add(display.normalizedGuideKey())
+    val displayWithNumbers = GuideMatcher.normalizeNumberWords(display)
+    if (displayWithNumbers != display) {
+        val numNorm = displayWithNumbers.normalizedGuideKey()
+        if (numNorm.isNotEmpty()) add(numNorm)
+    }
+    val lcnStripped = display.replace(GuideMatcher.leadingLcnRegex, "").trim()
+    if (lcnStripped != display) {
+        val lcnNorm = lcnStripped.normalizedGuideKey()
+        if (lcnNorm.isNotEmpty()) {
+            add(lcnNorm)
+            val lcnWithNumbers = GuideMatcher.normalizeNumberWords(lcnStripped)
+            if (lcnWithNumbers != lcnStripped) {
+                val numNorm = lcnWithNumbers.normalizedGuideKey()
+                if (numNorm.isNotEmpty()) add(numNorm)
+            }
+        }
+    }
+    val cityStripped = lcnStripped.replace(qualityTagRegex, " ").trim()
+        .replace(GuideMatcher.regionalCitySuffixRegex, "").trim()
+    if (cityStripped.isNotEmpty() && cityStripped != lcnStripped) {
+        val cityNorm = cityStripped.normalizedGuideKey()
+        if (cityNorm.isNotEmpty()) {
+            add(cityNorm)
+            val cityWithNumbers = GuideMatcher.normalizeNumberWords(cityStripped)
+            if (cityWithNumbers != cityStripped) {
+                val numNorm = cityWithNumbers.normalizedGuideKey()
+                if (numNorm.isNotEmpty()) add(numNorm)
+            }
+        }
+    }
 }.filterTo(linkedSetOf()) { it.isNotEmpty() }

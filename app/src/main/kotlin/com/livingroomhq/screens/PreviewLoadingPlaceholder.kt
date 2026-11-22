@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -52,7 +53,7 @@ internal fun PreviewLoadingPlaceholder(
             LoadingIndicator(size = 28.dp, strokeWidth = 3.dp)
             if (channel != null) {
                 Text(
-                    channel.name,
+                    channel.displayName,
                     modifier = Modifier.padding(top = 12.dp).alpha(alpha),
                     style = HqType.CardTitle,
                 )

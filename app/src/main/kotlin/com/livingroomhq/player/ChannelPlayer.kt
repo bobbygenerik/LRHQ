@@ -2,10 +2,12 @@ package com.livingroomhq.player
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.livingroomhq.core.data.model.Channel
 import com.livingroomhq.core.data.model.EpisodeItem
 import com.livingroomhq.core.data.model.SeriesItem
 import com.livingroomhq.core.data.model.VodItem
+import com.livingroomhq.ui.UiMessages
 
 object ChannelPlayer {
     const val EXTRA_CHANNEL_ID = "channel_id"
@@ -31,7 +33,12 @@ object ChannelPlayer {
     }
 
     fun launchVod(context: Context, item: VodItem) {
-        if (item.streamUrl.isBlank()) return
+        if (item.streamUrl.isBlank()) {
+            Log.w("ChannelPlayer", "launchVod: streamUrl is blank for '${item.title}'")
+            UiMessages.post("No stream URL available for ${item.title}")
+            return
+        }
+        Log.i("ChannelPlayer", "launchVod: '${item.title}' -> ${item.streamUrl}")
         context.startActivity(
             Intent(context, ChannelPlayerActivity::class.java).apply {
                 putExtra(EXTRA_CHANNEL_ID, item.id)
@@ -52,12 +59,17 @@ object ChannelPlayer {
         series: SeriesItem,
         episode: EpisodeItem,
     ) {
-        if (episode.streamUrl.isBlank()) return
+        if (episode.streamUrl.isBlank()) {
+            Log.w("ChannelPlayer", "launchEpisode: streamUrl is blank for '${episode.title}'")
+            UiMessages.post("No stream URL available for this episode")
+            return
+        }
         val displayTitle = if (episode.title.isNotBlank() && !episode.title.startsWith("Episode", ignoreCase = true)) {
             "${series.title} • S%02dE%02d • ${episode.title}".format(episode.seasonNum, episode.episodeNum)
         } else {
             "${series.title} • S%02dE%02d".format(episode.seasonNum, episode.episodeNum)
         }
+        Log.i("ChannelPlayer", "launchEpisode: '$displayTitle' -> ${episode.streamUrl}")
         context.startActivity(
             Intent(context, ChannelPlayerActivity::class.java).apply {
                 putExtra(EXTRA_CHANNEL_ID, episode.id)

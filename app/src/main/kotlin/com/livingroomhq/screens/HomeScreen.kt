@@ -1,5 +1,7 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.ui.theme.HqScrims
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -338,6 +340,8 @@ fun HomeScreen(
                             .graphicsLayer {
                                 translationY = compactBarInsetState.value.toPx()
                             }
+                            // Back the rails so live video (logos, broadcast text) doesn't show through.
+                            .background(HqScrims.RailBacking)
                             .padding(
                                 top = HqDimens.SafeVertical,
                                 bottom = HqDimens.SafeVertical + CompactTopBarHeight,
@@ -611,7 +615,7 @@ private fun CompactTopBar(
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
-                    channel?.name ?: "No Live TV",
+                    channel?.displayName ?: "No Live TV",
                     style = HqType.CardTitle.copy(color = HqColors.TextPrimary),
                     maxLines = 1,
                 )

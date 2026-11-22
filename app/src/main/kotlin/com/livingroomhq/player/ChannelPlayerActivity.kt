@@ -1,5 +1,6 @@
 package com.livingroomhq.player
 
+import com.livingroomhq.core.data.model.displayName
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
 import android.os.Bundle
@@ -163,7 +164,9 @@ class ChannelPlayerActivity : ComponentActivity() {
         } else {
             null
         }
+        android.util.Log.i("ChannelPlayerActivity", "onCreate: channelId=$channelId, isVod=$isVod, name='$channelName', streamUrl='$streamUrl'")
         if (channel == null || channel.streamUrl.isBlank()) {
+            android.util.Log.w("ChannelPlayerActivity", "Finishing early: channel=$channel, streamUrl='$streamUrl'")
             finish()
             return
         }
@@ -518,7 +521,7 @@ private fun ChannelPlayerScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    currentChannel.name,
+                    currentChannel.displayName,
                     style = HqType.Headline.copy(color = HqColors.TextPrimary),
                 )
                 Spacer(Modifier.height(8.dp))
@@ -573,7 +576,7 @@ private fun ChannelPlayerScreen(
             ) {
                 if (isVod) {
                     VodPlayerOsd(
-                        title = currentChannel.name,
+                        title = currentChannel.displayName,
                         meta = vodMeta,
                         isPlaying = isPlaying,
                         currentPosMs = currentPosMs,
@@ -610,7 +613,7 @@ private fun ChannelPlayerScreen(
                                                 .padding(horizontal = 8.dp, vertical = 3.dp),
                                         ) {
                                             Text(
-                                                text = currentChannel.name.trim().take(1).uppercase().ifBlank { "TV" },
+                                                text = currentChannel.displayName.trim().take(1).uppercase().ifBlank { "TV" },
                                                 style = HqType.Badge.copy(
                                                     color = accent,
                                                     shadow = playerTextShadow(),
@@ -619,7 +622,7 @@ private fun ChannelPlayerScreen(
                                         }
                                         Spacer(Modifier.width(10.dp))
                                         Text(
-                                            text = currentChannel.name,
+                                            text = currentChannel.displayName,
                                             style = HqType.Headline.copy(
                                                 color = HqColors.TextPrimary,
                                                 fontWeight = FontWeight.Bold,

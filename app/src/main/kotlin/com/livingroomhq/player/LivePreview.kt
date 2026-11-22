@@ -1,5 +1,6 @@
 package com.livingroomhq.player
 
+import com.livingroomhq.core.data.model.displayName
 import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -105,7 +106,7 @@ fun LivePreview(
                     .padding(24.dp),
             ) {
                 Text(
-                    channel?.name ?: "No channel",
+                    channel?.displayName ?: "No channel",
                     style = HqType.Label,
                 )
             }

@@ -170,15 +170,16 @@ fun CommandCenterScreen(
                             style = HqType.CardTitle,
                             maxLines = 1,
                         )
-                        StatBar(
-                            "CPU",
-                            when {
-                                !statsReady -> "…"
-                                !cpuAvailable -> "N/A"
-                                else -> "${cpu.toInt()}%"
-                            },
-                            if (statsReady && cpuAvailable) cpu / 100f else 0.25f,
-                        )
+                        // Some devices block CPU stats; hide the bar rather than show "N/A" beside a fake fill.
+                        if (cpuAvailable) {
+                            StatBar(
+                                "CPU",
+                                if (statsReady) "${cpu.toInt()}%" else "…",
+                                if (statsReady) cpu / 100f else 0f,
+                            )
+                        } else {
+                            Text("Android ${state.androidRelease}", style = HqType.CardCaption)
+                        }
                     }
                 }
             }
@@ -196,7 +197,7 @@ fun CommandCenterScreen(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("RAM", style = HqType.CardTitle)
-                        StatBar("Used", if (statsReady) "${pct.times(100).toInt()}%" else "…", if (statsReady) pct else 0.25f)
+                        StatBar("Used", if (statsReady) "${pct.times(100).toInt()}%" else "…", if (statsReady) pct else 0f)
                         Text(
                             if (statsReady) "$used MB of $total MB" else "Reading memory…",
                             style = HqType.CardCaption,
@@ -220,7 +221,7 @@ fun CommandCenterScreen(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("Internal Storage", style = HqType.CardTitle)
-                        StatBar("Used", if (statsReady) "${(usedPct * 100).toInt()}%" else "…", if (statsReady) usedPct else 0.25f)
+                        StatBar("Used", if (statsReady) "${(usedPct * 100).toInt()}%" else "…", if (statsReady) usedPct else 0f)
                         Text(
                             if (statsReady) "$freeGb GB free of $totalGb GB" else "Reading storage…",
                             style = HqType.CardCaption,
@@ -277,7 +278,7 @@ fun CommandCenterScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Mesh Network", style = HqType.Headline)
                         StatusRow("STATUS", if (connected) "Connected" else "Not detected", if (connected) HqColors.Positive else HqColors.TextTertiary)
-                        StatusRow("TAIL IP", state.tailscaleIp ?: "—", HqColors.TextPrimary)
+                        state.tailscaleIp?.let { StatusRow("TAIL IP", it, HqColors.TextPrimary) }
                     }
                 }
             }

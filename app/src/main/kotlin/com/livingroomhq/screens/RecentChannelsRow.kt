@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -241,7 +242,7 @@ private fun RecentChannelChip(
                 if (channel.logoUrl != null) {
                     AsyncImage(
                         model = channel.logoUrl,
-                        contentDescription = "${channel.name} logo",
+                        contentDescription = "${channel.displayName} logo",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .fillMaxSize()
@@ -249,7 +250,7 @@ private fun RecentChannelChip(
                     )
                 } else {
                     Text(
-                        channel.name.take(2).uppercase(),
+                        channel.displayName.take(2).uppercase(),
                         style = HqType.CardTitle.copy(
                             color = if (focused) HqColors.Accent.value else HqColors.TextSecondary,
                             fontWeight = FontWeight.Bold,
@@ -259,7 +260,7 @@ private fun RecentChannelChip(
             }
             Column {
                 Text(
-                    channel.name,
+                    channel.displayName,
                     style = HqType.CardTitle.copy(
                         color = if (focused) HqColors.TextPrimary else HqColors.TextSecondary,
                     ),

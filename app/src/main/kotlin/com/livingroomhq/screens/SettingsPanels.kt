@@ -71,14 +71,11 @@ internal fun LiveTvSettingsPanel(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("IPTV Playlist URL", style = HqType.CardTitle)
-                Text(
-                    "Configure an M3U IPTV playlist link to stream live television channels.",
-                    style = HqType.CardCaption,
-                )
                 GlassTextField(
                     value = m3uUrl,
                     onValueChange = onM3uUrlChange,
                     placeholder = "Enter M3U link...",
+                    maskSecrets = true,
                     modifier = Modifier
                         .fillMaxWidth()
                         .tvInitialFocus(firstFocusRequester)
@@ -105,14 +102,11 @@ internal fun LiveTvSettingsPanel(
             
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("XMLTV Guide URL", style = HqType.CardTitle)
-                Text(
-                    "Add an XMLTV guide URL to overlay now/next programme info.",
-                    style = HqType.CardCaption,
-                )
                 GlassTextField(
                     value = epgUrl,
                     onValueChange = onEpgUrlChange,
                     placeholder = "Enter XMLTV (.xml) link...",
+                    maskSecrets = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -154,7 +148,7 @@ internal fun SamplePlaylistsPanel(
     onPublicPlaylistSelected: (PublicPlaylist) -> Unit,
     isLoading: Boolean,
 ) {
-    Text("POPULAR SAMPLE PLAYLISTS (QUICK TEST)", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
+    Text("SAMPLE PLAYLISTS", style = HqType.Label.copy(fontWeight = FontWeight.Bold))
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         publicPlaylists.forEach { playlist ->
             FocusableGlassCard(
@@ -172,7 +166,6 @@ internal fun SamplePlaylistsPanel(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(playlist.name, style = HqType.CardTitle)
-                    Text("Press OK to load", style = HqType.CardCaption.copy(color = HqColors.Accent.value))
                 }
             }
         }

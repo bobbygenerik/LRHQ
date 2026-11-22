@@ -214,8 +214,9 @@ fun Sidebar(
     val scrimBrush = remember(expanded) {
         Brush.horizontalGradient(
             colors = listOf(
-                HqColors.Void.copy(alpha = if (expanded) 0.85f else 0.45f),
-                HqColors.Void.copy(alpha = if (expanded) 0.45f else 0.15f),
+                // Collapsed rail still needs real backing: icons sit over live video on Home.
+                HqColors.Void.copy(alpha = if (expanded) 0.85f else 0.70f),
+                HqColors.Void.copy(alpha = if (expanded) 0.45f else 0.35f),
                 Color.Transparent,
             ),
         )

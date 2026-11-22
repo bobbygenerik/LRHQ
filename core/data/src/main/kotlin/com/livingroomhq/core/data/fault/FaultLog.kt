@@ -83,17 +83,18 @@ object FaultLog {
 
     fun formatSyncStatus(status: SyncStatus): String {
         val timeFmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+        // Omit parts with no data and never show raw exception text.
         val playlist = when (val s = status.playlist) {
-            SyncState.Unknown -> "Playlist: —"
-            is SyncState.Ok -> "Playlist: synced ${timeFmt.format(Date(s.timestampMillis))}"
-            is SyncState.Failed -> "Playlist: failed (${s.message})"
+            SyncState.Unknown -> null
+            is SyncState.Ok -> "Playlist synced ${timeFmt.format(Date(s.timestampMillis))}"
+            is SyncState.Failed -> "Playlist: ${FriendlyErrors.short(s.message)}"
         }
         val guide = when (val s = status.guide) {
-            SyncState.Unknown -> "Guide: —"
-            is SyncState.Ok -> "Guide: synced ${timeFmt.format(Date(s.timestampMillis))}"
-            is SyncState.Failed -> "Guide: failed (${s.message})"
+            SyncState.Unknown -> null
+            is SyncState.Ok -> "Guide synced ${timeFmt.format(Date(s.timestampMillis))}"
+            is SyncState.Failed -> "Guide: ${FriendlyErrors.short(s.message)}"
         }
-        return "$playlist · $guide"
+        return listOfNotNull(playlist, guide).joinToString(" · ")
     }
 }
 

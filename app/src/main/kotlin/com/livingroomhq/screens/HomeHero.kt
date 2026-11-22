@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -211,7 +212,7 @@ private fun NowPlayingSummary(
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            channel?.name ?: "No live TV loaded",
+            channel?.displayName ?: "No live TV loaded",
             style = HqType.Title.copy(
                 color = HqColors.TextPrimary,
                 fontWeight = FontWeight.SemiBold,

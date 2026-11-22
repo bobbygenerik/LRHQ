@@ -1,5 +1,10 @@
 package com.livingroomhq.screens
 
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.AnnotatedString
+import com.livingroomhq.core.data.model.maskUrlCredentials
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +55,8 @@ internal fun GlassTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
+    /** Hide username/password values in URLs unless the field is being edited. */
+    maskSecrets: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(HqDimens.CornerSm)
@@ -78,6 +85,7 @@ internal fun GlassTextField(
             textStyle = HqType.Body.copy(color = HqColors.TextPrimary),
             cursorBrush = SolidColor(HqColors.Accent.value),
             singleLine = singleLine,
+            visualTransformation = if (maskSecrets && !focused) CredentialMaskTransformation else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             modifier = Modifier
                 .fillMaxWidth()
@@ -157,4 +165,10 @@ internal fun CustomButtonToggle(
             }
         }
     }
+}
+
+/** Same-length masking, so cursor offsets map 1:1. */
+private object CredentialMaskTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText =
+        TransformedText(AnnotatedString(maskUrlCredentials(text.text)), OffsetMapping.Identity)
 }

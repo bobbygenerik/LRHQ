@@ -1,5 +1,6 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.data.model.displayName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -155,7 +156,7 @@ fun AmbientScreen(
         ) {
             current?.let { channel ->
                 AmbientNowPlaying(
-                    channelName = channel.name,
+                    channelName = channel.displayName,
                     programTitle = nowProgram?.title,
                 )
             }

@@ -1,5 +1,7 @@
 package com.livingroomhq.screens
 
+import com.livingroomhq.core.ui.theme.HqScrims
+import com.livingroomhq.core.data.model.displayTitle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -28,10 +30,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +61,7 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -63,6 +71,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -106,13 +119,6 @@ private val RatingBadgeShape = RoundedCornerShape(4.dp)
 private val PosterBottomScrim = Brush.verticalGradient(
     colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.92f)),
 )
-private val BackdropOverlayScrim = Brush.verticalGradient(
-    colors = listOf(
-        HqColors.Void.copy(alpha = 0.5f),
-        HqColors.Void.copy(alpha = 0.85f),
-        HqColors.Void.copy(alpha = 0.98f),
-    ),
-)
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
@@ -136,6 +142,11 @@ fun VodScreen(
     val isLoadingDetail by remember { derivedStateOf { uiState.value.isLoadingDetail } }
     val selectedSeriesDetail by remember { derivedStateOf { uiState.value.selectedSeriesDetail } }
     val selectedSeason by remember { derivedStateOf { uiState.value.selectedSeason } }
+    val searchActive by remember { derivedStateOf { uiState.value.searchActive } }
+    val searchQuery by remember { derivedStateOf { uiState.value.searchQuery } }
+    val showingSearchResults by remember { derivedStateOf { uiState.value.showingSearchResults } }
+    val searchFieldFocus = remember { FocusRequester() }
+    val searchChipFocus = remember { FocusRequester() }
     val contentFocus = LocalContentFocusRequester.current
     val tabItemFocus = contentFocus ?: remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -181,6 +192,19 @@ fun VodScreen(
             withFrameNanos { }
             if (runCatching { tabItemFocus.requestFocus() }.isSuccess) return@LaunchedEffect
         }
+    }
+
+    LaunchedEffect(searchActive) {
+        if (!searchActive) return@LaunchedEffect
+        repeat(6) {
+            withFrameNanos { }
+            if (runCatching { searchFieldFocus.requestFocus() }.isSuccess) return@LaunchedEffect
+        }
+    }
+
+    BackHandler(enabled = searchActive) {
+        viewModel.closeSearch()
+        runCatching { tabItemFocus.requestFocus() }
     }
 
     BackHandler(enabled = selectedSeriesDetail != null) {
@@ -242,6 +266,33 @@ fun VodScreen(
         return
     }
 
+    val moveDownToFirstRail: () -> Boolean = {
+        val hasContent = when (selectedTab) {
+            VodTab.MOVIES -> movieCategories.any { it.items.isNotEmpty() }
+            VodTab.SERIES -> seriesCategories.any { it.series.isNotEmpty() }
+        }
+        if (!hasContent) {
+            false
+        } else if (firstRailCardFocus != null && runCatching { firstRailCardFocus.requestFocus() }.isSuccess) {
+            true
+        } else if (runCatching { focusManager.moveFocus(FocusDirection.Down) }.getOrDefault(false)) {
+            true
+        } else {
+            scrollScope.launch {
+                activeColumnState.scrollToItem(activeFirstLazyItemIndex)
+                activeFirstRailState?.scrollToItem(0)
+                repeat(6) {
+                    withFrameNanos { }
+                    if (firstRailCardFocus != null && runCatching { firstRailCardFocus.requestFocus() }.isSuccess) {
+                        return@launch
+                    }
+                }
+                runCatching { focusManager.moveFocus(FocusDirection.Down) }
+            }
+            true
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -265,52 +316,44 @@ fun VodScreen(
             ) {
                 Column {
                     Text(
-                        text = "ON DEMAND",
+                        text = "On Demand",
                         style = HqType.Title,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    val subtitle = if (selectedTab == VodTab.MOVIES) {
-                        "${movieCategories.size} Movie Categories • Full Library"
-                    } else {
-                        "${seriesCategories.size} Series Categories • TV Shows"
-                    }
-                    Text(
-                        text = subtitle,
-                        style = HqType.CardCaption,
-                        color = HqColors.TextSecondary,
                     )
                 }
 
                 VodTabSwitcher(
                     selectedTab = selectedTab,
                     firstTabFocus = tabItemFocus,
+                    searchActive = searchActive,
+                    searchChipFocus = searchChipFocus,
                     onMoveDown = {
-                        val hasContent = when (selectedTab) {
-                            VodTab.MOVIES -> movieCategories.any { it.items.isNotEmpty() }
-                            VodTab.SERIES -> seriesCategories.any { it.series.isNotEmpty() }
-                        }
-                        if (!hasContent) {
-                            false
-                        } else if (firstRailCardFocus != null && runCatching { firstRailCardFocus.requestFocus() }.isSuccess) {
-                            true
-                        } else if (runCatching { focusManager.moveFocus(FocusDirection.Down) }.getOrDefault(false)) {
-                            true
+                        if (searchActive) {
+                            runCatching { searchFieldFocus.requestFocus() }.isSuccess
                         } else {
-                            scrollScope.launch {
-                                activeColumnState.scrollToItem(activeFirstLazyItemIndex)
-                                activeFirstRailState?.scrollToItem(0)
-                                repeat(6) {
-                                    withFrameNanos { }
-                                    if (firstRailCardFocus != null && runCatching { firstRailCardFocus.requestFocus() }.isSuccess) {
-                                        return@launch
-                                    }
-                                }
-                                runCatching { focusManager.moveFocus(FocusDirection.Down) }
-                            }
-                            true
+                            moveDownToFirstRail()
                         }
                     },
                     onTabSelected = onTabSelected,
+                    onSearchClicked = {
+                        if (searchActive) {
+                            runCatching { searchFieldFocus.requestFocus() }
+                        } else {
+                            viewModel.openSearch()
+                        }
+                    },
+                )
+            }
+
+            if (searchActive) {
+                VodSearchField(
+                    query = searchQuery,
+                    focusRequester = searchFieldFocus,
+                    onQueryChange = { viewModel.setSearchQuery(it) },
+                    onMoveUp = { runCatching { searchChipFocus.requestFocus() }.isSuccess },
+                    onMoveDown = moveDownToFirstRail,
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .padding(bottom = 12.dp),
                 )
             }
 
@@ -322,8 +365,18 @@ fun VodScreen(
                 contentPadding = PaddingValues(bottom = HqDimens.SafeVertical),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                item(key = "billboard", contentType = "billboard") {
-                    VodBillboardSection(uiState = uiState)
+                val noResults = showingSearchResults && when (selectedTab) {
+                    VodTab.MOVIES -> movieCategories.isEmpty()
+                    VodTab.SERIES -> seriesCategories.isEmpty()
+                }
+                if (noResults) {
+                    item(key = "search_empty", contentType = "search_empty") {
+                        VodSearchNoResults(query = searchQuery, tab = selectedTab)
+                    }
+                } else {
+                    item(key = "billboard", contentType = "billboard") {
+                        VodBillboardSection(uiState = uiState)
+                    }
                 }
 
             when (selectedTab) {
@@ -345,7 +398,7 @@ fun VodScreen(
                             isFirstRail = isFirstRail,
                             listState = movieRailStates[catIdx],
                             firstItemFocus = movieRailFirstRequesters[catIdx],
-                            tabFocusRequester = tabItemFocus,
+                            tabFocusRequester = if (searchActive) searchFieldFocus else tabItemFocus,
                             focusReturn = focusReturn,
                             onMoveUpToPrevRail = prevCatIdx?.let { prevIdx ->
                                 {
@@ -396,7 +449,7 @@ fun VodScreen(
                             isFirstRail = isFirstRail,
                             listState = seriesRailStates[catIdx],
                             firstItemFocus = seriesRailFirstRequesters[catIdx],
-                            tabFocusRequester = tabItemFocus,
+                            tabFocusRequester = if (searchActive) searchFieldFocus else tabItemFocus,
                             focusReturn = focusReturn,
                             onMoveUpToPrevRail = prevCatIdx?.let { prevIdx ->
                                 {
@@ -532,7 +585,7 @@ private fun VodBackdropLayer(uiState: State<VodUiState>) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackdropOverlayScrim),
+                .background(HqScrims.ImageBackdrop),
         )
     }
 }
@@ -566,8 +619,11 @@ private fun VodBillboardSection(uiState: State<VodUiState>) {
 private fun VodTabSwitcher(
     selectedTab: VodTab,
     firstTabFocus: FocusRequester,
+    searchActive: Boolean,
+    searchChipFocus: FocusRequester,
     onMoveDown: () -> Boolean,
     onTabSelected: (VodTab) -> Unit,
+    onSearchClicked: () -> Unit,
 ) {
     val moviesFocus = remember { FocusRequester() }
     val seriesFocus = remember { FocusRequester() }
@@ -593,6 +649,138 @@ private fun VodTabSwitcher(
             isLeadingEdge = false,
             onMoveDown = onMoveDown,
             onClick = { onTabSelected(VodTab.SERIES) },
+        )
+        VodTabChip(
+            title = "Search",
+            icon = Icons.Default.Search,
+            isSelected = searchActive,
+            focusRequester = searchChipFocus,
+            isLeadingEdge = false,
+            onMoveDown = onMoveDown,
+            onClick = onSearchClicked,
+        )
+    }
+}
+
+/**
+ * D-pad friendly search box. OK opens the on-screen keyboard (standard TV text
+ * field behavior); Up returns to the chips, Down/the keyboard's Search action
+ * jumps into the results.
+ */
+@Composable
+private fun VodSearchField(
+    query: String,
+    focusRequester: FocusRequester,
+    onQueryChange: (String) -> Unit,
+    onMoveUp: () -> Boolean,
+    onMoveDown: () -> Boolean,
+    modifier: Modifier = Modifier,
+) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(HqDimens.CornerSm)
+    val accent = hqAccent()
+    val keyboard = LocalSoftwareKeyboardController.current
+    var fieldValue by remember { mutableStateOf(TextFieldValue(query, TextRange(query.length))) }
+    // Keep in sync if the query is reset from outside (e.g. search closed and reopened).
+    if (fieldValue.text != query && !focused) {
+        fieldValue = TextFieldValue(query, TextRange(query.length))
+    }
+
+    Row(
+        modifier = modifier
+            .clip(shape)
+            .background(if (focused) HqColors.FieldFillFocused else HqColors.FieldFill)
+            .border(if (focused) 2.dp else 1.dp, if (focused) accent else HqColors.GlassStroke, shape)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = null,
+            tint = if (focused) accent else HqColors.TextTertiary,
+            modifier = Modifier.size(20.dp),
+        )
+        BasicTextField(
+            value = fieldValue,
+            onValueChange = { newValue ->
+                fieldValue = newValue
+                if (newValue.text != query) onQueryChange(newValue.text)
+            },
+            textStyle = HqType.Body.copy(color = HqColors.TextPrimary),
+            cursorBrush = SolidColor(accent),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                imeAction = ImeAction.Search,
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboard?.hide()
+                    onMoveDown()
+                },
+            ),
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(focusRequester)
+                .onFocusChanged { focused = it.isFocused }
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    when (event.key) {
+                        Key.DirectionUp -> onMoveUp()
+                        Key.DirectionDown -> {
+                            keyboard?.hide()
+                            onMoveDown()
+                        }
+                        else -> false
+                    }
+                },
+            decorationBox = { inner ->
+                Box {
+                    if (fieldValue.text.isEmpty()) {
+                        Text(
+                            text = "Search movies and shows",
+                            style = HqType.Body,
+                            color = HqColors.TextTertiary,
+                        )
+                    }
+                    inner()
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun VodSearchNoResults(query: String, tab: VodTab) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = null,
+            tint = HqColors.TextTertiary,
+            modifier = Modifier.size(48.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = if (tab == VodTab.MOVIES) {
+                "No movies match \u201c${query.trim()}\u201d"
+            } else {
+                "No shows match \u201c${query.trim()}\u201d"
+            },
+            style = HqType.Headline,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = if (tab == VodTab.MOVIES) "Try the TV Shows tab, or fewer words." else "Try the Movies tab, or fewer words.",
+            style = HqType.Body,
+            color = HqColors.TextSecondary,
         )
     }
 }
@@ -658,7 +846,7 @@ private fun VodTabChip(
             )
             .border(
                 width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) Color.White else if (isSelected) accent else HqColors.GlassStroke,
+                color = if (isFocused || isSelected) accent else HqColors.GlassStroke,
                 shape = shape,
             )
             .padding(horizontal = 14.dp, vertical = 7.dp),
@@ -755,7 +943,7 @@ private fun VodHeroBillboard(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = item.title,
+            text = item.displayTitle,
             style = HqType.Headline,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -764,30 +952,17 @@ private fun VodHeroBillboard(
 
         Spacer(Modifier.height(6.dp))
 
-        Text(
-            text = item.description,
-            style = HqType.Body,
-            color = HqColors.TextSecondary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth(0.75f),
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = hqAccent(),
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(6.dp))
+        // Older caches stored a description synthesized from category/year/rating,
+        // which just repeats the meta row above. Only show real plot text.
+        val description = item.description.takeIf { it.isNotBlank() && !it.startsWith(item.genre) }
+        if (description != null) {
             Text(
-                text = "Press Select to watch now",
-                style = HqType.CardCaption,
-                color = hqAccent(),
-                fontWeight = FontWeight.Medium,
+                text = description,
+                style = HqType.Body,
+                color = HqColors.TextSecondary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(0.75f),
             )
         }
     }
@@ -859,7 +1034,7 @@ private fun SeriesHeroBillboard(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = series.title,
+            text = series.displayTitle,
             style = HqType.Headline,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -868,30 +1043,14 @@ private fun SeriesHeroBillboard(
 
         Spacer(Modifier.height(6.dp))
 
-        Text(
-            text = series.plot.ifBlank { "Browse all seasons and episodes on-demand." },
-            style = HqType.Body,
-            color = HqColors.TextSecondary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.fillMaxWidth(0.75f),
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = hqAccent(),
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(6.dp))
+        if (series.plot.isNotBlank()) {
             Text(
-                text = "Press Select to browse seasons & episodes",
-                style = HqType.CardCaption,
-                color = hqAccent(),
-                fontWeight = FontWeight.Medium,
+                text = series.plot,
+                style = HqType.Body,
+                color = HqColors.TextSecondary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(0.75f),
             )
         }
     }
@@ -1152,7 +1311,7 @@ private fun VodCard(
             }
             AsyncImage(
                 model = posterRequest,
-                contentDescription = item.title,
+                contentDescription = item.displayTitle,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -1199,7 +1358,7 @@ private fun VodCard(
             )
         }
 
-        Box(
+        if (item.posterUrl.isNullOrBlank()) Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -1208,7 +1367,7 @@ private fun VodCard(
         ) {
             Column {
                 Text(
-                    text = item.title,
+                    text = item.displayTitle,
                     style = HqType.CardCaption,
                     color = if (isFocused) Color.White else HqColors.TextSecondary,
                     fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
@@ -1307,7 +1466,7 @@ private fun SeriesCard(
             }
             AsyncImage(
                 model = posterRequest,
-                contentDescription = series.title,
+                contentDescription = series.displayTitle,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -1354,7 +1513,7 @@ private fun SeriesCard(
             )
         }
 
-        Box(
+        if (series.posterUrl.isNullOrBlank()) Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -1363,7 +1522,7 @@ private fun SeriesCard(
         ) {
             Column {
                 Text(
-                    text = series.title,
+                    text = series.displayTitle,
                     style = HqType.CardCaption,
                     color = if (isFocused) Color.White else HqColors.TextSecondary,
                     fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
@@ -1476,7 +1635,7 @@ private fun SeriesDetailModal(
                         modifier = Modifier.size(16.dp),
                     )
                     Text(
-                        text = "Press Back to Return",
+                        text = "Back",
                         style = HqType.CardCaption,
                         color = HqColors.TextSecondary,
                     )
@@ -1503,7 +1662,7 @@ private fun SeriesDetailModal(
                     if (!series.posterUrl.isNullOrBlank()) {
                         AsyncImage(
                             model = series.posterUrl,
-                            contentDescription = series.title,
+                            contentDescription = series.displayTitle,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
                         )
@@ -1569,7 +1728,7 @@ private fun SeriesDetailModal(
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        text = series.title,
+                        text = series.displayTitle,
                         style = HqType.Title,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -1701,7 +1860,7 @@ private fun SeasonTabChip(
             )
             .border(
                 width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) Color.White else if (isSelected) accent else HqColors.GlassStroke,
+                color = if (isFocused || isSelected) accent else HqColors.GlassStroke,
                 shape = shape,
             )
             .padding(horizontal = 16.dp, vertical = 8.dp),

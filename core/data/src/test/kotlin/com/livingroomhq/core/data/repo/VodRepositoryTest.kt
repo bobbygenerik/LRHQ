@@ -237,6 +237,38 @@ class VodRepositoryTest {
         assertEquals("Chapter One: The Vanishing of Will Byers", ep.title)
         assertEquals(48, ep.durationMinutes)
         assertEquals("https://iptv.example.test/series/user_a/test_password/1001.mkv", ep.streamUrl)
+
+        // Flat array format: "episodes": [ { ... } ]
+        val flatDetailJson = """
+            {
+              "seasons": [{"season_number": 1}],
+              "info": {
+                "name": "Stranger Things"
+              },
+              "episodes": [
+                {
+                  "id": "1002",
+                  "episode_num": 2,
+                  "season": 1,
+                  "title": "Chapter Two: The Weirdo on Maple Street",
+                  "container_extension": "mp4",
+                  "info": {
+                    "duration_secs": 3300,
+                    "plot": "Mike hides Eleven in his room."
+                  }
+                }
+              ]
+            }
+        """.trimIndent()
+        val flatDetail = DefaultVodRepository.parseSeriesDetail(endpoint, series, flatDetailJson)
+        assertNotNull(flatDetail)
+        assertEquals(listOf(1), flatDetail!!.seasons)
+        val flatEps = flatDetail.episodesBySeason[1]
+        assertNotNull(flatEps)
+        assertEquals(1, flatEps!!.size)
+        assertEquals("Chapter Two: The Weirdo on Maple Street", flatEps[0].title)
+        assertEquals(55, flatEps[0].durationMinutes)
+        assertEquals("https://iptv.example.test/series/user_a/test_password/1002.mp4", flatEps[0].streamUrl)
     }
 
     @Test
