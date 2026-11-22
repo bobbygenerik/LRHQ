@@ -170,19 +170,20 @@ Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_freeContext(
 JNIEXPORT void JNICALL
 Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_fullTranscribe(
         JNIEnv *env, jobject thiz, jlong context_ptr, jint num_threads, jfloatArray audio_data,
-        jstring language) {
+        jstring language, jboolean translate, jstring prompt) {
     UNUSED(thiz);
     struct whisper_context *context = (struct whisper_context *) context_ptr;
     jfloat *audio_data_arr = (*env)->GetFloatArrayElements(env, audio_data, NULL);
     const jsize audio_data_length = (*env)->GetArrayLength(env, audio_data);
     const char *language_chars = (*env)->GetStringUTFChars(env, language, NULL);
+    const char *prompt_chars = prompt != NULL ? (*env)->GetStringUTFChars(env, prompt, NULL) : NULL;
 
     struct whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
     params.print_realtime = false;
     params.print_progress = false;
     params.print_timestamps = false;
     params.print_special = false;
-    params.translate = false;
+    params.translate = translate;
     params.language = language_chars;
     params.n_threads = num_threads;
     params.offset_ms = 0;
@@ -193,6 +194,7 @@ Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_fullTranscribe
     params.temperature = 0.0f;
     params.temperature_inc = 0.0f;
     params.max_tokens = 64;
+    params.initial_prompt = prompt_chars;
     /* Reject music/noise hallucinations more aggressively on tiny. */
     params.no_speech_thold = 0.55f;
     params.entropy_thold = 2.4f;
@@ -205,6 +207,9 @@ Java_com_livingroomhq_translate_whisper_WhisperLib_00024Companion_fullTranscribe
         LOGW("whisper_full failed");
     }
 
+    if (prompt_chars != NULL) {
+        (*env)->ReleaseStringUTFChars(env, prompt, prompt_chars);
+    }
     (*env)->ReleaseStringUTFChars(env, language, language_chars);
     (*env)->ReleaseFloatArrayElements(env, audio_data, audio_data_arr, JNI_ABORT);
 }

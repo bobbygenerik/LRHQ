@@ -335,8 +335,7 @@ class PersistentChannelRepositoryTest {
             ingestDispatcher = dispatcher,
             fetchPlaylistStream = { error("network unavailable during restore test") },
         )
-        restored.restore()
-        runCurrent()
+        restored.restore()?.join()
 
         assertEquals("ABC World News", restored.epgNowNext(channelId).first?.title)
     }

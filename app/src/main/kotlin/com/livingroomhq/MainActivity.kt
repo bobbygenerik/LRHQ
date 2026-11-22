@@ -303,11 +303,22 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val app = application as HqApplication
+        val returningFromExternal = app.installedApps.launchedExternalApp
+        val wasAlreadyResumed = isResumedState
+        val suppressReset = app.installedApps.consumeSuppressHomeReset()
         app.installedApps.onHomePressed()
+
         if (!::nav.isInitialized) return
-        if (!intent.hasCategory(Intent.CATEGORY_HOME)) return
-        if (app.installedApps.consumeSuppressHomeReset()) return
-        nav.goHome()
+        val hasHomeCategory = intent.hasCategory(Intent.CATEGORY_HOME)
+        if (com.livingroomhq.navigation.HomeIntentPolicy.shouldGoHome(
+                hasHomeCategory = hasHomeCategory,
+                returningFromExternal = returningFromExternal,
+                suppressHomeReset = suppressReset,
+                wasAlreadyResumed = wasAlreadyResumed,
+            )
+        ) {
+            nav.goHome()
+        }
     }
 
     override fun onUserInteraction() {

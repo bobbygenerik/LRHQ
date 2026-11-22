@@ -4,12 +4,19 @@ import android.content.Context
 import android.util.Log
 import com.livingroomhq.player.pcm.CaptionAudioPolicy
 import com.livingroomhq.player.pcm.PcmCaptureHub
+import com.livingroomhq.translate.streaming.HypothesisBuffer
+import com.livingroomhq.translate.streaming.PipelineMode
+import com.livingroomhq.translate.streaming.StreamingAudioAccumulator
+import com.livingroomhq.translate.streaming.StreamingPipelineMetrics
+import com.livingroomhq.translate.streaming.TranscriptAssembler
 import com.livingroomhq.translate.whisper.WhisperSpeechRecognizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +50,10 @@ class LiveTranslatePipeline(
     private val _status = MutableStateFlow<String?>(null)
     val status: StateFlow<String?> = _status.asStateFlow()
 
+    private val _metrics = MutableStateFlow(StreamingPipelineMetrics())
+    val metrics: StateFlow<StreamingPipelineMetrics> = _metrics.asStateFlow()
+
+    @Volatile var pipelineMode: PipelineMode = PipelineMode.OPTIMIZED_STREAMING
     @Volatile var showSourceDebug: Boolean = false
 
     private val sessionGen = AtomicLong(0)
@@ -85,22 +96,12 @@ class LiveTranslatePipeline(
                     _status.value = "Loading Whisper…"
                     recognizer.ensureReady()
                     if (!isActive) return@launch
-                    // Start PCM while translator packs load so first window is warm.
                     PcmCaptureHub.startCapture()
                     logInputFormatOnce()
-                    _status.value = "Loading translator (${sourceLanguage.uppercase()}→EN)…"
-                    runCatching { translator.ensureReady(sourceLanguage) }
-                        .onFailure { t ->
-                            Log.e(TAG, "translator init failed session=${sessionGen.get()}", t)
-                            _status.value = "Translation model failed — change language to retry"
-                            return@launch
-                        }
                     _status.value = "Live ${sourceLanguage.uppercase()}→EN"
                     Log.i(
                         TAG,
-                        "pipeline live session=${sessionGen.get()} lang=$sourceLanguage channel=$channelId " +
-                            "windowSec=${WINDOW_SAMPLES.toDouble() / PcmAudioNormalizer.TARGET_RATE} " +
-                            "hopSec=${HOP_SAMPLES.toDouble() / PcmAudioNormalizer.TARGET_RATE}",
+                        "pipeline live session=${sessionGen.get()} lang=$sourceLanguage channel=$channelId",
                     )
                     runLoop(scope)
                 } catch (t: Throwable) {
@@ -179,15 +180,19 @@ class LiveTranslatePipeline(
         }
     }
 
+    private var previousLine: String = ""
+
     fun clearCaptions() {
         _englishCaption.value = null
         _sourceCaption.value = null
+        previousLine = ""
         lastCaptionAtMs = 0L
     }
 
     private fun resetStreamingState() {
         lastSourceText = ""
         lastTranslatedSource = ""
+        previousLine = ""
         liveSilentSinceMs.set(0)
         inferJob?.cancel()
         inferJob = null
@@ -239,6 +244,208 @@ class LiveTranslatePipeline(
     }
 
     private suspend fun runLoop(scope: CoroutineScope) {
+        if (pipelineMode == PipelineMode.OPTIMIZED_STREAMING) {
+            runOptimizedStreamingLoop(scope)
+        } else {
+            runLegacyLoop(scope)
+        }
+    }
+
+    private suspend fun runOptimizedStreamingLoop(scope: CoroutineScope) {
+        val asrChannel = Channel<Pair<StreamingAudioAccumulator.AudioSlice, Long>>(
+            capacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
+        val translationChannel = Channel<Pair<TranscriptAssembler.TranslationUnit, Long>>(
+            capacity = 2,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
+
+        val accumulator = StreamingAudioAccumulator()
+        val hypothesisBuffer = HypothesisBuffer()
+        val assembler = TranscriptAssembler()
+        val liveVadBuffer = ArrayList<Float>(LIVE_VAD_SAMPLES * 2)
+
+        var sid = sessionGen.get()
+        var lastStatusHeartbeat = 0L
+
+        // Stage 2: Whisper worker coroutine
+        val asrWorker = scope.launch(Dispatchers.Default) {
+            for ((slice, sliceSid) in asrChannel) {
+                if (!stillCurrent(sliceSid)) {
+                    hypothesisBuffer.clear()
+                    assembler.clear()
+                    continue
+                }
+
+                val tAsr0 = System.nanoTime()
+                val lang = sourceLanguage
+                val asr = runCatching { recognizer.transcribe(slice.pcm, lang, translateToEnglish = true) }
+                    .getOrElse { t ->
+                        Log.e(TAG, "streaming whisper failed session=$sliceSid", t)
+                        AsrResult("")
+                    }
+                val asrMs = (System.nanoTime() - tAsr0) / 1_000_000L
+                val rtf = if (slice.durationSec > 0f) asrMs.toFloat() / (slice.durationSec * 1000f) else 0f
+
+                if (!stillCurrent(sliceSid)) continue
+                if (asr.maxNoSpeechProb >= NO_SPEECH_PROB_REJECT) continue
+
+                val raw = asr.text
+                Log.i(
+                    TAG,
+                    "streamWhisperDirect session=$sliceSid dur=${"%.2f".format(slice.durationSec)}s " +
+                        "asrMs=$asrMs rtf=${"%.2f".format(rtf)} english=\"${raw.take(60)}\" p=${"%.2f".format(asr.maxNoSpeechProb)}",
+                )
+                if (raw.isBlank()) continue
+
+                val hypoOutput = hypothesisBuffer.ingestHypothesis(raw, slice.isUtteranceEnd)
+                val committed = hypoOutput.committedText
+                Log.i(TAG, "streamCommit session=$sliceSid committed=\"${committed.take(60)}\"")
+
+                if (committed.isNotBlank()) {
+                    val cleanEn = collapseRepetitions(committed)
+                    if (isHallucinatedLoop(raw, cleanEn)) {
+                        Log.i(TAG, "streamHallucinationReject session=$sliceSid rawChars=${raw.length} cleanChars=${cleanEn.length}")
+                        continue
+                    }
+                    if (cleanEn.isNotBlank() && !isNoiseOrEmpty(cleanEn)) {
+                        publishCaption(committed, cleanEn, sliceSid)
+                        val endToEnd = asrMs
+                        _metrics.value = StreamingPipelineMetrics(
+                            asrMs = asrMs,
+                            mtMs = 0L,
+                            endToEndLatencyMs = endToEnd,
+                            queueDepth = PcmCaptureHub.snapshot().queueDepth,
+                            droppedWindows = StreamingPipelineMetrics.getDroppedCount(),
+                        )
+                        Log.i(TAG, "streamCaption session=$sliceSid latency=${endToEnd}ms en=\"$cleanEn\"")
+                    }
+                }
+            }
+        }
+
+        // Stage 3: Translation worker coroutine
+        val mtWorker = scope.launch(Dispatchers.Default) {
+            for ((unit, unitSid) in translationChannel) {
+                if (!stillCurrent(unitSid)) continue
+                val source = unit.sourceText
+                val normalized = normalizeForMt(source)
+                if (normalized == lastTranslatedSource) continue
+
+                val lang = sourceLanguage
+                lastSourceText = source
+                _sourceCaption.value = source
+
+                val tMt0 = System.nanoTime()
+                val english = runCatching { translator.translate(source, lang) }
+                    .getOrElse { t ->
+                        Log.e(TAG, "streaming translate failed session=$unitSid", t)
+                        ""
+                    }
+                val mtMs = (System.nanoTime() - tMt0) / 1_000_000L
+                Log.i(TAG, "streamMt session=$unitSid mtMs=$mtMs src=\"${source.take(60)}\" en=\"${english.take(60)}\"")
+
+                if (!stillCurrent(unitSid)) continue
+
+                val cleanEn = if (english.isNotBlank() && !isNoiseOrEmpty(english)) {
+                    collapseRepetitions(english)
+                } else {
+                    ""
+                }
+
+                if (cleanEn.isNotBlank()) {
+                    lastTranslatedSource = normalized
+                    publishCaption(source, cleanEn, unitSid)
+                    val endToEnd = System.currentTimeMillis() - unit.timestampMs
+                    _metrics.value = StreamingPipelineMetrics(
+                        mtMs = mtMs,
+                        endToEndLatencyMs = endToEnd,
+                        queueDepth = PcmCaptureHub.snapshot().queueDepth,
+                        droppedWindows = StreamingPipelineMetrics.getDroppedCount(),
+                    )
+                }
+            }
+        }
+
+        try {
+            while (kotlinx.coroutines.currentCoroutineContext().isActive) {
+                val currentSid = sessionGen.get()
+                if (currentSid != sid) {
+                    sid = currentSid
+                    accumulator.clear()
+                    hypothesisBuffer.clear()
+                    assembler.clear()
+                    liveVadBuffer.clear()
+                    resetStreamingState()
+                    continue
+                }
+
+                maybeHideStaleCaption()
+
+                // Drain hub chunks
+                val fmt = PcmCaptureHub.currentFormat()
+                var drained = 0
+                val tempBuffer = ArrayList<Float>()
+                while (drained < MAX_DRAIN_CHUNKS_PER_TICK) {
+                    val chunk = PcmCaptureHub.pollChunk() ?: break
+                    if (drained == 0) logInputFormatOnce()
+                    PcmAudioNormalizer.appendNormalized(chunk, fmt, tempBuffer)
+                    drained++
+                }
+
+                if (tempBuffer.isNotEmpty()) {
+                    accumulator.append(tempBuffer)
+                    liveVadBuffer.addAll(tempBuffer)
+                    if (liveVadBuffer.size > LIVE_VAD_SAMPLES * 4) {
+                        dropFront(liveVadBuffer, liveVadBuffer.size - LIVE_VAD_SAMPLES * 2)
+                    }
+                }
+
+                if (drained == 0) {
+                    delay(8)
+                }
+
+                updateLiveSilence(liveVadBuffer, sid)
+
+                // Poll adaptive slice
+                val slice = accumulator.pollSlice()
+                if (slice != null) {
+                    val sent = asrChannel.trySend(slice to sid)
+                    if (!sent.isSuccess) {
+                        StreamingPipelineMetrics.recordDrop()
+                    }
+                }
+
+                val now = System.currentTimeMillis()
+                if (now - lastStatusHeartbeat > 5_000L) {
+                    lastStatusHeartbeat = now
+                    if (translator.preparingStatus.value == null) {
+                        _status.value = "Live ${sourceLanguage.uppercase()}→EN"
+                    }
+                }
+            }
+        } finally {
+            asrWorker.cancel()
+            mtWorker.cancel()
+            asrChannel.close()
+            translationChannel.close()
+        }
+    }
+
+    private fun publishCaption(source: String, english: String?, sid: Long) {
+        if (!stillCurrent(sid) || english.isNullOrBlank()) return
+        val currentEn = english.trim()
+        val display = if (showSourceDebug) "$currentEn\n[$source]" else currentEn
+        if (display == _englishCaption.value) {
+            lastCaptionAtMs = System.currentTimeMillis()
+            return
+        }
+        _englishCaption.value = display
+        lastCaptionAtMs = System.currentTimeMillis()
+    }
+
+    private suspend fun runLegacyLoop(scope: CoroutineScope) {
         val buffer = ArrayList<Float>(WINDOW_SAMPLES + HOP_SAMPLES)
         var droppedSamples = 0L
         var sid = sessionGen.get()
@@ -463,16 +670,6 @@ class LiveTranslatePipeline(
         }
     }
 
-    private fun publishCaption(source: String, english: String?, sid: Long) {
-        if (!stillCurrent(sid) || english.isNullOrBlank()) return
-        val display = if (showSourceDebug) "$english\n[$source]" else english
-        if (display == _englishCaption.value) {
-            lastCaptionAtMs = System.currentTimeMillis()
-            return
-        }
-        _englishCaption.value = display
-        lastCaptionAtMs = System.currentTimeMillis()
-    }
 
     private fun maybeHideStaleCaption() {
         val last = lastCaptionAtMs
@@ -523,7 +720,7 @@ class LiveTranslatePipeline(
         /** ~250 ms of newest audio for live silence tracking. */
         const val LIVE_VAD_SAMPLES = PcmAudioNormalizer.TARGET_RATE / 4
         /** Clear on-screen caption after real pause. */
-        const val LIVE_SILENCE_CLEAR_MS = 2_200L
+        const val LIVE_SILENCE_CLEAR_MS = 3_500L
         /** Drop a late ASR result only if live has been quiet this long. */
         const val DROP_AFTER_SILENCE_HOLD_MS = 10_000L
         /** Keep last caption up for 4.5s max so lines do not linger. */
@@ -539,18 +736,30 @@ class LiveTranslatePipeline(
             buffer.subList(0, n).clear()
         }
 
-        /** Tiny looped Whisper garbage: huge raw → tiny collapsed. */
+        /** Tiny looped Whisper garbage: huge raw → tiny collapsed, or excessive repetition of a single token. */
         fun isHallucinatedLoop(raw: String, collapsed: String): Boolean {
-            if (raw.length < 80) return false
-            if (collapsed.length >= 24) return false
-            return collapsed.length * 8 <= raw.length
+            if (raw.length >= 40 && collapsed.length * 4 <= raw.length) return true
+            val words = raw.split(Regex("""\s+""")).filter { it.isNotBlank() }
+            if (words.size >= 5) {
+                val mostFrequent = words.groupingBy { it.lowercase() }.eachCount().maxByOrNull { it.value }
+                if (mostFrequent != null && mostFrequent.value >= 4 && mostFrequent.value * 2 >= words.size) {
+                    return true
+                }
+            }
+            return false
         }
+
+        fun stripSfx(text: String): String =
+            text.replace(Regex("""\[.*?\]|\(.*?\)|【.*?】|（.*?）|♪+"""), "")
+                .replace(Regex("""\s+"""), " ")
+                .trim()
 
         /** Bracket/paren SFX labels Whisper invents: (risos), [campainha], ♪… */
         fun isSfxLabel(text: String): Boolean {
             val t = text.trim()
             if (t.isEmpty()) return true
             if (BRACKET_ONLY.matches(t)) return true
+            if (stripSfx(t).isEmpty()) return true
             val lower = normalizeForMt(t)
             if (SFX_TOKENS.any { lower == it || lower.contains(it) }) return true
             return false
@@ -576,6 +785,10 @@ class LiveTranslatePipeline(
                 "inaudible",
                 "inaudível",
                 "music playing",
+                "música de fundo",
+                "musica de fundo",
+                "barulho",
+                "truco",
             )
 
         /**

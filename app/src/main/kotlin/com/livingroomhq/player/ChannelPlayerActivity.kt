@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -264,10 +267,21 @@ private fun ChannelPlayerScreen(
         translatePipeline.setSourceLanguage(sourceLang)
     }
 
-    LaunchedEffect(englishCaption, offlineStatus, captionsEnabled) {
+    LaunchedEffect(englishCaption, captionsEnabled) {
         if (!captionsEnabled) return@LaunchedEffect
         captionText = englishCaption
+    }
+
+    LaunchedEffect(offlineStatus, captionsEnabled) {
+        if (!captionsEnabled) {
+            captionStatus = null
+            return@LaunchedEffect
+        }
         captionStatus = offlineStatus
+        if (offlineStatus?.contains("Live", ignoreCase = true) == true) {
+            delay(3000)
+            captionStatus = null
+        }
     }
 
     val allChannels by app.channels.channels.collectAsState(initial = emptyList())
@@ -556,10 +570,19 @@ private fun ChannelPlayerScreen(
         if (playbackError == null && captionsAvailable) {
             var ccFocused by remember { mutableStateOf(false) }
             var langFocused by remember { mutableStateOf(false) }
+            val controlsVisible = infoVisible || ccFocused || langFocused
+            val controlsAlpha by animateFloatAsState(
+                targetValue = if (controlsVisible) 1f else 0f,
+                label = "cc_alpha",
+            )
             Row(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .alpha(controlsAlpha)
+                    .focusProperties {
+                        canFocus = controlsVisible
+                    },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -626,19 +649,26 @@ private fun ChannelPlayerScreen(
                     )
                 }
             }
-            captionStatus?.let { status ->
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(top = 84.dp, start = 24.dp)
-                        .clip(RoundedCornerShape(HqDimens.CornerSm))
-                        .background(HqColors.Scrim)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                ) {
-                    Text(
-                        status,
-                        style = HqType.Label.copy(color = HqColors.TextPrimary),
-                    )
+            AnimatedVisibility(
+                visible = captionStatus != null,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 84.dp, start = 24.dp),
+            ) {
+                captionStatus?.let { status ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(HqDimens.CornerSm))
+                            .background(HqColors.Scrim)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            status,
+                            style = HqType.Label.copy(color = HqColors.TextPrimary),
+                        )
+                    }
                 }
             }
         }

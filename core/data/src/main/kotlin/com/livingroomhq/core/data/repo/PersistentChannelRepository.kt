@@ -1,6 +1,7 @@
 package com.livingroomhq.core.data.repo
 
 import android.content.Context
+import android.util.Log
 import androidx.room.RoomDatabase
 import androidx.room.withTransaction
 import com.livingroomhq.core.data.db.ChannelEntity
@@ -53,8 +54,9 @@ private const val EPG_PREFETCH_CHANNEL_CAP = 48
 /** Size of the recents ring buffer. */
 private const val RECENTS_CAP = 8
 
+private const val TAG = "PersistentChannelRepo"
 /** Room upsert batch size for streaming XMLTV ingest. */
-private const val EPG_UPSERT_BATCH_SIZE = 500
+private const val EPG_UPSERT_BATCH_SIZE = 2500
 
 /** SQLite caps host parameters at 999; stay under it for IN (:ids) queries. */
 private const val SQLITE_MAX_BIND_ARGS = 900
@@ -69,18 +71,19 @@ class PersistentChannelRepository(
     private val iptvDao: IptvDao,
     private val prefs: LauncherPrefsStore,
     private val scope: CoroutineScope,
-    private val appContext: Context,
+    private val appContext: Context? = null,
     private val nowMillis: () -> Long = System::currentTimeMillis,
     private val workDispatcher: CoroutineDispatcher = Dispatchers.Default,
     /** Playlist/EPG downloads are read while parsing — keep that off the CPU pool. */
     private val ingestDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val fetchPlaylistStream: suspend (String) -> InputStream = { url -> httpGetStream(appContext, url) },
+    private val fetchPlaylistStream: suspend (String) -> InputStream = { url -> httpGetStream(url) },
     private val conditionalFetch: (suspend (String, HttpSyncMetadata?) -> ConditionalFetchResult)? = null,
     /** Real DB in production so multi-statement writes run in one Room transaction. */
     private val db: RoomDatabase? = null,
 ) : ChannelRepository {
 
-    private val epgCacheDir = File(appContext.cacheDir, "epg")
+    private val epgCacheDir = appContext?.let { File(it.cacheDir, "epg") }
+        ?: File(System.getProperty("java.io.tmpdir"), "lrhq_epg")
 
     /**
      * Runs multi-statement DB writes atomically. Room guarantees single
@@ -142,7 +145,7 @@ class PersistentChannelRepository(
         }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun epgNowNext(channelId: String): Pair<Program?, Program?> {
-        _nowNextCache.value[channelId]?.let { cached ->
+        val cached = _nowNextCache.value[channelId]?.let { cached ->
             if (!GuideMatcher.isNowNextStale(cached, nowMillis())) return cached
         }
         val programs = programsForChannel(channelId)
@@ -215,7 +218,8 @@ class PersistentChannelRepository(
     override suspend fun loadXmltv(epgUrl: String) = withContext(ingestDispatcher) {
         runLoggedCatching("guide") {
             if (conditionalFetch == null) {
-                val epgFile = downloadEpgToCache(appContext, epgUrl)
+                val stream = fetchPlaylistStream(epgUrl)
+                val epgFile = saveStreamToCache(stream, File(epgCacheDir, "epg.xml"))
                 ingestXmltv(FileInputStream(epgFile), epgUrl, null)
                 return@runLoggedCatching
             }
@@ -223,11 +227,22 @@ class PersistentChannelRepository(
             when (val fetch = conditionalFetch(epgUrl, prior)) {
                 ConditionalFetchResult.NotModified -> {
                     if (_loadedEpg.value.isNotEmpty()) return@runLoggedCatching
-                    val epgFile = downloadEpgToCache(appContext, epgUrl)
-                    ingestXmltv(FileInputStream(epgFile), epgUrl, null)
+                    val active = iptvDao.getProgramsInWindow(nowMillis(), epgMemoryWindowEnd(nowMillis()))
+                    if (active.isNotEmpty()) {
+                        refreshMemoryEpgFromDatabase()
+                        return@runLoggedCatching
+                    }
+                    val cachedFile = File(epgCacheDir, "epg.xml")
+                    if (cachedFile.exists() && cachedFile.length() > 0) {
+                        ingestXmltv(FileInputStream(cachedFile), epgUrl, null)
+                        return@runLoggedCatching
+                    }
+                    val stream = fetchPlaylistStream(epgUrl)
+                    val downloaded = saveStreamToCache(stream, File(epgCacheDir, "epg.xml"))
+                    ingestXmltv(FileInputStream(downloaded), epgUrl, null)
                 }
                 is ConditionalFetchResult.Modified -> {
-                    val epgFile = downloadEpgToCache(appContext, epgUrl)
+                    val epgFile = saveStreamToCache(fetch.stream, File(epgCacheDir, "epg.xml"))
                     ingestXmltv(FileInputStream(epgFile), epgUrl, fetch.metadata)
                 }
             }
@@ -237,6 +252,7 @@ class PersistentChannelRepository(
     }
 
     private suspend fun ingestXmltv(stream: InputStream, epgUrl: String, metadata: HttpSyncMetadata?) {
+        val t0 = System.currentTimeMillis()
         val now = nowMillis()
         val windowEnd = epgMemoryWindowEnd(now)
         val memoryCachePrograms = mutableListOf<Program>()
@@ -245,14 +261,18 @@ class PersistentChannelRepository(
         val batch = ArrayList<ProgramEntity>(EPG_UPSERT_BATCH_SIZE)
         val seenGuideChannelIds = mutableSetOf<String>()
         var programCount = 0
+        var earlyCacheApplied = false
 
         suspend fun flushBatch() {
             if (batch.isNotEmpty()) {
-                iptvDao.insertPrograms(batch.toList())
+                dbWrite {
+                    iptvDao.insertPrograms(batch.toList())
+                }
                 batch.clear()
             }
         }
 
+        Log.i(TAG, "Starting XMLTV streaming parse from $epgUrl")
         XmltvParser.parse(
             inputStream = stream,
             onChannelParsed = { id, displayNames ->
@@ -264,7 +284,16 @@ class PersistentChannelRepository(
                 programCount++
                 seenGuideChannelIds.add(program.channelId)
                 batch.add(ProgramEntity.fromModel(program))
-                if (batch.size >= EPG_UPSERT_BATCH_SIZE) flushBatch()
+                if (batch.size >= EPG_UPSERT_BATCH_SIZE) {
+                    flushBatch()
+                    if (!earlyCacheApplied && memoryCachePrograms.size >= 50) {
+                        earlyCacheApplied = true
+                        val snapshotAliases = guideAliases.toMap()
+                        ensureGuideAliasesForPrograms(snapshotAliases.toMutableMap(), guideDisplayNames, seenGuideChannelIds)
+                        applyGuideCache(memoryCachePrograms.toList(), snapshotAliases)
+                        Log.i(TAG, "Early active guide cache applied with ${memoryCachePrograms.size} programs in ${System.currentTimeMillis() - t0}ms")
+                    }
+                }
                 if (program.endMillis > now && program.startMillis < windowEnd) {
                     memoryCachePrograms.add(program)
                 }
@@ -293,6 +322,8 @@ class PersistentChannelRepository(
         )
         prefs.setEpgUrl(epgUrl)
         metadata?.let { prefs.setEpgSyncMetadata(it) }
+        val totalMs = System.currentTimeMillis() - t0
+        Log.i(TAG, "XMLTV ingest complete: $programCount programs, ${guideDisplayNames.size} channels in ${totalMs}ms")
     }
 
     private suspend fun applyGuideCache(
@@ -443,12 +474,13 @@ class PersistentChannelRepository(
             return emptyList()
         }
 
-        val channel = _channelById.value[channelId] ?: return emptyList()
-        val matchedGuideId = GuideMatcher.resolveGuideChannelId(
+        val channel = _channelById.value[channelId]
+        val matchedGuideId = if (channel != null) GuideMatcher.resolveGuideChannelId(
             channel = channel,
             guideAliases = _loadedEpgAliases.value,
             aliasIndex = _loadedEpgAliasIndex.value,
-        )
+        ) else null
+        if (channel == null) return emptyList()
         if (matchedGuideId == null) {
             unresolvedGuideChannelIds += channelId
         } else {
@@ -613,10 +645,17 @@ class PersistentChannelRepository(
             .toList()
     }
 
-    fun restore() {
-        if (!restoreGuard.compareAndSet(false, true)) return
-        scope.launch(workDispatcher) {
+    fun restore(): Job? {
+        if (!restoreGuard.compareAndSet(false, true)) return null
+        val restoreJob = scope.launch(workDispatcher) {
+            runLoggedCatching("restore_channels") {
+                val savedChannels = iptvDao.getChannels().map { it.toModel() }
+                if (savedChannels.isNotEmpty() && _channelById.value.isEmpty()) {
+                    _channelById.value = savedChannels.associateBy { it.id }
+                }
+            }
             runLoggedCatching("restore_epg_cache") {
+                val t0 = System.currentTimeMillis()
                 val guideDisplayNames = iptvDao.getAllGuideChannels()
                     .associate { entity -> entity.id to entity.displayNameList() }
                     .toMutableMap()
@@ -634,6 +673,7 @@ class PersistentChannelRepository(
                     programs = active.map { it.toModel() },
                     guideAliases = guideAliases,
                 )
+                Log.i(TAG, "Restored EPG cache from DB: ${active.size} active programs, ${guideAliases.size} channels in ${System.currentTimeMillis() - t0}ms")
             }
         }
 
@@ -642,24 +682,27 @@ class PersistentChannelRepository(
                 if (url == null) {
                     iptvDao.clearChannels()
                 } else {
+                    restoreJob.join()
                     retryWithBackoff { loadM3u(url) }
                 }
             }
         }
 
-scope.launch(workDispatcher) {
+        scope.launch(workDispatcher) {
             prefs.epgUrl.collectLatest { url ->
                 if (url == null) {
                     clearXmltv()
                 } else {
+                    restoreJob.join()
                     retryWithBackoff { loadXmltv(url) }
                 }
             }
         }
+        return restoreJob
     }
 }
 
-private suspend fun httpGetStream(context: Context, url: String): InputStream = withContext(Dispatchers.IO) {
+private suspend fun httpGetStream(url: String): InputStream = withContext(Dispatchers.IO) {
     val request = Request.Builder()
         .url(url)
         .header(
@@ -685,8 +728,29 @@ private suspend fun httpGetStream(context: Context, url: String): InputStream = 
     }
 }
 
-private suspend fun downloadEpgToCache(context: Context, epgUrl: String): File = withContext(Dispatchers.IO) {
-    val epgCacheDir = File(context.cacheDir, "epg")
+private suspend fun saveStreamToCache(stream: InputStream, cacheFile: File): File = withContext(Dispatchers.IO) {
+    cacheFile.parentFile?.mkdirs()
+    val tempFile = File.createTempFile("epg_", ".tmp", cacheFile.parentFile)
+    try {
+        stream.use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        if (cacheFile.exists()) cacheFile.delete()
+        if (!tempFile.renameTo(cacheFile)) {
+            tempFile.copyTo(cacheFile, overwrite = true)
+            tempFile.delete()
+        }
+    } finally {
+        if (tempFile.exists()) tempFile.delete()
+    }
+    cacheFile
+}
+
+private suspend fun downloadEpgToCache(context: Context?, epgUrl: String): File = withContext(Dispatchers.IO) {
+    val cacheDir = context?.cacheDir ?: File(System.getProperty("java.io.tmpdir"), "lrhq_cache")
+    val epgCacheDir = File(cacheDir, "epg")
     epgCacheDir.mkdirs()
     val file = File(epgCacheDir, "epg.xml")
     val request = Request.Builder()

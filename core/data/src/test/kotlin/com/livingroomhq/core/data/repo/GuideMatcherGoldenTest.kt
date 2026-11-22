@@ -38,7 +38,7 @@ class GuideMatcherGoldenTest(
                             obj.getString("name"),
                             parseChannel(obj.getJSONObject("channel")),
                             parseGuideAliases(obj.getJSONObject("guideAliases")),
-                            parseAliasIndex(obj.getJSONObject("aliasIndex")),
+                            GuideMatcher.buildAliasIndex(parseGuideAliases(obj.getJSONObject("guideAliases"))),
                             obj.optString("expectedGuideId").takeIf { obj.has("expectedGuideId") && !obj.isNull("expectedGuideId") },
                         ),
                     )

@@ -22,7 +22,7 @@ object XmltvParser {
             isNamespaceAware = false
         }
         val parser = factory.newPullParser()
-        val sanitized = XmlSanitizingInputStream(inputStream)
+        val sanitized = XmlSanitizingInputStream(inputStream.buffered(65536))
         sanitized.use { stream ->
             parser.setInput(stream, "UTF-8")
             var eventType = parser.eventType
